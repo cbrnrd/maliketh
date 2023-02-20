@@ -1,6 +1,5 @@
 from flask import Flask 
-from speedrun.admin import *
-from speedrun.db import db
+from maliketh.db import db
 
 def build_app():
     app = Flask(__name__)

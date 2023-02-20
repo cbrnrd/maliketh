@@ -1,2 +1,2 @@
-flask_sqlalchemy==2.1
-flask==0.12.2
+flask_sqlalchemy==2.0.3
+flask==2.0.3
