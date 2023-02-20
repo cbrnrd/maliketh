@@ -1,0 +1,33 @@
+version: "3.2"
+services:
+  # Set up RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+        - 5672:5672
+        - 15672:15672
+    volumes:
+        - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+        - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+        - rabbitmq_net
+
+  # Start our Flask app
+  flask:
+    build: .
+    container_name: 'flask'
+    ports:
+        - 443:443  # For implants
+        - 28300:28300  # For operators
+    volumes:
+        - .:/app
+    depends_on:
+        - rabbitmq
+    networks:
+        - rabbitmq_net
+
+networks:
+  rabbitmq_net:
+    driver: bridge
+    
