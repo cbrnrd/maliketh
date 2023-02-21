@@ -20,7 +20,7 @@ services:
     ports:
         - 443:443      # For implants
         - 28300:28300  # For operators
-        - 5000:5000    # For development
+        - 4999:4999    # For development
     volumes:
         - .:/app
     depends_on:
