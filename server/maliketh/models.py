@@ -39,6 +39,7 @@ class Implant(db.Model):
     arch: str = db.Column(db.String)
     user: str = db.Column(db.String)
     aes_key: str = db.Column(db.String)  # Base64 encoded AES key
+    aes_iv: str = db.Column(db.String)   # Base64 encoded AES IV
     created_at: str = db.Column(db.String)
     last_seen: str = db.Column(db.String)
 

