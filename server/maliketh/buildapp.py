@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from flask import Flask
 from maliketh.config import get_admin_creds 
 from maliketh.db import db

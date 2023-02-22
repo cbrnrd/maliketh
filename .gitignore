@@ -1,3 +1,5 @@
-*/__pycache__/
+**/__pycache__/
 server/maliketh/__pycache__
 server/instance/
+server/config/admin/certs/*
+!server/config/admin/certs/.keep
