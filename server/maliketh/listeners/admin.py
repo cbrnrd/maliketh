@@ -54,7 +54,7 @@ def request_token() -> Any:
     # Generate a new token
     token = random_hex(128)
     operator.auth_token = token
-    operator.auth_token_expiration = datetime.now() + timedelta(hours=6)
+    operator.auth_token_expiry = datetime.now() + timedelta(hours=6)
     db.session.commit()
 
     # TODO rabbitmq stuff
