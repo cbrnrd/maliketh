@@ -9,6 +9,55 @@ from maliketh.crypto.utils import random_hex, random_string
 admin = Blueprint("admin", __name__)
 
 
+def verify_auth_token(request) -> Optional[str]:
+    """
+    Given a request, verify its Authentication header
+
+    :param request: The request to verify
+    :return The operator username if the token is valid, otherwise None
+    """
+    # Get bearer token
+    token = request.headers.get("Authorization", None)
+    if token is None:
+        return None
+
+    # Check if it's a bearer token
+    if not token.startswith("Bearer "):
+        return None
+
+    # Get the token
+    token = token[7:]
+
+    # Get the operator
+    operator = Operator.query.filter_by(auth_token=token).first()
+    if operator is None:
+        return None
+
+    # Check if the token is still valid
+    token_exp = datetime.strptime(operator.auth_token_expiry, "%Y-%m-%d %H:%M:%S")
+    if token_exp < datetime.now():
+        return None
+
+    return operator
+
+
+def verified(func):
+    """
+    Decorator to check if the request is authenticated
+    :param func: The function to decorate
+    :return The decorated function with the operator as a keyword argument
+    """
+    def wrapper(*args, **kwargs):
+        # Check if the request is authenticated
+        operator = verify_auth_token(request)
+        if operator is None:
+            return jsonify({"status": False, "msg": "Not authenticated"}), 401
+        kwargs = {**kwargs, "operator": operator}
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
 @admin.route("/op/auth/token/request", methods=["GET"])  # type: ignore
 def request_token() -> Any:
     # Check if X-ID and X-Signature header is present
@@ -28,34 +77,44 @@ def request_token() -> Any:
     if operator is None:
         return jsonify({"status": False}), 400
 
-    operator_pub_key = PublicKey(
-        operator.public_key.encode("utf-8"), encoder=Base64Encoder
-    )
-    operator_verify_key = VerifyKey(
-        operator.verify_key.encode("utf-8"), encoder=Base64Encoder
+    original_message = decrypt_and_verify(
+        bytes(request.headers["X-Signature"], "utf-8"), operator
     )
 
-    # Decrypt the message
-    with open(SERVER_PRIV_KEY_PATH, "rb") as f:
-        server_priv_key = PrivateKey(f.read(), encoder=Base64Encoder)
-    decrypted = decrypt(
-        operator_pub_key,
-        server_priv_key,
-        bytes(request.headers["X-Signature"], "utf-8"),
-        encoder=Base64Encoder,
-    )
-    if decrypted is None:
-        return jsonify({"status": False, "msg": "Empty decrypted message"}), 400
-
-    # Verify the signature
-    if not verify_signature(operator_verify_key, decrypted):
+    if original_message is None:
         return jsonify({"status": False, "msg": "Couldn't verify signature"}), 400
 
-    # Generate a new token
-    token = random_hex(128)
-    operator.auth_token = token
-    operator.auth_token_expiry = datetime.now() + timedelta(hours=6)
-    db.session.commit()
+    original_message = original_message.decode("utf-8")
+
+    if original_message != operator.login_secret:
+        return (
+            jsonify(
+                {
+                    "status": False,
+                    "msg": "Unable to verify signature",
+                }
+            ),
+            400,
+        )
+
+    # If we get here, the operator is authenticated
+
+    # Check if the token is still valid
+
+    if (
+        operator.auth_token_expiry is not None
+        and datetime.strptime(operator.auth_token_expiry, "%Y-%m-%d %H:%M:%S")
+        > datetime.now()
+    ):
+        token = operator.auth_token
+    else:
+        # Generate a new token
+        token = random_hex(128)
+        operator.auth_token = token
+        operator.auth_token_expiry = (datetime.now() + timedelta(hours=6)).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+        db.session.commit()
 
     # TODO rabbitmq stuff
 
@@ -71,3 +130,12 @@ def request_token() -> Any:
         ),
         200,
     )
+
+
+@admin.route("/op/auth/token/revoke", methods=["GET"])  # type: ignore
+@verified
+def revoke_token(operator: Operator) -> Any:
+    operator.auth_token = None
+    operator.auth_token_expiry = None
+    db.session.commit()
+    return jsonify({"status": True}), 200

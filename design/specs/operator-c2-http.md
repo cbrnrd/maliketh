@@ -73,4 +73,20 @@ DELETE /op/auth/token/revoke
 Authentication: Bearer <insert_token_here>
 ```
 
-If the request is successful, the server will return a 200 OK with no body. If it fails, the status code will be 400. This either means there was no authentication token that matched the one in the request or the one given in the request has been revoked or reached its EOL.
+__Example response__:
+Success:
+
+```json
+{
+  "status": true
+}
+```
+
+Failure:
+
+```json
+{
+  "status": false,
+  "message": "Invalid token"
+}
+```

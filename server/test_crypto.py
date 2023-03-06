@@ -29,12 +29,12 @@ config = {
     "name": "admin",
     "c2": "localhost",
     "c2_port": 5000,
-    "login_secret": "W9+jm;z'T?gYY1'REluej&es^Srw/n@Z",
-    "secret": "ZdSKIyk9ZPGppi926u+CD/sVQS2+CGy6bRfsR7TDjKo=",
-    "public": "doXaRsqgW+FZhHexhBy+FGZdvjCrwllJrRC5HkXCaRE=",
-    "signing_key": "nCPhgsfy/JOvxtZJv8bVWl+GHkuu74P0k8PZMUiK/98=",
-    "verify_key": "jtow7jdwF2Bk6E0KjGIlR+Xi48yeZeUWLFJAhXpkjeY=",
-    "server_pub": "CzRpp+zOLr1Bx176tGZbMcwb0H8w/Hye3xhrFRvfQFQ="
+    "login_secret": "rye.0i=%!lg=K(7uWw)NDJ/w%cWb{a;5",
+    "secret": "IphVZW9ePZVZNSWIhK4OmDDNflI2wlgK4ZFmTQnkCiU=",
+    "public": "ehQzOauEpGpDjabygBixNwR5ZVbbhNM8Hd7MLqC0BEg=",
+    "signing_key": "H6poQgZLd10/K0qoJbYRyeZTVIOW/6z94gFyXfT7TaI=",
+    "verify_key": "CL3/MJ2h/W6/Dy9xhmelDLT7bPX+FDICj+tj+5wZd+E=",
+    "server_pub": "IP9kRzu0UdAwp1nxFAYig5E8Zhm/RLodnEnHVc76+lc="
 }
 
 admin_signing_key = SigningKey(config["signing_key"].encode("utf-8"), encoder=Base64Encoder)
@@ -43,24 +43,19 @@ admin_pk = PublicKey(config["public"].encode("utf-8"), encoder=Base64Encoder)
 admin_secret = PrivateKey(config["secret"].encode("utf-8"), encoder=Base64Encoder)
 
 
-message = "Hello World"
+message = config['login_secret']
 
 ### Client side ###
 signed = admin_signing_key.sign(message.encode("utf-8"))
 print(f'Signed message: {signed.signature}')
 
 box = Box(admin_secret, server_pub_key)
-# encrypted = box.encrypt(signed)
-# b64encrypted = box.encrypt(signed, encoder=Base64Encoder)
 b64encrypted = encrypt(server_pub_key, admin_secret, signed, encoder=Base64Encoder)
-#print(f'Encrypted message: {encrypted.ciphertext}')
 print(f'Base64 Encrypted message: {b64encrypted}')
 
 print('=' * 80)
 
 ### Server side ###
-#box = Box(server_priv_key, admin_pk)
-#decrypted = box.decrypt(b64encrypted, encoder=Base64Encoder)
 decrypted = decrypt(admin_pk, server_priv_key, b64encrypted, encoder=Base64Encoder)
 print(f'Decrypted message: {decrypted}')
 print(f'Decrypted matches original: {decrypted == bytes(signed)}')
