@@ -19,3 +19,10 @@ Generates a random string of bytes of the specified length and returns it as a h
 """
 def random_hex(length: int) -> str:
     return os.urandom(length).hex()
+
+"""
+Generates a random string of printable characters of the specified length
+"""
+def random_string(length: int) -> str:
+    alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{};':,./<>?`~"
+    return "".join([alphabet[i % len(alphabet)] for i in os.urandom(length)])

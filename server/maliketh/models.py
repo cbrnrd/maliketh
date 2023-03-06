@@ -91,8 +91,11 @@ An operator is a user of this server that is able to issue commands to implants
 class Operator(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username: str = db.Column(db.String)
+    public_key: str = db.Column(db.String)
+    verify_key: str = db.Column(db.String)
+    login_secret: str = db.Column(db.String)
     auth_token: str = db.Column(db.String)
-    # public_key : str = db.Column(db.String)  # The public key of the operator to authenticate to server
+    auth_token_expiry: str = db.Column(db.String)  # The time the auth token expires
     created_at: str = db.Column(db.String)
     last_login: str = db.Column(db.String)
 

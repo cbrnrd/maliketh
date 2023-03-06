@@ -19,7 +19,8 @@
 Request headers:
 | Name | Content |
 | :-- | :----- |
-| `X-ID` | `Base64(PEM(enc_and_sign(logon_secret, operator_pub_key)))`
+| `X-ID` | `operator_name` |
+| `X-Signature` | `Base64(enc(sign(logon_secret, operator_signing_key), server_public_key))` |
 
 Response fields:
 | Name | Meaning |
@@ -34,7 +35,8 @@ __Example request__:
 
 ```http
 GET /op/auth/token/request
-X-ID: bGtqcmwyazNyamwyazNqcmwyazNqMGZjdml1am9lcgo=
+X-ID: admin
+X-Signature: 85wV03Vh+BBb2LjTB9rkf1+0Cg==
 ```
 
 __Response (JSON)__:

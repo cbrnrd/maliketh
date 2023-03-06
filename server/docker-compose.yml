@@ -13,6 +13,20 @@ services:
     networks:
         - rabbitmq_net
 
+  postgres:
+    image: postgres:13.3-alpine
+    container_name: 'postgres'
+    ports:
+        - 5432:5432
+    volumes:
+        - db:/var/lib/postgresql/data/
+    environment:
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=Vv4QZnP7eS#K7Z!4HWzx  # Change me!
+        - PGDATA=/var/lib/postgresql/data/pgdata
+    networks:
+        - rabbitmq_net
+
   # Start our Flask app
   flask:
     build: .
@@ -25,6 +39,9 @@ services:
         - .:/app
     depends_on:
         - rabbitmq
+        - postgres
+    networks:
+        - rabbitmq_net
 
 networks:
   rabbitmq_net:
@@ -33,3 +50,5 @@ networks:
 volumes:
     rabbitmq_data:
     rabbitmq_log: 
+    db:
+        driver: local

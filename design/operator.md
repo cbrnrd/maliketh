@@ -19,10 +19,12 @@ This will create an operator configuration file that will have a few fields.
   "name": "operator_name",
   "c2": "c2.ip.addr.here",
   "c2_port": 1337,
-  "secret": "-----BEGIN PRIVATE KEY-----...",
-  "public": "-----BEGIN PUBLIC KEY-----...",
-  "server_pub": "-----BEGIN PUBLIC KEY-----...",
-  "logon_secret": "..."
+  "secret": "...",
+  "public": "...",
+  "signing_key": "...",
+  "verify_key": "...",
+  "server_pub": "...",
+  "login_secret": "..."
 }
 ```
 
@@ -30,12 +32,14 @@ Field definitions:
 | Field | Meaning  | Notes |
 |:-----|:-------- | ------ |
 | name   | The name of the operator this config file is for | |
-| secret | The PEM encoded ED25519 secret key for this operator |`openssl genpkey -algorithm x25519`|  
+| secret | The Base64 encoded ED25519 secret key for this operator | |  
 | c2 | The IP address or domain name of the C2 server this operator is registered for | |
 | c2_port | The TCP port to connect to the C2 server on | |
-| public | The PEM encoded ED25519 public key for this operator | `openssl ec -in test.sec -pubout` |
-| server_pub | The PEM encoded ED25519 public key for the C2 server | Used for encrypting operator -> C2 traffic|
-| logon_secret | A secret string to be encrypted and signed by `secret` on authentication | |
+| public | The Base64 encoded ED25519 public key for this operator |  |
+| signing_key | The Base64 encoded ED25519 secret key for signing messages to the C2 server | |
+| verify_key  | The Base64 encoded ED25519 public key for verifying messages signed by `signing_key` | |
+| server_pub | The Base64 encoded ED25519 public key for the C2 server | Used for encrypting operator -> C2 traffic|
+| login_secret | A secret string to be encrypted and signed by `secret` on authentication | |
 
 ## Authentication
 
