@@ -1,9 +1,12 @@
 from dataclasses import dataclass, asdict
+from datetime import datetime
 from maliketh.db import db
 import os
 import sys
 import json
 
+
+# Job statuses
 CREATED = "CREATED"
 TASKED = "TASKED"
 COMPLETE = "COMPLETE"
@@ -61,19 +64,30 @@ A job has "owned by" an operator and "executed by" an implant
 @dataclass
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    operator_id: str = db.Column(db.String)
-    task_id: str = db.Column(db.String)
-    implant_id: str = db.Column(db.String)
-    cmd: str = db.Column(db.String)
-    args: str = db.Column(db.String)
-    status: str = db.Column(db.String)
-    output: str = db.Column(db.String)
-    created_at: str = db.Column(db.String)
-    read_at: str = db.Column(db.String)
-    executed_at: str = db.Column(db.String)
+    operator_id: str = db.Column(db.String)  # The username of the operator that created this task
+    task_id: str = db.Column(db.String)      # The task ID
+    implant_id: str = db.Column(db.String)   # The ID of the implant that this task is assigned to
+    opcode: int = db.Column(db.Integer)      # The opcode of the task
+    args: str = db.Column(db.String)         # The arguments of the task
+    status: str = db.Column(db.String)       # The status of the task
+    output: str = db.Column(db.String)       # The output of the task
+    created_at: str = db.Column(db.String)   # The datetime the task was created
+    read_at: str = db.Column(db.String)      # The datetime the task was read by the implant
+    executed_at: str = db.Column(db.String)  # The datetime the task was executed by the implant
 
     def toJSON(self):
         return asdict(self)
+    
+    @staticmethod
+    def new_task(operator_id: str, implant_id: str, opcode: int, args: str):
+        """
+        Helper to create a new task with the minimum required fields, and add it to the database.
+        """
+        task_id = random_id()
+        task = Task(operator_id=operator_id, task_id=task_id, implant_id=implant_id, opcode=opcode, args=args, status=CREATED, created_at=datetime.now())
+        db.session.add(task)
+        db.session.commit()
+        return task
 
 
 def get_task_by_id(task_id: str):

