@@ -45,6 +45,8 @@ class Implant(db.Model):
     aes_iv: str = db.Column(db.String)   # Base64 encoded AES IV
     created_at: str = db.Column(db.String)
     last_seen: str = db.Column(db.String)
+    kill_date: str = db.Column(db.String)  # The timestamp of the kill date
+    jitter: float = db.Column(db.Float)    # The percentage of jitter to add to the sleep time
 
     def toJSON(self):
         return asdict(self)
