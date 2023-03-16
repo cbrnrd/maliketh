@@ -9,6 +9,8 @@ CONFIG_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file
 SERVER_PUB_KEY_PATH = os.path.join(CONFIG_DIR, "admin", "certs", "server_pub")
 SERVER_PRIV_KEY_PATH = os.path.join(CONFIG_DIR, "admin", "certs", "server_priv")
 
+ROUTES = yaml.safe_load(open(os.path.join(CONFIG_DIR, "admin", "routes.yaml")))  # Parse once, use many times
+
 def get_config(config_file: str):
     with open(os.path.join(CONFIG_DIR, config_file)) as f:
         return yaml.safe_load(f)

