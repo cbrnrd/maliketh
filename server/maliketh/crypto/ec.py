@@ -20,7 +20,7 @@ from maliketh.db import db
 from maliketh.models import Operator
 
 
-def generate_ecc_keypair() -> Tuple[PrivateKey, PublicKey]:
+def generate_ecc_keypair() -> Tuple[PrivateKey, PublicKey]: 
     """
     Generate a new ECC keypair for use with NaCl
     """

@@ -6,6 +6,9 @@ from optparse import OptionParser
 
 #init_db()
 
+operator_app = build_operator_app()
+c2_app = build_c2_app()
+
 def parse_options():
   opts = {}
   parser = OptionParser()
@@ -44,6 +47,7 @@ def init_simple_logger(level: LogLevel=LogLevel.INFO) -> StandardLogger:
   return StandardLogger(sys.stdout, sys.stderr, level)
 
 def main():
+  global operator_app, c2_app
   opts = parse_options()
   if opts.init_db:
     choice = input("Are you sure you want to initialize the database? You will lose all operators and implants (y/n): ")
@@ -51,8 +55,7 @@ def main():
       sys.exit(0)
     init_db()
     sys.exit(0)
-  operator_app = build_operator_app()
-  c2_app = build_c2_app()
+
   logger = init_simple_logger(LogLevel[opts.log_level])
 
   validate_args(opts)

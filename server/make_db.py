@@ -1,5 +1,5 @@
-from app import app
+from app import operator_app
 from maliketh.buildapp import init_db
 
-with app.app_context():
+with operator_app.app_context():
     init_db()

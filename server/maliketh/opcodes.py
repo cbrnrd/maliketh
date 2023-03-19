@@ -1,10 +1,11 @@
 from enum import Enum
 
 class Opcodes(Enum):
-    CMD = 1           # Execute a command via cli
-    SELFDESTRUCT = 2  # Self destruct the agent (delete self and shut down)
-    SYSINFO = 3       # Get system information
-    SLEEP = 4         # Sleep for a given amount of time
+    CMD = 0x01           # Execute a command via cli
+    SELFDESTRUCT = 0x02  # Self destruct the agent (delete self and shut down)
+    SYSINFO = 0x03       # Get system information
+    SLEEP = 0x04         # Sleep for a given amount of time
+    UPDATE_CONFIG = 0x05 # Update the implant's maleable config
 
     def __str__(self):
         return self.name

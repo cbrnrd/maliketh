@@ -1,5 +1,7 @@
 # Operator-C2 HTTP Spec
 
+These are the *default* endpoints for the operator HTTP server. These endpoints can be changed by modifying the `server/config/admin/routes.yaml` file.
+
 | Endpoint | Verb | Purpose | Details |
 |:-------- | :-- | :------ | :-----: |
 | `/op/tasks/list` | `GET` | Lists currently running or new tasks given by this operator | |

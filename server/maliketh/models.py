@@ -27,13 +27,11 @@ class TestDB(db.Model):
         return asdict(self)
 
 
-"""
-An implant is a remote computer that is running the maliketh agent
-"""
-
-
 @dataclass
 class Implant(db.Model):
+    """
+    An implant is a remote computer that is running the maliketh agent"""
+
     id = db.Column(db.Integer, primary_key=True)
     implant_id: str = db.Column(db.String)
     hostname: str = db.Column(db.String)
@@ -42,11 +40,16 @@ class Implant(db.Model):
     arch: str = db.Column(db.String)
     user: str = db.Column(db.String)
     aes_key: str = db.Column(db.String)  # Base64 encoded AES key
-    aes_iv: str = db.Column(db.String)   # Base64 encoded AES IV
+    aes_iv: str = db.Column(db.String)  # Base64 encoded AES IV
     created_at: str = db.Column(db.String)
     last_seen: str = db.Column(db.String)
     kill_date: str = db.Column(db.String)  # The timestamp of the kill date
-    jitter: float = db.Column(db.Float)    # The percentage of jitter to add to the sleep time
+    sleep_time: int = db.Column(
+        db.Integer
+    )  # The number of seconds to sleep between tasks/checkin
+    jitter: float = db.Column(
+        db.Float
+    )  # The percentage of jitter to add to the sleep time
 
     def toJSON(self):
         return asdict(self)
@@ -59,34 +62,48 @@ def get_implant_by_id(implant_id: str):
     return Implant.query.filter_by(implant_id=implant_id).first()
 
 
-"""
-A task is a job given by an operator to an implant.
-A job has "owned by" an operator and "executed by" an implant
-"""
 @dataclass
 class Task(db.Model):
+    """
+    A task is a job given by an operator to an implant.
+    A job has "owned by" an operator and "executed by" an implant"""
+
     id = db.Column(db.Integer, primary_key=True)
-    operator_id: str = db.Column(db.String)  # The username of the operator that created this task
-    task_id: str = db.Column(db.String)      # The task ID
-    implant_id: str = db.Column(db.String)   # The ID of the implant that this task is assigned to
-    opcode: int = db.Column(db.Integer)      # The opcode of the task
-    args: str = db.Column(db.String)         # The arguments of the task
-    status: str = db.Column(db.String)       # The status of the task
-    output: str = db.Column(db.String)       # The output of the task
-    created_at: str = db.Column(db.String)   # The datetime the task was created
-    read_at: str = db.Column(db.String)      # The datetime the task was read by the implant
-    executed_at: str = db.Column(db.String)  # The datetime the task was executed by the implant
+    operator_id: str = db.Column(
+        db.String
+    )  # The username of the operator that created this task
+    task_id: str = db.Column(db.String)  # The task ID
+    implant_id: str = db.Column(
+        db.String
+    )  # The ID of the implant that this task is assigned to
+    opcode: int = db.Column(db.Integer)  # The opcode of the task
+    args: str = db.Column(db.String)  # The arguments of the task
+    status: str = db.Column(db.String)  # The status of the task
+    output: str = db.Column(db.String)  # The output of the task
+    created_at: str = db.Column(db.String)  # The datetime the task was created
+    read_at: str = db.Column(db.String)  # The datetime the task was read by the implant
+    executed_at: str = db.Column(
+        db.String
+    )  # The datetime the task was executed by the implant
 
     def toJSON(self):
         return asdict(self)
-    
+
     @staticmethod
     def new_task(operator_id: str, implant_id: str, opcode: int, args: str):
         """
         Helper to create a new task with the minimum required fields, and add it to the database.
         """
         task_id = random_id()
-        task = Task(operator_id=operator_id, task_id=task_id, implant_id=implant_id, opcode=opcode, args=args, status=CREATED, created_at=datetime.now())
+        task = Task(
+            operator_id=operator_id,
+            task_id=task_id,
+            implant_id=implant_id,
+            opcode=opcode,
+            args=args,
+            status=CREATED,
+            created_at=datetime.now(),
+        )
         db.session.add(task)
         db.session.commit()
         return task
@@ -100,11 +117,11 @@ def get_oldest_task_for_implant(implant_id: str):
     return Task.query.filter_by(implant_id=implant_id, status=CREATED).first()
 
 
-"""
-An operator is a user of this server that is able to issue commands to implants
-"""
 @dataclass
 class Operator(db.Model):
+    """
+    An operator is a user of this server that is able to issue commands to implants"""
+
     id = db.Column(db.Integer, primary_key=True)
     username: str = db.Column(db.String)
     public_key: str = db.Column(db.String)
