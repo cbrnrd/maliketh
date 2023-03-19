@@ -10,18 +10,31 @@ from maliketh.models import Operator
 from maliketh.logging.standard_logger import StandardLogger, LogLevel
 from maliketh.crypto.ec import generate_b64_ecc_keypair
 
-def build_app():
-    app = Flask(__name__)
+def build_operator_app():
+    app = Flask("operator")
     app.config.from_mapping(
         # default secret that should be overridden in environ or config
         SQLALCHEMY_DATABASE_URI="postgresql://postgres:Vv4QZnP7eS#K7Z!4HWzx@postgres:5432",
     ) 
     from .listeners.admin import admin as admin_blueprint
     app.register_blueprint(admin_blueprint)
+    
+    db.init_app(app)   
+
+    return app
+
+
+def build_c2_app():
+    app = Flask("c2")
+    app.config.from_mapping(
+        # default secret that should be overridden in environ or config
+        SQLALCHEMY_DATABASE_URI="postgresql://postgres:Vv4QZnP7eS#K7Z!4HWzx@postgres:5432",
+    )
 
     from .listeners.c2 import c2 as c2_blueprint
     app.register_blueprint(c2_blueprint)
-    db.init_app(app)   
+
+    db.init_app(app)
 
     return app
 

@@ -1,5 +1,5 @@
 from io import StringIO
-from typing import TextIO
+from typing import List, TextIO, Union
 import colorama
 from dataclasses import dataclass
 from enum import Enum
@@ -11,6 +11,10 @@ class LogLevel(Enum):
   WARNING = 3
   ERROR = 4
   CRITICAL = 5
+
+  @staticmethod
+  def get_names() -> List[str]:
+    return [name for name, member in LogLevel.__members__.items()]
 
   def get_prelog(self):
     if self == LogLevel.DEBUG:
@@ -28,8 +32,8 @@ class LogLevel(Enum):
 
 @dataclass
 class StandardLogger:
-  out_file: StringIO | TextIO  # The file or stream to write to
-  err_file: StringIO | TextIO  # The file or stream to write errors to (will write to out_file as well)
+  out_file: Union[StringIO, TextIO]  # The file or stream to write to
+  err_file: Union[StringIO, TextIO]  # The file or stream to write errors to (will write to out_file as well)
   level: LogLevel              # The minimum level to log
 
   def log(self, level: LogLevel, msg: str):

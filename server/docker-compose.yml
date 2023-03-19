@@ -27,14 +27,30 @@ services:
     networks:
         - rabbitmq_net
 
-  # Start our Flask app
-  flask:
-    build: .
-    container_name: 'flask'
+  # Start our Flask apps
+  c2:
+    build:
+        context: .
+        dockerfile: Dockerfile.c2
+    container_name: 'c2'
     ports:
         - 443:443      # For implants
-        - 28300:28300  # For operators
-        - 4999:4999    # For development
+        - 8080:8080    # For debugging
+    volumes:
+        - .:/app
+    depends_on:
+        - rabbitmq
+        - postgres
+    networks:
+        - rabbitmq_net
+
+  operator:
+    build:
+        context: .
+        dockerfile: Dockerfile.operator
+    container_name: 'operator'
+    ports:
+        - 5000:5000        # For operator
     volumes:
         - .:/app
     depends_on:
