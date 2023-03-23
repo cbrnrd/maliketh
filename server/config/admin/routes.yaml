@@ -71,15 +71,18 @@ c2:
   # The implant will use this route to register itself with the C2
   register:
     path: /register
-    method: POST
+    methods:
+      - POST
 
   # The implant will use this route to check in with the C2
   checkin:
     path: /checkin
-    method: GET
+    methods:
+      - GET
 
   # The implant will use this route to send results from a task
   task_results:
-    path: /task/<task_id>
-    method: POST
+    path: /task/<tid>
+    methods:
+      - POST
 

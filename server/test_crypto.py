@@ -29,12 +29,12 @@ config = {
     "name": "admin",
     "c2": "localhost",
     "c2_port": 5000,
-    "login_secret": "I${BA/a(l+SQPw6M`?fAwYD5VYcOM9@Z",
-    "secret": "yGolX3qM8ijmzBl0JQaHcUT5elzdTyipu487co8deTY=",
-    "public": "iyvXVjPkgr1Ko/Dx0XaNrlVNIJYsQuiFfb323Iay0ho=",
-    "signing_key": "u5MuTTUQATpUZnGdFmcaFztZ2rrzpzJqvhwixjKIeUs=",
-    "verify_key": "BjZPnGRRTcgclEMTh2pmr/U/SgGfBAKBSPhzFq4GFKA=",
-    "server_pub": "CFhMzXR6u0S+rTOlL0yC5/cz9Fzy3rmjlA5w/WzEGQo="
+    "login_secret": "v)8yBL/V;G__d_l2Bkvzt^$#9+boXGuy",
+    "secret": "cFBMSoB5wwaJ+Wk99FEaJJ6bM7pGTSSj19rIRsqqpRo=",
+    "public": "6eFYhETVcMaszt/iEWiKwMH3vJMVLIXpjRQjKkWzU00=",
+    "signing_key": "+qmySNWpEAcQUxHMyGmw0c9JQq1+D//G+2TwgNaF02c=",
+    "verify_key": "2UkqpOVosM12BfVTmo32lbPgNzam1gmDP+yBCOZ+K6c=",
+    "server_pub": "cYrPn/PbA+dBojyT6NCezxOSo7KBtGHzINdXPxOSxWY="
 }
 
 admin_signing_key = SigningKey(config["signing_key"].encode("utf-8"), encoder=Base64Encoder)

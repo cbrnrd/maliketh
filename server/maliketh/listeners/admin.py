@@ -296,3 +296,4 @@ def list_implants(operator: Operator) -> Any:
     """
     implants = Implant.query.all()
     return jsonify({"status": True, "implants": [x.toJSON() for x in implants]}), 200
+
