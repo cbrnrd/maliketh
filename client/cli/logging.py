@@ -1,8 +1,10 @@
+import abc
 from dataclasses import dataclass
 from prompt_toolkit.styles import Style
 from prompt_toolkit.formatted_text import FormattedText
 from prompt_toolkit import print_formatted_text
 from enum import Enum
+import config
 
 class LogLevel(Enum):
     DEBUG = 0
@@ -12,11 +14,15 @@ class LogLevel(Enum):
     ERROR = 4
     CRITICAL = 5
 
+
     def get_icon(self) -> str:
+        """
+        Returns a string representation of the log level.
+        """
         if self == LogLevel.DEBUG:
             return "?"
         elif self == LogLevel.INFO:
-            return "*"
+            return "+"
         elif self == LogLevel.OK:
             return "+"
         elif self == LogLevel.WARNING:
@@ -28,6 +34,7 @@ class LogLevel(Enum):
         
         return "?"
 
+
     def to_lower(self) -> str:
         return self.name.lower()
 
@@ -37,7 +44,7 @@ class StyledLogger:
     _style: Style = Style.from_dict({
         "debug": "#ffaa00", # Orange
         "ok": "#00ff00",  # Green
-        "info": "#ff00e6",  # Purple
+        "info": "#0000ff",  # blue
         "warning": "#ffff00",
         "error": "#ff0000",
         "critical": "#ff0000 bold",
@@ -58,10 +65,10 @@ class StyledLogger:
         print_formatted_text(to_print, style=self._style)
 
     def debug(self, msg: str, *args, **kwargs):
-        self.log(LogLevel.DEBUG, msg, args, kwargs)
+        self.log(LogLevel.DEBUG, msg, *args, **kwargs)
 
     def info(self, msg: str, *args, **kwargs):
-        self.log(LogLevel.INFO, msg, args, kwargs)
+        self.log(LogLevel.INFO, msg, *args, **kwargs)
 
     def ok(self, msg: str, *args, **kwargs):
         self.log(LogLevel.OK, msg, *args, **kwargs)
@@ -74,3 +81,6 @@ class StyledLogger:
 
     def critical(self, msg: str, *args, **kwargs):
         self.log(LogLevel.CRITICAL, msg, *args, **kwargs)
+
+def get_styled_logger() -> StyledLogger:
+    return StyledLogger(config.log_level)

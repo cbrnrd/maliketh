@@ -8,6 +8,11 @@ operator:
   base_path: /op
 
   # To get the full path for a route, the base path will be prepended to the path
+  stats:
+    path: /stats
+    methods:
+      - GET
+
   list_tasks:
     path: /tasks/list
     methods: 
@@ -29,17 +34,17 @@ operator:
       - DELETE
   
   list_implants:
-    path: /implants/list
+    path: /implant/list
     methods:
       - GET
 
   implant_info:
-    path: /implants/info/<implant_id>
+    path: /implant/info/<implant_id>
     methods:
       - GET
 
   kill_implant:
-    path: /implants/kill/<implant_id>
+    path: /implant/kill/<implant_id>
     methods: 
       - DELETE
 
@@ -50,6 +55,11 @@ operator:
   
   revoke_auth_token:
     path: /auth/token/revoke
+    methods:
+      - GET
+  
+  auth_token_status:
+    path: /auth/token/status
     methods:
       - GET
 

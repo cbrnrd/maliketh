@@ -1,7 +1,11 @@
 from dataclasses import dataclass, asdict
 import json
 from typing import Optional
+from cli.logging import LogLevel
 from crypto import base64_encrypt_and_sign_str
+
+# Globals
+log_level: LogLevel = LogLevel.INFO
 
 
 @dataclass

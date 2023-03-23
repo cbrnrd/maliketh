@@ -69,7 +69,7 @@ class Task(db.Model):
     A job has "owned by" an operator and "executed by" an implant"""
 
     id = db.Column(db.Integer, primary_key=True)
-    operator_id: str = db.Column(
+    operator_name: str = db.Column(
         db.String
     )  # The username of the operator that created this task
     task_id: str = db.Column(db.String)  # The task ID
@@ -90,13 +90,13 @@ class Task(db.Model):
         return asdict(self)
 
     @staticmethod
-    def new_task(operator_id: str, implant_id: str, opcode: int, args: str):
+    def new_task(operator_name: str, implant_id: str, opcode: int, args: str):
         """
         Helper to create a new task with the minimum required fields, and add it to the database.
         """
         task_id = random_id()
         task = Task(
-            operator_id=operator_id,
+            operator_name=operator_name,
             task_id=task_id,
             implant_id=implant_id,
             opcode=opcode,

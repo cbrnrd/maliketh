@@ -2,10 +2,10 @@
     "name": "admin",
     "c2": "localhost",
     "c2_port": 5000,
-    "login_secret": "I${BA/a(l+SQPw6M`?fAwYD5VYcOM9@Z",
-    "secret": "yGolX3qM8ijmzBl0JQaHcUT5elzdTyipu487co8deTY=",
-    "public": "iyvXVjPkgr1Ko/Dx0XaNrlVNIJYsQuiFfb323Iay0ho=",
-    "signing_key": "u5MuTTUQATpUZnGdFmcaFztZ2rrzpzJqvhwixjKIeUs=",
-    "verify_key": "BjZPnGRRTcgclEMTh2pmr/U/SgGfBAKBSPhzFq4GFKA=",
-    "server_pub": "CFhMzXR6u0S+rTOlL0yC5/cz9Fzy3rmjlA5w/WzEGQo="
+    "login_secret": "/BfeL6ABBt_nzUVufu;o'(_rKS@i:zJL",
+    "secret": "/4RZyKrFd4pfYMjScPPTItI2OD8Ifa+oSslLV2eZQ6M=",
+    "public": "zsflSCIK5ugEwOouPs9CzTZ11S9rm6nKim+S2YFCMSQ=",
+    "signing_key": "7RD4Npcm2kY+Plfomqfb322EeggumVrjcQrpu6UIQmo=",
+    "verify_key": "rYC14rhdd8O+P5eZoY2VTBMhEHUbWOSJOmMq7Bo08Q0=",
+    "server_pub": "DCzPLgr4c3FjMEjU4HJ9AfKF3eB/isVmUaXQ2ZenyGU="
 }

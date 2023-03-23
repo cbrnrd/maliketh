@@ -4,6 +4,7 @@ These are the *default* endpoints for the operator HTTP server. These endpoints 
 
 | Endpoint | Verb | Purpose | Details |
 |:-------- | :-- | :------ | :-----: |
+| `/op/stats` | `GET` | Gets basic statistics about the C2 | |
 | `/op/tasks/list` | `GET` | Lists currently running or new tasks given by this operator | |
 | `/op/tasks/add`  | `POST`| Adds a new task for an implant| |
 | `/op/tasks/results/:id` | `GET` | Gets the results of a task | |
@@ -13,6 +14,7 @@ These are the *default* endpoints for the operator HTTP server. These endpoints 
 | `/op/implant/kill/:id` | `GET` | Removes the implant with the given ID from the C2 database | |
 | `/op/auth/token/request` | `GET` | Used for fetching an operators authentication token | [example](#opauthtokenrequest) |
 | `/op/auth/token/revoke` | `DELETE` | Revokes the current operator authentication token | [example](#opauthtokenrevoke) |
+| `/op/auth/token/status` | `GET` | Checks the status of the current operator authentication token | [example](#opauthtokenstatus) |
 
 ## Examples
 
@@ -81,6 +83,36 @@ Success:
 ```json
 {
   "status": true
+}
+```
+
+Failure:
+
+```json
+{
+  "status": false,
+  "message": "Invalid token"
+}
+```
+
+### `/op/auth/token/status`
+
+This endpoint can be used to check the status of the current authentication token.
+
+__Example request__:
+
+```http
+GET /op/auth/token/status
+Authentication: Bearer <insert_token_here>
+```
+
+__Example response__:
+Success:
+
+```json
+{
+  "status": true,
+  "msg": "Authenticated"
 }
 ```
 

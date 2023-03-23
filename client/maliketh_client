@@ -4,11 +4,17 @@ import optparse
 import sys
 import os
 import json
+import config
 
 from typing import cast
+from cli.logging import LogLevel
 
-from config import OperatorConfig
-from comms import ServerAuthResponseSuccess, server_auth, ServerAuthResponseFailure
+from comms import (
+    ServerAuthResponseSuccess,
+    handle_server_auth,
+    server_auth,
+    ServerAuthResponseFailure,
+)
 from cli.cli import main_loop
 
 
@@ -18,10 +24,24 @@ def parse_args() -> optparse.Values:
     parser = optparse.OptionParser()
     parser.description = "Maliketh Operator Client"
     parser.usage = "usage: %prog --config OPERATOR_CONFIG_FILE [options]"
-    parser.add_option("-c", "--config", dest="config", default=None, help="The operator configuration file to use")
-    parser.add_option("-d", "--debug", dest="debug", default=False, help="Enable debug mode", action="store_true")
+    parser.add_option(
+        "-c",
+        "--config",
+        dest="config",
+        default=None,
+        help="The operator configuration file to use",
+    )
+    parser.add_option(
+        "-d",
+        "--debug",
+        dest="debug",
+        default=False,
+        help="Enable debug mode",
+        action="store_true",
+    )
     opts, args = parser.parse_args()
     return opts
+
 
 def validate_args(opts) -> None:
     if opts.config is None:
@@ -32,38 +52,22 @@ def validate_args(opts) -> None:
     if not os.path.exists(opts.config):
         print("Config file does not exist")
         sys.exit(1)
-    
+
     # Check if config file is readable
     if not os.access(opts.config, os.R_OK):
         print("Config file is not readable")
         sys.exit(1)
 
 
-def handle_server_auth(config: OperatorConfig) -> str:
-    """
-    Authenticate to the server and return the auth token
-    """
-    # Attempt to authenticate to the server
-    auth_result = server_auth(config.c2, config.c2_port, config.name, config.enc_and_sign_secret())
-    if auth_result is None:
-        print("Failed to authenticate to server")
-        sys.exit(1)
-    
-    if auth_result.status != True:
-        assert type(auth_result) == ServerAuthResponseFailure
-        print("Failed to authenticate to server: {}".format(auth_result.message))
-        sys.exit(1)
-    
-    assert type(auth_result) == ServerAuthResponseSuccess
-    return auth_result.token
-
 def main():
-    
+
     opts = parse_args()
     validate_args(opts)
+    if opts.debug:
+        config.log_level = LogLevel.DEBUG
 
     with open(opts.config, "r") as f:
-        operator_config = OperatorConfig.from_json(f.read())
+        operator_config = config.OperatorConfig.from_json(f.read())
 
     # Authenticate to server
     auth_result = handle_server_auth(operator_config)
@@ -73,7 +77,6 @@ def main():
 
     # Go into main loop
     main_loop(operator_config)
-
 
 
 if __name__ == "__main__":

