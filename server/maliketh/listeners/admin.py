@@ -9,6 +9,7 @@ from maliketh.config import ROUTES
 from functools import wraps
 
 admin = Blueprint("admin", __name__, url_prefix=ROUTES["operator"]["base_path"])
+start_time = datetime.now()
 
 
 def verify_auth_token(request) -> Optional[str]:
@@ -87,8 +88,10 @@ def server_stats(operator: Operator) -> Any:
             "active_tasks": num_active_tasks,
             "total_tasks": num_total_tasks,
             "operators": num_operators,
+            "uptime": str(datetime.now() - start_time),
         }
     )
+
 
 # @admin.route("/op/auth/token/request", methods=["GET"])  # type: ignore
 @admin.route(
@@ -180,6 +183,7 @@ def revoke_token(operator: Operator) -> Any:
     db.session.commit()
     return jsonify({"status": True}), 200
 
+
 @admin.route(
     ROUTES["operator"]["auth_token_status"]["path"],
     methods=ROUTES["operator"]["auth_token_status"]["methods"],
@@ -189,6 +193,7 @@ def token_status() -> Any:
     if operator is None:
         return jsonify({"status": False, "msg": "Not authenticated"}), 401
     return jsonify({"status": True, "msg": "Authenticated"}), 200
+
 
 # @admin.route("/op/tasks/list", methods=["GET"])  # type: ignore
 @admin.route(
@@ -267,8 +272,11 @@ def get_task_result(operator: Operator, task_id: str) -> Any:
     return jsonify({"status": True, "result": task.output}), 200
 
 
-#@admin.route("/op/tasks/delete/<task_id>", methods=["DELETE"])  # type: ignore
-@admin.route(ROUTES["operator"]["delete_task"]["path"], methods=ROUTES["operator"]["delete_task"]["methods"])
+# @admin.route("/op/tasks/delete/<task_id>", methods=["DELETE"])  # type: ignore
+@admin.route(
+    ROUTES["operator"]["delete_task"]["path"],
+    methods=ROUTES["operator"]["delete_task"]["methods"],
+)
 @verified
 def delete_task(operator: Operator, task_id: str) -> Any:
     """
@@ -288,7 +296,10 @@ def delete_task(operator: Operator, task_id: str) -> Any:
     return jsonify({"status": True}), 200
 
 
-@admin.route(ROUTES["operator"]["list_implants"]["path"], methods=ROUTES["operator"]["list_implants"]["methods"])
+@admin.route(
+    ROUTES["operator"]["list_implants"]["path"],
+    methods=ROUTES["operator"]["list_implants"]["methods"],
+)
 @verified
 def list_implants(operator: Operator) -> Any:
     """
