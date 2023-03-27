@@ -4,4 +4,6 @@ server/instance/
 server/config/admin/certs/*
 !server/config/admin/certs/.keep
 **.pem
-
+implant/.vs*
+implant/*.exe
+implant/*.obj
