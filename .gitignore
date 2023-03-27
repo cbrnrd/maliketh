@@ -7,3 +7,5 @@ server/config/admin/certs/*
 implant/.vs*
 implant/*.exe
 implant/*.obj
+.vscode/c_cpp_properties.json
+.vscode/settings.json
