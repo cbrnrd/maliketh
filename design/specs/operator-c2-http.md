@@ -18,6 +18,55 @@ These are the *default* endpoints for the operator HTTP server. These endpoints 
 
 ## Examples
 
+For all requests except `/op/auth/token/request`, the authentication token should be present in the `Authorization` header as a bearer token.
+
+### `/op/tasks/add`
+
+Example request body:
+
+```json
+{
+ "opcode": 0,
+ "implant_id": "a5a90992dd62b62f78d5541c8a07c3b4",
+ "args": [
+  "ls",
+  "-la"
+ ]
+}
+```
+
+Example responses:
+
+* 200:
+
+```json
+{
+ "status": true,
+ "task": {
+  "args": "{ls,-la}",
+  "created_at": "2023-03-23 14:59:26.078969",
+  "executed_at": null,
+  "implant_id": "a5a90992dd62b62f78d5541c8a07c3b4",
+  "opcode": 0,
+  "operator_name": "admin",
+  "output": null,
+  "read_at": null,
+  "status": "CREATED",
+  "task_id": "9cf5780f66e1184600206d7c1327e1fb"
+ }
+}
+```
+
+* 400:
+For example if the `opcode` field is missing:
+
+```json
+{
+ "msg": "Invalid task, missing fields: opcode",
+ "status": false
+}
+```
+
 ### `/op/auth/token/request`
 
 Request headers:

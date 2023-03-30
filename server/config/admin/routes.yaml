@@ -67,6 +67,7 @@ operator:
 c2:
 
   base_path: /c2
+  implant_id_cookie: SESSID
 
   # The implant will use this route to register itself with the C2
   register:
