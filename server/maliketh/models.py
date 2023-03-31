@@ -43,13 +43,7 @@ class Implant(db.Model):
     aes_aad: str = db.Column(db.String)  # Base64 encoded AES-GCM AAD
     created_at: str = db.Column(db.String)
     last_seen: str = db.Column(db.String)
-    kill_date: str = db.Column(db.String)  # The timestamp of the kill date
-    sleep_time: int = db.Column(
-        db.Integer
-    )  # The number of seconds to sleep between tasks/checkin
-    jitter: float = db.Column(
-        db.Float
-    )  # The percentage of jitter to add to the sleep time
+    
 
     def toJSON(self):
         return asdict(self)
@@ -60,6 +54,89 @@ class Implant(db.Model):
 
 def get_implant_by_id(implant_id: str):
     return Implant.query.filter_by(implant_id=implant_id).first()
+
+
+@dataclass
+class ImplantConfig(db.Model):
+    """
+    An implant config is a changeable configuration for an implant to use.
+    """
+
+    id = db.Column(db.Integer, primary_key=True)
+    implant_id: str = db.Column(db.String)
+    cookie: str = db.Column(db.String)  # The cookie name to use for implant identification
+    kill_date: str = db.Column(db.String)  # The timestamp of the kill date
+    sleep_time: int = db.Column(
+        db.Integer
+    )  # The number of seconds to sleep between tasks/checkin
+    jitter: float = db.Column(
+        db.Float
+    )  # The percentage of jitter to add to the sleep time
+    max_retries: int = db.Column(
+        db.Integer
+    )  # The number of times to retry a task before giving up. -1 for infinite
+    tailoring_hash_function: str = db.Column(
+        db.String
+    )  # The hash function to use for payload tailoring
+    tailoring_hashes: str = db.Column(
+        db.String
+    )  # The hashes to use for payload tailoring
+
+    def toJSON(self):
+        dicted = asdict(self)
+
+        del dicted["implant_id"]
+
+        return dicted
+
+    
+    @staticmethod
+    def create_min_config(implant_id: str, cookie: str) -> "ImplantConfig":
+        """
+        Helper to create a new config with the minimum required fields, and add it to the database.
+        """
+        config = ImplantConfig(
+            implant_id=implant_id,
+            kill_date="",
+            sleep_time=60,
+            jitter=0.1,
+            max_retries=-1,
+            tailoring_hash_function="",
+            tailoring_hashes="",
+            cookie=cookie,
+        )
+        db.session.add(config)
+        db.session.commit()
+        return config
+    
+    def add_hash(self, hash: str) -> None:
+        """
+        Add a hash to the tailoring hashes
+        """
+        if self.tailoring_hashes == "":
+            self.tailoring_hashes = hash
+        else:
+            self.tailoring_hashes = self.tailoring_hashes + "," + hash
+        db.session.commit()
+
+    def remove_hash(self, hash: str) -> None:
+        """
+        Remove a hash from the tailoring hashes
+        """
+        if self.tailoring_hashes == "":
+            return
+        hashes = self.tailoring_hashes.split(",")
+        hashes.remove(hash)
+        self.tailoring_hashes = ",".join(hashes)
+        db.session.commit()
+
+    def get_hashes(self) -> list:
+        """
+        Get the list of hashes
+        """
+        if self.tailoring_hashes == "":
+            return []
+        return self.tailoring_hashes.split(",")
 
 
 @dataclass

