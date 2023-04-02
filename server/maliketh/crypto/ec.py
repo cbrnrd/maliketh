@@ -20,7 +20,7 @@ from maliketh.db import db
 from maliketh.models import Operator
 
 
-def generate_ecc_keypair() -> Tuple[PrivateKey, PublicKey]: 
+def generate_ecc_keypair() -> Tuple[PrivateKey, PublicKey]:
     """
     Generate a new ECC keypair for use with NaCl
     """
@@ -31,7 +31,8 @@ def generate_ecc_keypair() -> Tuple[PrivateKey, PublicKey]:
 
 def generate_b64_ecc_keypair() -> Tuple[str, str]:
     """
-    Generate a new ECC keypair for use with NaCl and return the keys as base64 encoded strings
+    Generate a new ECC keypair for use with NaCl and return the keys as base64 encoded strings.
+    Keys are returned as a tuple of (private_key, public_key)
     """
     private_key, public_key = generate_ecc_keypair()
     return private_key.encode(encoder=Base64Encoder).decode("utf-8"), public_key.encode(
@@ -48,6 +49,20 @@ def load_ecc_keypair(private_key: str, public_key: str) -> Tuple[PrivateKey, Pub
     )
 
 
+def load_pubkey(public_key_b64: str) -> PublicKey:
+    """
+    Load a public key from a base64 encoded string
+    """
+    return PublicKey(public_key_b64.encode("utf-8"), encoder=Base64Encoder)
+
+
+def load_privkey(private_key_b64: str) -> PrivateKey:
+    """
+    Load a private key from a base64 encoded string
+    """
+    return PrivateKey(private_key_b64.encode("utf-8"), encoder=Base64Encoder)
+
+
 def encrypt(
     public_key: PublicKey, private_key: PrivateKey, data: bytes, encoder=Base64Encoder
 ) -> bytes:
@@ -58,12 +73,46 @@ def encrypt(
     return box.encrypt(data, encoder=encoder)
 
 
+def encrypt_b64(
+    public_key_b64: str, private_key_b64: str, data: bytes, encoder=Base64Encoder
+) -> bytes:
+    """
+    Encrypt a message using NaCl
+    """
+    public_key = load_pubkey(public_key_b64)
+    private_key = load_privkey(private_key_b64)
+    box = Box(private_key, public_key)
+    return box.encrypt(data, encoder=encoder)
+
+def encrypt_b64str(
+    public_key_b64: str, private_key_b64: str, data: bytes, encoder=Base64Encoder
+) -> str:
+    """
+    Encrypt a message using NaCl
+    """
+    public_key = load_pubkey(public_key_b64)
+    private_key = load_privkey(private_key_b64)
+    box = Box(private_key, public_key)
+    return box.encrypt(data, encoder=encoder).decode("utf-8")
+
 def decrypt(
     public_key: PublicKey, private_key: PrivateKey, data: bytes, encoder=Base64Encoder
 ) -> bytes:
     """
     Decrypt a message using NaCl
     """
+    box = Box(private_key, public_key)
+    return box.decrypt(data, encoder=encoder)
+
+
+def decrypt_b64(
+    public_key_b64: str, private_key_b64: str, data: bytes, encoder=Base64Encoder
+) -> bytes:
+    """
+    Decrypt a message using NaCl
+    """
+    public_key = load_pubkey(public_key_b64)
+    private_key = load_privkey(private_key_b64)
     box = Box(private_key, public_key)
     return box.decrypt(data, encoder=encoder)
 

