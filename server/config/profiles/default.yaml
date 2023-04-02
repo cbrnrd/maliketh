@@ -1,10 +1,21 @@
 ######################################
 # This is the default maleable profile for implants.
 # This profile will be used if no profile is specified in the implant config
-# The values in this profile will be used to generate the routes for the C2 listener
+# The values in `routes` will be used to generate the routes for the C2 listener
 # These will all be passed directly to @app.route() in Flask, so any valid Flask
 # route arguments can be used here. 
 ######################################
+
+# The name of the profile
+name: default
+
+######################################
+# REQUIRED
+# The name of the cookie that will be used by implants to identify themselves
+# This cookie will be used to identify implants in the database
+######################################
+implant_id_cookie: SESSID
+
 
 client:
 
@@ -18,6 +29,73 @@ client:
   ######################################
   user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Firefox/68.0
 
+  ######################################
+  # The type of encoding that will be used
+  # by implants when sending encrypted data 
+  # to the C2.
+  ######################################
+  encoding: base64
+
+  ######################################
+  # The amount of time to sleep between
+  # checkins with the C2. (in seconds)
+  ######################################
+  sleep: 60
+
+  ######################################
+  # % jitter. The implant will sleep for
+  # a random amount of time between `sleep`
+  # and `sleep * (1 + jitter)`. From  0-0.99
+  ######################################
+  jitter: 0.1
+
+  ######################################
+  # The maximum number of times to retry
+  # a request to the C2 before giving up.
+  ######################################
+  max_retries: 3
+
+  ######################################
+  # Whether or not to self destruct on
+  # failed checkins. If set to true, the
+  # implant will delete itself after
+  # `max_retries` failed checkins.
+  ######################################
+  auto_self_destruct: true
+
+  ######################################
+  # The amount of time to wait before
+  # retrying a failed request to the C2.
+  # (in seconds)
+  ######################################
+  retry_wait: 5
+
+  ######################################
+  # % jitter. The implant will wait for 
+  # a random amount of time between 
+  # `retry_wait` and `retry_wait * (1 + retry_jitter)`
+  # From  0-0.99
+  ######################################
+  retry_jitter: 0.1
+
+  ######################################
+  # The list of hashes to use for payload
+  # tailoring.
+  ######################################
+  tailoring_hashes: []
+
+  ######################################
+  # The hash function to use for payload
+  # tailoring.
+  ######################################
+  tailoring_hash_function: sha256
+
+  ######################################
+  # The number of rounds to use for payload
+  # tailoring.
+  ######################################
+  tailoring_rounds: 1
+    
 
 server:
   
@@ -28,14 +106,8 @@ server:
   # to use a common server header to avoid
   # detection by network monitoring tools.
   ######################################
-  server_header: Apache/2.4.29 (Ubuntu)
-
-  ######################################
-  # REQUIRED
-  # The name of the cookie that will be used by implants to identify themselves
-  # This cookie will be used to identify implants in the database
-  ######################################
-  implant_id_cookie: SESSID
+  headers:
+    Server: nginx/1.14.2
 
 
   ######################################
@@ -45,34 +117,34 @@ server:
   ######################################
   redirect_url: https://www.google.com
 
+######################################
+# REQUIRED
+# Routes for the C2 listener. All routes will be prepended with the base_path
+# The routes will be passed directly to @app.route()
+# Any valid Flask route arguments can be used here.
+######################################
+routes:
+    
   ######################################
-  # REQUIRED
-  # Routes for the C2 listener. All routes will be prepended with the base_path
-  # The routes will be passed directly to @app.route()
-  # Any valid Flask route arguments can be used here.
+  # The base path for the C2 listener routes
+  # This will be prepended to all paths
   ######################################
-  routes:
-      
-    ######################################
-    # The base path for the C2 listener routes
-    # This will be prepended to all paths
-    ######################################
-    base_path: /c2
+  base_path: /c2
 
-    # The implant will use this route to register itself with the C2
-    register:
-      path: /register
-      methods:
-        - POST
+  # The implant will use this route to register itself with the C2
+  register:
+    path: /register
+    methods:
+      - POST
 
-    # The implant will use this route to check in with the C2
-    checkin:
-      path: /checkin
-      methods:
-        - GET
+  # The implant will use this route to check in with the C2
+  checkin:
+    path: /checkin
+    methods:
+      - GET
 
-    # The implant will use this route to send results from a task
-    task_results:
-      path: /task
-      methods:
-        - POST
+  # The implant will use this route to send results from a task
+  task_results:
+    path: /task
+    methods:
+      - POST

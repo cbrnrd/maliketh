@@ -1,6 +1,7 @@
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from maliketh.db import db
+from maliketh.profile import *
 import base64
 import os
 import sys
@@ -93,8 +94,8 @@ class ImplantConfig(db.Model):
     tailoring_hash_rounds: str = db.Column(
         db.Integer
     )  # The number of rounds to use for the given hash function
-    tailoring_hashes: str = db.Column(
-        db.String
+    tailoring_hashes: List[str] = db.Column(
+        db.ARRAY(db.String)
     )  # The hashes to use for payload tailoring
 
     def toJSON(self):
@@ -106,6 +107,24 @@ class ImplantConfig(db.Model):
 
     def toYAML(self):
         return yaml.dump(self.toJSON())
+
+    @staticmethod
+    def from_profile(profile: MaleableProfile, implant_id: str, enc_key: str) -> "ImplantConfig":
+        implant_profile = profile.implant_profile
+        return ImplantConfig(
+            implant_id=implant_id,
+            cookie=profile.globals.implant_id_cookie,
+            kill_date=implant_profile.kill_date,
+            sleep_time=implant_profile.sleep,
+            jitter=implant_profile.jitter,
+            max_retries=implant_profile.max_retries,
+            enc_key=enc_key,
+            tailoring_hash_function=implant_profile.tailoring_hash_function,
+            tailoring_hash_rounds=implant_profile.tailoring_hash_rounds,
+            tailoring_hashes=implant_profile.tailoring_hashes,
+        )
+
+
 
     @staticmethod
     def create_min_config(
@@ -124,7 +143,7 @@ class ImplantConfig(db.Model):
             enc_key=b64_server_pub,
             tailoring_hash_function="",
             tailoring_hash_rounds=100,
-            tailoring_hashes="",
+            tailoring_hashes=[],
             cookie=cookie,
         )
         db.session.add(config)
@@ -135,31 +154,19 @@ class ImplantConfig(db.Model):
         """
         Add a hash to the tailoring hashes
         """
-        if self.tailoring_hashes == "":
-            self.tailoring_hashes = hash
-        else:
-            self.tailoring_hashes = self.tailoring_hashes + "," + hash
+        self.tailoring_hashes.append(hash)
         db.session.commit()
 
     def remove_hash(self, hash: str) -> None:
         """
-        Remove a hash from the tailoring hashes
+        Remove a hash from the tailoring hashes. If `hash` is 
+        not in the list, do nothing.
         """
-        if self.tailoring_hashes == "":
-            return
-        hashes = self.tailoring_hashes.split(",")
-        hashes.remove(hash)
-        self.tailoring_hashes = ",".join(hashes)
+        try:
+            self.tailoring_hashes.remove(hash)
+        except ValueError:
+            pass
         db.session.commit()
-
-    def get_hashes(self) -> list:
-        """
-        Get the list of hashes
-        """
-        if self.tailoring_hashes == "":
-            return []
-        return self.tailoring_hashes.split(",")
-
 
 @dataclass
 class Task(db.Model):

@@ -4,7 +4,10 @@ Functions to parse configuration files for the listeners
 
 import os
 from typing import List, Optional
+from maliketh.profile import MaleableProfile
 import yaml
+
+from maliketh.profile import Route
 
 CONFIG_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "config"))
 SERVER_PUB_KEY_PATH = os.path.join(CONFIG_DIR, "admin", "certs", "server_pub")
@@ -13,22 +16,13 @@ DEFAULT_OP_ROUTES_CONFIG = os.path.join(CONFIG_DIR, "admin", "routes.yaml")
 DEFAULT_C2_PROFILE = os.path.join(CONFIG_DIR, "profiles", "default.yaml")
 
 OP_ROUTES = yaml.safe_load(open(os.path.join(CONFIG_DIR, "admin", "routes.yaml")))  # Operator listener Flask routes
-C2_PROFILE = yaml.safe_load(open(DEFAULT_C2_PROFILE))  # C2 listener Flask routes
-C2_BASE_PATH = C2_PROFILE['server']['routes']['base_path']
+C2_PROFILE = MaleableProfile.from_yaml(open(DEFAULT_C2_PROFILE).read())  # C2 listener Flask routes
 
 def set_c2_profile(path: str):
     global C2_PROFILE
-    C2_PROFILE = yaml.safe_load(open(path))
-
-def get_c2_route(route: str) -> str:
-    return C2_PROFILE['server']['routes'].get(route, {}).get('path', '')
-
-def get_c2_route_methods(route: str) -> List[str]:
-    return C2_PROFILE['server']['routes'].get(route, {}).get('methods', [])
-
-def get_c2_server_option(option: str) -> str:
-    return C2_PROFILE['server'].get(option, '')
-
+    print(f"Setting C2 profile to {path}")
+    C2_PROFILE = MaleableProfile.from_yaml(open(path).read())
+    print(f"Set C2 profile to {path}")
 
 def get_config(config_file: str):
     with open(os.path.join(CONFIG_DIR, config_file)) as f:

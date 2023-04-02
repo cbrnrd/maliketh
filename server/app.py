@@ -50,7 +50,7 @@ def validate_args(opts) -> None:
   
 
 def init_simple_logger(level: LogLevel=LogLevel.INFO) -> StandardLogger:
-  return StandardLogger(sys.stdout, sys.stderr, level)
+  return StandardLogger(sys.stdout, sys.stderr, level) # type: ignore
 
 def main():
   global operator_app, c2_app

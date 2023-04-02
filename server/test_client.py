@@ -23,7 +23,7 @@ def register():
     print("Decrypted config:")
     decrypted = json.loads(decrypt_b64(parsed["k"], sk, parsed["c"]))
     config = decrypted["config"]
-    # print(json.dumps(decrypted, indent=2))
+    print(json.dumps(decrypted, indent=2))
 
     print(f'We are using ID: {decrypted["id"]}')
     print(f'Using cookie name: {config["cookie"]}')
@@ -32,7 +32,6 @@ def register():
         time.sleep(SLEEP_TIME)
         # Get next task
         r = requests.get(CHECKIN, cookies={config["cookie"]: decrypted["id"]})
-        print(f"Response: {r.text}")
         if r.status_code != 200:
             print("Error, server returned non-200 status code")
             continue
