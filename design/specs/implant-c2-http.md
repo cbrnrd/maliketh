@@ -1,46 +1,23 @@
 # Implant-C2 HTTP Spec
 
-These are the *default* endpoints for the implant HTTP server. These endpoints can and should be changed by modifying the `server/config/admin/routes.yaml` file.
+These are the *default* endpoints for the implant HTTP server. These endpoints can and should be changed by modifying the `server/config/profiles/default.yaml` file.
 
 | Endpoint | Verb | Purpose | Details |
 |:-------- | :-- | :------ | :-----: |
 | `/c2/register` | `POST` | Registers this implant | |
 | `/c2/checkin` | `GET` | Checks in with the C2 to see if there are any jobs | |
-| `/c2/task/<tid>` | `POST` | Send the result of a task with id `tid` | |
+| `/c2/task` | `POST` | Send the result of a task | |
 
 ## Crypto
 
-All request bodies should be AES-GCM encrypted and base64 encoded. The encryption key and IV/AAD is received from the C2 during registration. See `/c2/register` for more details.
+*(Note, this does not apply for registration)*
 
-This is the encryption and decrpytion functions in python:
-
-```python
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-
-def encrypt(data: bytes, aad: bytes, key: bytes) -> bytes:
-    """
-    Encrypt a given byte array using AES-GCM
-    """
-    aesgcm = AESGCM(key)
-    nonce = os.urandom(12)
-    return aesgcm.encrypt(nonce, data, aad) + nonce
-
-def decrypt(data: bytes, aad: bytes, key: bytes) -> bytes:
-    """
-    Decrypt a given byte array using AES-GCM
-    """
-    aesgcm = AESGCM(key)
-    nonce = data[-12:]
-    data = data[:-12]
-    return aesgcm.decrypt(nonce, data, aad)
-```
-
-Note the nonce is appended to the end of the encrypted data. The nonce should be 12 bytes long, and should be randomly generated. The nonce should be unique for each encryption. [Relevant docs](https://cryptography.io/en/latest/hazmat/primitives/aead/#cryptography.hazmat.primitives.ciphers.aead.AESGCM)
+All requests and responses after the initial registration are encrypted via libsodium `Box`es. On the server side, each implant has a unique keypair. The server-side private key is stored in the the database, and the public key is sent to the implant during registration. All requests and responses with bodies are encrypted then Base64 encoded. *Assume for all requests and response, the data has already been decoded and derypted.*
 
 ## Examples
 
 **Authentication**
-Implants can identify itself by setting the `SESSID` cookie to the implant's ID. This value can be customized in `routes.yaml`.
+Implants can identify itself by setting the `SESSID` cookie to the implant's ID. This value can be customized in the configuration file with the `server.implant_id_cookie` key.
 
 ### `/c2/register`
 
@@ -48,17 +25,13 @@ This route allows implants to register with the server. The implant should send 
 
 ```json
 {
-  "u": "username",
-  "t": "random base64e string", 
+  "txid": "base64_encoded_public_key"
 }
 ```
 
 | Field | Purpose |
 |:----- | :------ |
-| `u` | The username of the account the implant is running on |
-| `t` | A base64 encoded random string to be used as the AAD for AES-GCM |
-
-*`t` should be the AAD for all following encrypted requests.*
+| `txid` | The Base64 encoded LibSodium public key to use for encryption from server -> implant |
 
 Example responses:
 
@@ -68,36 +41,58 @@ Example responses:
 
   ```json
   {
-  "id": "b58f9c46dc2d87033df6281e07c89cce",
-  "iv": "mDnpmVCqopiRUvvz",
-  "key": "Qxe9RZg6pN3xgKkD/lCV6a4968jzd5f5YliPrXDp0dY=",
-  "status": true
+    "status": true,
+    "k": "base64_encoded_server_public_key",
+    "c": "base64_encoded_encrypted_maleable_config"
   }
   ```
 
   | Field | Purpose |
   |:----- | :------ |
-  | `id` | The implant's ID |
-  | `aad` | The IV/AAD to use for AES-GCM (base64 encoded) |
-  | `key` | The key to use for AES-GCM (base64 encoded) |
-  | `status` | Whether or not the registration was successful |
+  | `status` | `true` if registration was successful, `false` otherwise |
+  | `k` | The Base64 encoded LibSodium public key to use for encryption from implant -> server |
+  | `c` | The Base64 encoded maleable profile to use. This is encrypted with the key in `k`. See below and [profile.md](../profile.md) |
+
+  `c` decrypted would look something like:
+
+  ```json
+  {
+  "status": true,
+  "id": "74a45dc8dbec3008e74f91da3d2d05fa",
+  "config": {
+      "cookie": "SESSID",
+      "kill_date": "",
+      "sleep_time": 60,
+      "jitter": 0.1,
+      ...
+    }
+  }
+  ```
+
+  | Field | Purpose |
+  |:----- | :------ |
+  | `status` | `true` if registration was successful, `false` otherwise |
+  | `id` | The implant ID |
+  | `config` | The maleable profile to use. See [profile.md](../profile.md) |
 
 * 401:
-Occurs if `u` or `t` is invalid or missing, or the body is not JSON.
+This can happen for a few reasons:
 
-`u` has a length limit of 128 characters.
-`t` is invalid if it is not base64 encoded.
+* Empty request body or incorrect MIME type
+* Missing or invalid `txid` field
+* Improperly formatted public key
+* Public key already exists in the database
 
 ### `/c2/checkin`
 
-This endpoint is used to check in with the C2 server and pull down the next task, if there is one. The response will be encrypted with the key and AAD received during registration.
+This endpoint is used to check in with the C2 server and pull down the next task, if there is one. The response will be encrypted with the key received during registration.
 
 Example responses:
 
 * 200:
 
   If there are no tasks:
-    
+
   ```json
   {}
   ```
@@ -106,15 +101,8 @@ Example responses:
 
   ```json
   {
-  "args": "{ls,-la}",
-  "created_at": "2023-03-30 17:11:59.246815",
-  "executed_at": null,
-  "implant_id": "00eec44c7ce141406f0eb218d173b11f",
+  "args": ["ls", "-la"],
   "opcode": 0,
-  "operator_name": "admin",
-  "output": null,
-  "read_at": "2023-03-30 17:12:17",
-  "status": "TASKED",
   "task_id": "8af2838e2d70e2222aeb66459cec096e"
   }
   ```
@@ -124,5 +112,40 @@ Example responses:
 
   For the meanining of `opcode`s, see [opcodes.md](../opcodes.md).
 
-* 404:
-This is returned if the implant ID in the cookie is missing or not in the database.
+## `/c2/task`
+
+This endpoint is used to send the results of a task back to the C2 server. The request body should be encrypted with the key received during registration, then base64 encoded.
+
+Example request:
+
+```json
+  {
+    "status": true,
+    "tid": "task_id_here",
+    "output": "b64_output_here",
+  }
+```
+
+If there is no output, set `output` to an empty string.
+
+| Field | Purpose |
+|:----- | :------ |
+| `status` | `true` if the task was successful, `false` otherwise |
+| `tid` | The task ID |
+| `output` | The Base64 encoded output of the task |
+
+Example responses:
+
+* 200:
+
+```ascii
+OK
+```
+
+* 401:
+
+This can happen for a few reasons:
+
+* Improperly formatted request body
+* Missing implant identification cookie
+* Implant with given ID doesn't exist

