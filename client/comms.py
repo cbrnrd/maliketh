@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Callable, Dict, Union
+from typing import Any, Callable, Dict, List, Union
 import requests
 from dataclasses import dataclass
 from functools import wraps
@@ -129,3 +129,55 @@ def get_server_stats(config: OperatorConfig) -> Dict[str, Any]:
         logger.error("Failed to get server stats")
         logger.error(f"Exception: {sys.exc_info()[0]}")
         return {}
+
+def get_tasks(config: OperatorConfig) -> List[Dict[Any, Any]]:
+    try:
+        ensure_token(config)
+
+        url = f"http://{config.c2}:{config.c2_port}/op/tasks/list"
+        headers = {
+            "Authorization": f"Bearer {config.auth_token}",
+        }
+
+        response = requests.get(url, headers=headers)
+        if response.json()['status'] != True:
+            logger.error("Failed to get tasks")
+            return []
+        return response.json()["tasks"]
+    except Exception as e:
+        logger.error("Failed to get tasks")
+        logger.error(f"Exception: {sys.exc_info()[0]}")
+        return []
+
+def add_task(config: OperatorConfig, opcode: int, implant_id: str, args: List[str]) -> Dict[str, Any]:
+    try:
+        ensure_token(config)
+
+        url = f"http://{config.c2}:{config.c2_port}/op/tasks/add"
+        headers = {
+            "Authorization": f"Bearer {config.auth_token}",
+        }
+
+        data = {
+            "opcode": opcode,
+            "implant_id": implant_id,
+            "args": args,
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+        if response.json()['status'] != True:
+            logger.error("Failed to add task")
+            return {}
+
+        return response.json()["task"]
+    except Exception as e:
+        logger.error("Failed to add task")
+        logger.error(f"Exception: {sys.exc_info()[0]}")
+        return {}
+
+def implant_exists(config: OperatorConfig, id_prefix: str) -> bool:
+    implants = list_implants(config)
+    for implant in implants:
+        if implant["implant_id"].startswith(id_prefix):
+            return True
+    return False

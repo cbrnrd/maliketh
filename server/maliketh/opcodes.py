@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 
 class Opcodes(Enum):
     CMD = 0x01           # Execute a command via cli
@@ -10,4 +11,11 @@ class Opcodes(Enum):
     def __str__(self):
         return self.name
 
+
+    @staticmethod
+    def get_by_name(name: str) -> Optional[int]:
+        for opcode in Opcodes:
+            if opcode.name == name or opcode.name.lower() == name.lower():
+                return opcode.value
+        return None
 

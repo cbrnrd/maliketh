@@ -1,6 +1,6 @@
 from typing import List
 from prompt_toolkit.completion import Completer, Completion, NestedCompleter
-from cli.command import COMMANDS
+from cli.commands import *
 
 
 def __none_values(d: dict):
@@ -16,3 +16,5 @@ def __none_values(d: dict):
     return res
 
 FullCompleter = NestedCompleter.from_nested_dict(__none_values(COMMANDS))
+
+InteractCompleter = NestedCompleter.from_nested_dict(__none_values(INTERACT_COMMANDS))

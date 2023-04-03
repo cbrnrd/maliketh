@@ -2,7 +2,7 @@ from datetime import datetime
 import json
 import sys
 from maliketh.db import db
-from app import app
+from app import operator_app as app
 
 from optparse import OptionParser
 

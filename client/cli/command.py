@@ -1,22 +1,13 @@
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Union
 from tabulate import tabulate
+import cli.interact
 
-from comms import get_server_stats, list_implants
+from comms import get_server_stats, list_implants, get_tasks, implant_exists
 from config import OperatorConfig
 from .logging import StyledLogger, get_styled_logger
+from .commands import *
 
-
-COMMANDS = {
-    'help': 'Show this help message and exit',
-    'show': {
-        'implants': 'Show all implants',
-        'jobs': 'Show all active tasks',
-        'stats': 'Show basic statistics about the server and clients'
-    },
-    'interact': "<implant_id>",
-    "exit": "Exit the client",
-}
 logger = get_styled_logger()
 
 
@@ -67,21 +58,23 @@ def handle_show(args: Optional[str], config: OperatorConfig) -> None:
         if args in COMMANDS['show']:
             if args == "implants":
                 show_implants(config)
-            elif args == "jobs":
-                pass
+            elif args == "tasks":
+                show_tasks(config)
             elif args == "stats":
                 show_stats(config)
         else:
             logger.error(f"Command {args} not found")
 
-def handle_interact(args: Optional[str], config: OperatorConfig) -> None:
+def handle_interact(implant_id: Optional[str], config: OperatorConfig) -> None:
     """
     Handle the interact command
     """
-    if args is None:
+    if implant_id is None:
         print("Please specify an implant ID")
     else:
-        print(f"Interacting with implant {args}")
+        if implant_exists(config, implant_id):
+            print(f"Interacting with implant {implant_id}...")
+            cli.interact.interact_prompt(config, implant_id)
 
 def handle_exit() -> None:
     """
@@ -105,8 +98,12 @@ def show_implants(config: OperatorConfig) -> None:
     if implants is None:
         logger.error("Failed to get implants")
         return
-
-    print(tabulate(implants, headers="keys"))
+    
+    minified = []
+    for implant in implants:
+        minified.append([implant["implant_id"][0:8], implant["hostname"], implant["ip"], implant["os"], implant["last_seen"], implant["created_at"]])
+    
+    print(tabulate(minified, headers=["ID", "Hostname", "IP", "OS", "Last Seen", "First Seen"], tablefmt="fancy_grid"))
 
 def show_stats(config: OperatorConfig) -> None:
     """
@@ -119,3 +116,25 @@ def show_stats(config: OperatorConfig) -> None:
 
     # Headers are keys, values are in one row
     print(tabulate([list(stats.keys()), list(stats.values())], headers="firstrow", tablefmt="fancy_grid"))
+
+def show_tasks(config: OperatorConfig) -> None:
+    """
+    Show the active tasks that belong to this operator
+    """
+    tasks = get_tasks(config)
+
+    if tasks is None:
+        logger.error("Failed to get tasks")
+        return
+    
+    if len(tasks) == 0:
+        logger.warning("No tasks found")
+        return
+
+    minified = []
+    for job in tasks:
+        if job["status"] != "COMPLETE":
+            minified.append([job["task_id"][0:8], job["opcode"], job["status"], job["implant_id"][0:8], job["args"], job["created_at"]])
+
+    print(tabulate(minified, headers=["ID", "Opcode", "Status", "Implant ID", "Args", "Created At"], tablefmt="fancy_grid"))
+    
