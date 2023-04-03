@@ -183,7 +183,7 @@ class Task(db.Model):
         db.String
     )  # The ID of the implant that this task is assigned to
     opcode: int = db.Column(db.Integer)  # The opcode of the task
-    args: str = db.Column(db.ARRAY(db.String))  # The arguments of the task
+    args: str = db.Column(db.JSON)  # The arguments of the task
     status: str = db.Column(db.String)  # The status of the task
     output: str = db.Column(db.String)  # The output of the task
     created_at: str = db.Column(db.String)  # The datetime the task was created
@@ -208,7 +208,7 @@ class Task(db.Model):
         )
 
     @staticmethod
-    def new_task(operator_name: str, implant_id: str, opcode: int, args: str):
+    def new_task(operator_name: str, implant_id: str, opcode: int, args: List[str]):
         """
         Helper to create a new task with the minimum required fields, and add it to the database.
         """

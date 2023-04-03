@@ -130,7 +130,7 @@ Staff will support people who:
 ## C2 -> DB
 * Implants
 * Commands
-* Jobs
+* tasks
 * Clients (operators)
 
 ## C2 -> Db -> Implants

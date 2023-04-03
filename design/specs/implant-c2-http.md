@@ -5,7 +5,7 @@ These are the *default* endpoints for the implant HTTP server. These endpoints c
 | Endpoint | Verb | Purpose | Details |
 |:-------- | :-- | :------ | :-----: |
 | `/c2/register` | `POST` | Registers this implant | |
-| `/c2/checkin` | `GET` | Checks in with the C2 to see if there are any jobs | |
+| `/c2/checkin` | `GET` | Checks in with the C2 to see if there are any tasks | |
 | `/c2/task` | `POST` | Send the result of a task | |
 
 ## Crypto

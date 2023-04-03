@@ -9,6 +9,7 @@ from maliketh.models import *
 from maliketh.crypto.ec import *
 from maliketh.crypto.utils import random_hex, random_string
 from maliketh.config import OP_ROUTES
+from maliketh.opcodes import Opcodes
 from functools import wraps
 
 admin = Blueprint("admin", __name__, url_prefix=OP_ROUTES["base_path"])
@@ -313,3 +314,59 @@ def list_implants(operator: Operator) -> Any:
     """
     implants = Implant.query.all()
     return jsonify({"status": True, "implants": [x.toJSON() for x in implants]}), 200
+
+@admin.route(
+    OP_ROUTES['update_implant_config']['path'],
+    methods=OP_ROUTES['update_implant_config']['methods'],
+)
+@verified
+def update_config(operator: Operator, implant_id: str) -> Any:
+    """
+    Update the config of an implant. This will trigger a config update task
+    """
+    if request.json is None:
+        return jsonify({"status": False, "msg": "Invalid request, no JSON body"}), 400
+
+    # Get the task
+    config = request.json
+
+    # Update implant's config in the database
+    current_config = ImplantConfig.query.filter_by(implant_id=implant_id).first()
+    if current_config is None:
+        return jsonify({"status": False, "msg": "Unknown implant"}), 400
+    
+    try:
+        # Update fields present in the request
+        for key, value in config.items():
+            setattr(current_config, key, value)
+        db.session.commit()
+
+        # Create the task
+        task = Task.new_task(
+            operator.username,
+            implant_id,
+            Opcodes.UPDATE_CONFIG.value,
+            config
+        )
+    except Exception as e:
+        print(e)
+        return jsonify({"status": False, "msg": f"Error updating config: {e}"}), 400
+
+
+    return jsonify({"status": True, "task": task.toJSON()}), 200
+
+
+@admin.route(
+    OP_ROUTES["get_implant_config"]["path"],
+    methods=OP_ROUTES["get_implant_config"]["methods"],
+)
+@verified
+def get_implant_config(implant_id: str, operator: Operator) -> Any:
+    """
+    Get the config of an implant
+    """
+    config = ImplantConfig.query.filter_by(implant_id=implant_id).first()
+    if config is None:
+        return jsonify({"status": False, "msg": "Unknown implant"}), 400
+
+    return jsonify({"status": True, "config": config.toJSON()}), 200

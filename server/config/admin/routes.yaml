@@ -46,6 +46,16 @@ kill_implant:
   methods: 
     - DELETE
 
+get_implant_config:
+  path: /implant/config/<implant_id>
+  methods:
+    - GET
+
+update_implant_config:
+  path: /implant/config/<implant_id>
+  methods:
+    - POST
+
 request_auth_token:
   path: /auth/token/request
   methods:
