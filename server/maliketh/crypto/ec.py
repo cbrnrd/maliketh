@@ -84,6 +84,7 @@ def encrypt_b64(
     box = Box(private_key, public_key)
     return box.encrypt(data, encoder=encoder)
 
+
 def encrypt_b64str(
     public_key_b64: str, private_key_b64: str, data: bytes, encoder=Base64Encoder
 ) -> str:
@@ -94,6 +95,7 @@ def encrypt_b64str(
     private_key = load_privkey(private_key_b64)
     box = Box(private_key, public_key)
     return box.encrypt(data, encoder=encoder).decode("utf-8")
+
 
 def decrypt(
     public_key: PublicKey, private_key: PrivateKey, data: bytes, encoder=Base64Encoder

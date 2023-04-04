@@ -9,6 +9,7 @@ from config import OperatorConfig
 
 logger = get_styled_logger()
 
+
 @dataclass
 class ServerAuthResponseSuccess:
     token: str
@@ -26,6 +27,7 @@ class ServerAuthResponseFailure:
 
 ServerAuthResponse = Union[ServerAuthResponseSuccess, ServerAuthResponseFailure]
 
+
 def check_auth_token(config: OperatorConfig) -> bool:
     """
     Check if the auth token is valid
@@ -37,6 +39,7 @@ def check_auth_token(config: OperatorConfig) -> bool:
 
     response = requests.get(url, headers=headers)
     return response.json()["status"]
+
 
 def server_auth(ip: str, port: int, name: str, login_secret: str) -> ServerAuthResponse:
     """
@@ -62,27 +65,31 @@ def server_auth(ip: str, port: int, name: str, login_secret: str) -> ServerAuthR
             status=False, message=response.json()["message"]
         )
 
+
 def handle_server_auth(config: OperatorConfig) -> str:
     """
     Authenticate to the server and return the auth token
     """
     # Attempt to authenticate to the server
     try:
-        auth_result = server_auth(config.c2, config.c2_port, config.name, config.enc_and_sign_secret())
+        auth_result = server_auth(
+            config.c2, config.c2_port, config.name, config.enc_and_sign_secret()
+        )
     except requests.exceptions.ConnectionError:
         print("Failed to connect to server")
         sys.exit(1)
     if auth_result is None:
         print("Failed to authenticate to server")
         sys.exit(1)
-    
+
     if auth_result.status != True:
         assert type(auth_result) == ServerAuthResponseFailure
         print("Failed to authenticate to server: {}".format(auth_result.message))
         sys.exit(1)
-    
+
     assert type(auth_result) == ServerAuthResponseSuccess
     return auth_result.token
+
 
 def ensure_token(config: OperatorConfig) -> None:
     """
@@ -114,6 +121,7 @@ def list_implants(config: OperatorConfig) -> list:
         logger.error(f"Exception: {sys.exc_info()[0]}")
         return []
 
+
 def get_server_stats(config: OperatorConfig) -> Dict[str, Any]:
     try:
         ensure_token(config)
@@ -130,6 +138,7 @@ def get_server_stats(config: OperatorConfig) -> Dict[str, Any]:
         logger.error(f"Exception: {sys.exc_info()[0]}")
         return {}
 
+
 def get_tasks(config: OperatorConfig) -> List[Dict[Any, Any]]:
     try:
         ensure_token(config)
@@ -140,7 +149,7 @@ def get_tasks(config: OperatorConfig) -> List[Dict[Any, Any]]:
         }
 
         response = requests.get(url, headers=headers)
-        if response.json()['status'] != True:
+        if response.json()["status"] != True:
             logger.error("Failed to get tasks")
             return []
         return response.json()["tasks"]
@@ -149,7 +158,10 @@ def get_tasks(config: OperatorConfig) -> List[Dict[Any, Any]]:
         logger.error(f"Exception: {sys.exc_info()[0]}")
         return []
 
-def add_task(config: OperatorConfig, opcode: int, implant_id: str, args: List[str]) -> Dict[str, Any]:
+
+def add_task(
+    config: OperatorConfig, opcode: int, implant_id: str, args: List[str]
+) -> Dict[str, Any]:
     try:
         ensure_token(config)
 
@@ -165,7 +177,7 @@ def add_task(config: OperatorConfig, opcode: int, implant_id: str, args: List[st
         }
 
         response = requests.post(url, headers=headers, json=data)
-        if response.json()['status'] != True:
+        if response.json()["status"] != True:
             logger.error("Failed to add task")
             return {}
 
@@ -174,6 +186,7 @@ def add_task(config: OperatorConfig, opcode: int, implant_id: str, args: List[st
         logger.error("Failed to add task")
         logger.error(f"Exception: {sys.exc_info()[0]}")
         return {}
+
 
 def implant_exists(config: OperatorConfig, id_prefix: str) -> bool:
     implants = list_implants(config)

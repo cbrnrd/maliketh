@@ -26,6 +26,7 @@ def handle(cmd: str, args: List[str], config: OperatorConfig) -> None:
     else:
         logger.error(f"Command {cmd} not found")
 
+
 def handle_help(args: Optional[str]) -> None:
     """
     Handle the help command
@@ -46,16 +47,17 @@ def handle_help(args: Optional[str]) -> None:
         else:
             logger.error(f"Command {args} not found")
 
+
 def handle_show(args: Optional[str], config: OperatorConfig) -> None:
     """
     Handle the show command
     """
     if args is None:
         print("Available commands:")
-        for k, v in COMMANDS['show'].items():
+        for k, v in COMMANDS["show"].items():
             print(f"{k}: {v}")
     else:
-        if args in COMMANDS['show']:
+        if args in COMMANDS["show"]:
             if args == "implants":
                 show_implants(config)
             elif args == "tasks":
@@ -64,6 +66,7 @@ def handle_show(args: Optional[str], config: OperatorConfig) -> None:
                 show_stats(config)
         else:
             logger.error(f"Command {args} not found")
+
 
 def handle_interact(implant_id: Optional[str], config: OperatorConfig) -> None:
     """
@@ -76,6 +79,7 @@ def handle_interact(implant_id: Optional[str], config: OperatorConfig) -> None:
             print(f"Interacting with implant {implant_id}...")
             cli.interact.interact_prompt(config, implant_id)
 
+
 def handle_exit() -> None:
     """
     Handle the exit command
@@ -84,26 +88,42 @@ def handle_exit() -> None:
     exit(0)
 
 
-
 ############
 # Functions to show the implants, operators, tasks, and stats
 ############
+
 
 def show_implants(config: OperatorConfig) -> None:
     """
     Show all the implants
     """
-    
+
     implants = list_implants(config)
     if implants is None:
         logger.error("Failed to get implants")
         return
-    
+
     minified = []
     for implant in implants:
-        minified.append([implant["implant_id"][0:8], implant["hostname"], implant["ip"], implant["os"], implant["last_seen"], implant["created_at"]])
-    
-    print(tabulate(minified, headers=["ID", "Hostname", "IP", "OS", "Last Seen", "First Seen"], tablefmt="fancy_grid"))
+        minified.append(
+            [
+                implant["implant_id"][0:8],
+                implant["hostname"],
+                implant["ip"],
+                implant["os"],
+                implant["last_seen"],
+                implant["created_at"],
+            ]
+        )
+
+    print(
+        tabulate(
+            minified,
+            headers=["ID", "Hostname", "IP", "OS", "Last Seen", "First Seen"],
+            tablefmt="fancy_grid",
+        )
+    )
+
 
 def show_stats(config: OperatorConfig) -> None:
     """
@@ -115,7 +135,14 @@ def show_stats(config: OperatorConfig) -> None:
         return
 
     # Headers are keys, values are in one row
-    print(tabulate([list(stats.keys()), list(stats.values())], headers="firstrow", tablefmt="fancy_grid"))
+    print(
+        tabulate(
+            [list(stats.keys()), list(stats.values())],
+            headers="firstrow",
+            tablefmt="fancy_grid",
+        )
+    )
+
 
 def show_tasks(config: OperatorConfig) -> None:
     """
@@ -126,7 +153,7 @@ def show_tasks(config: OperatorConfig) -> None:
     if tasks is None:
         logger.error("Failed to get tasks")
         return
-    
+
     if len(tasks) == 0:
         logger.warning("No tasks found")
         return
@@ -134,7 +161,21 @@ def show_tasks(config: OperatorConfig) -> None:
     minified = []
     for job in tasks:
         if job["status"] != "COMPLETE":
-            minified.append([job["task_id"][0:8], job["opcode"], job["status"], job["implant_id"][0:8], job["args"], job["created_at"]])
+            minified.append(
+                [
+                    job["task_id"][0:8],
+                    job["opcode"],
+                    job["status"],
+                    job["implant_id"][0:8],
+                    job["args"],
+                    job["created_at"],
+                ]
+            )
 
-    print(tabulate(minified, headers=["ID", "Opcode", "Status", "Implant ID", "Args", "Created At"], tablefmt="fancy_grid"))
-    
+    print(
+        tabulate(
+            minified,
+            headers=["ID", "Opcode", "Status", "Implant ID", "Args", "Created At"],
+            tablefmt="fancy_grid",
+        )
+    )

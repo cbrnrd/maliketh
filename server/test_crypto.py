@@ -34,31 +34,32 @@ config = {
     "public": "/LKWI2dmY8e8wCRilIPue1e2yd0VBaXF4Qg7oQ2R3jQ=",
     "signing_key": "XamJMjfR5uhQQWqMeiEGe6GLfqcfPHWx3RofbM2YcsA=",
     "verify_key": "jiPtCpFd/3KZMoFSRLk+2U/aUeDQBFtK0lCCqpCC22I=",
-    "server_pub": "N9cHBHrWSWFwfk41WwONBctHjJYKMQZ8yune5JToHh0="
+    "server_pub": "N9cHBHrWSWFwfk41WwONBctHjJYKMQZ8yune5JToHh0=",
 }
-admin_signing_key = SigningKey(config["signing_key"].encode("utf-8"), encoder=Base64Encoder)
+admin_signing_key = SigningKey(
+    config["signing_key"].encode("utf-8"), encoder=Base64Encoder
+)
 admin_vk = admin_signing_key.verify_key
 admin_pk = PublicKey(config["public"].encode("utf-8"), encoder=Base64Encoder)
 admin_secret = PrivateKey(config["secret"].encode("utf-8"), encoder=Base64Encoder)
 
 
-message = config['login_secret']
+message = config["login_secret"]
 
 ### Client side ###
 signed = admin_signing_key.sign(message.encode("utf-8"))
-print(f'Signed message: {signed.signature}')
+print(f"Signed message: {signed.signature}")
 
 box = Box(admin_secret, server_pub_key)
 b64encrypted = encrypt(server_pub_key, admin_secret, signed, encoder=Base64Encoder)
-print(f'Base64 Encrypted message: {b64encrypted}')
+print(f"Base64 Encrypted message: {b64encrypted}")
 
-print('=' * 80)
+print("=" * 80)
 
 ### Server side ###
 decrypted = decrypt(admin_pk, server_priv_key, b64encrypted, encoder=Base64Encoder)
-print(f'Decrypted message: {decrypted}')
-print(f'Decrypted matches original: {decrypted == bytes(signed)}')
+print(f"Decrypted message: {decrypted}")
+print(f"Decrypted matches original: {decrypted == bytes(signed)}")
 
 verify = verify_signature(admin_vk, decrypted)
-print(f'Verified message: {verify}')
-
+print(f"Verified message: {verify}")

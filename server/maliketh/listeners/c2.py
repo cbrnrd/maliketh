@@ -5,9 +5,7 @@ from maliketh.db import db
 import maliketh.crypto.aes
 from maliketh.models import *
 from functools import wraps
-from maliketh.config import (
-    C2_PROFILE
-)
+from maliketh.config import C2_PROFILE
 from maliketh.crypto.ec import (
     generate_ecc_keypair,
     encrypt,

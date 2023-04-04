@@ -5,8 +5,8 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from maliketh.crypto.utils import pad, random_bytes
 
-class GCM:
 
+class GCM:
     @staticmethod
     def encrypt(data: bytes, aad: bytes, key: bytes) -> bytes:
         """

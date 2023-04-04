@@ -28,16 +28,16 @@ INTERACT_COMMANDS = {
             "kill_date": "Show the kill date for the implant",
             "jitter": "Show the jitter for the implant",
             "max_retries": "Show the max retries for the implant",
-        }
+        },
     },
     "exit": "Exit the interact menu",
-
 }
 
-def walk_dict(d,depth=0):
-    for k,v in sorted(d.items(),key=lambda x: x[0]):
+
+def walk_dict(d, depth=0):
+    for k, v in sorted(d.items(), key=lambda x: x[0]):
         if isinstance(v, dict):
-            print("  "*depth + ("- %s" % k))
-            walk_dict(v,depth+1)
+            print("  " * depth + ("- %s" % k))
+            walk_dict(v, depth + 1)
         else:
-            print("  "*depth + "- %s: %s" % (k, v))
+            print("  " * depth + "- %s: %s" % (k, v))

@@ -87,7 +87,6 @@ def main():
         if not options.create:
             options.create = True
 
-
     with app.app_context():
         if options.list:
             operators = Operator.query.all()

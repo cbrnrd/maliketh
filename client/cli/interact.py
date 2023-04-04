@@ -11,11 +11,14 @@ from .logging import get_styled_logger
 
 logger = get_styled_logger()
 
+
 def interact_prompt(config: OperatorConfig, implant_id: str):
     from .cli import bottom_bar
 
     session = PromptSession(
-        message=HTML(f"<warning>maliketh</warning> (<home>{config.name}</home>) - <interact>{implant_id[0:8]}</interact> > "),
+        message=HTML(
+            f"<warning>maliketh</warning> (<home>{config.name}</home>) - <interact>{implant_id[0:8]}</interact> > "
+        ),
         style=PROMPT_STYLE,
         enable_history_search=True,
         completer=InteractCompleter,
@@ -32,7 +35,8 @@ def interact_prompt(config: OperatorConfig, implant_id: str):
             continue
         except EOFError:
             break
-        
+
+
 def handle(cmd: str, args: List[str], config: OperatorConfig, implant_id: str) -> None:
     """
     Handle a command
@@ -44,6 +48,7 @@ def handle(cmd: str, args: List[str], config: OperatorConfig, implant_id: str) -
     else:
         logger.error(f"Command {cmd} not found")
 
+
 def handle_help(args: Optional[str]) -> None:
     """
     Handle the help command
@@ -51,7 +56,7 @@ def handle_help(args: Optional[str]) -> None:
     if args is None:
         print("Available commands:\n")
         walk_dict(INTERACT_COMMANDS)
-                
+
         print()
     else:
         if INTERACT_COMMANDS.get(args):
@@ -59,11 +64,11 @@ def handle_help(args: Optional[str]) -> None:
         else:
             logger.error(f"Command {args} not found")
 
+
 def handle_exit(config: OperatorConfig) -> None:
     """
     Handle the exit command, jump back to the main loop
     """
     from .cli import main_loop
+
     main_loop(config)
-
-

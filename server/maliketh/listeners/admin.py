@@ -315,9 +315,10 @@ def list_implants(operator: Operator) -> Any:
     implants = Implant.query.all()
     return jsonify({"status": True, "implants": [x.toJSON() for x in implants]}), 200
 
+
 @admin.route(
-    OP_ROUTES['update_implant_config']['path'],
-    methods=OP_ROUTES['update_implant_config']['methods'],
+    OP_ROUTES["update_implant_config"]["path"],
+    methods=OP_ROUTES["update_implant_config"]["methods"],
 )
 @verified
 def update_config(operator: Operator, implant_id: str) -> Any:
@@ -334,14 +335,21 @@ def update_config(operator: Operator, implant_id: str) -> Any:
     current_config = ImplantConfig.query.filter_by(implant_id=implant_id).first()
     if current_config is None:
         return jsonify({"status": False, "msg": "Unknown implant"}), 400
-    
+
     try:
 
         # Remove keys in the request that are not valid
-        config = {k: v for k, v in config.items() if k in ImplantConfig.__table__.columns.keys()}
+        config = {
+            k: v
+            for k, v in config.items()
+            if k in ImplantConfig.__table__.columns.keys()
+        }
 
         if len(config) == 0:
-            return jsonify({"status": False, "msg": "No valid fields found in request"}), 400
+            return (
+                jsonify({"status": False, "msg": "No valid fields found in request"}),
+                400,
+            )
 
         # Update fields present in the request
         for key, value in config.items():
@@ -350,15 +358,11 @@ def update_config(operator: Operator, implant_id: str) -> Any:
 
         # Create the task
         task = Task.new_task(
-            operator.username,
-            implant_id,
-            Opcodes.UPDATE_CONFIG.value,
-            config
+            operator.username, implant_id, Opcodes.UPDATE_CONFIG.value, config
         )
     except Exception as e:
         print(e)
         return jsonify({"status": False, "msg": f"Error updating config: {e}"}), 400
-
 
     return jsonify({"status": True, "task": task.toJSON()}), 200
 
@@ -377,6 +381,7 @@ def get_implant_config(implant_id: str, operator: Operator) -> Any:
         return jsonify({"status": False, "msg": "Unknown implant"}), 400
 
     return jsonify({"status": True, "config": config.toJSON()}), 200
+
 
 @admin.route(
     OP_ROUTES["kill_implant"]["path"],
@@ -403,6 +408,3 @@ def kill_implant(operator: Operator, implant_id: str) -> Any:
     db.session.commit()
 
     return jsonify({"status": True}), 200
-
-
-    

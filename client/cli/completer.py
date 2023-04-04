@@ -15,6 +15,7 @@ def __none_values(d: dict):
             res[k] = None
     return res
 
+
 FullCompleter = NestedCompleter.from_nested_dict(__none_values(COMMANDS))
 
 InteractCompleter = NestedCompleter.from_nested_dict(__none_values(INTERACT_COMMANDS))

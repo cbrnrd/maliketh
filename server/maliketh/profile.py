@@ -165,11 +165,11 @@ class Routes(Profile):
     @staticmethod
     def from_dict(d: dict) -> "Routes":
         field_set = {f.name for f in fields(Routes)}
-        filtered_args = {k: v for k, v in d.get('routes', {}).items() if k in field_set}
-        base_path = d.get('routes', {}).get('base_path', '')
+        filtered_args = {k: v for k, v in d.get("routes", {}).items() if k in field_set}
+        base_path = d.get("routes", {}).get("base_path", "")
         if not base_path:
             raise ValueError("Routes must have a base path")
-        del filtered_args['base_path']
+        del filtered_args["base_path"]
         for name, route in filtered_args.items():
             filtered_args[name] = Route.from_dict(route)
         return Routes(base_path=base_path, **filtered_args)

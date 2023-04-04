@@ -110,7 +110,9 @@ class ImplantConfig(db.Model):
         return yaml.dump(self.toJSON())
 
     @staticmethod
-    def from_profile(profile: MaleableProfile, implant_id: str, enc_key: str) -> "ImplantConfig":
+    def from_profile(
+        profile: MaleableProfile, implant_id: str, enc_key: str
+    ) -> "ImplantConfig":
         implant_profile = profile.implant_profile
         return ImplantConfig(
             implant_id=implant_id,
@@ -124,8 +126,6 @@ class ImplantConfig(db.Model):
             tailoring_hash_rounds=implant_profile.tailoring_hash_rounds,
             tailoring_hashes=implant_profile.tailoring_hashes,
         )
-
-
 
     @staticmethod
     def create_min_config(
@@ -160,7 +160,7 @@ class ImplantConfig(db.Model):
 
     def remove_hash(self, hash: str) -> None:
         """
-        Remove a hash from the tailoring hashes. If `hash` is 
+        Remove a hash from the tailoring hashes. If `hash` is
         not in the list, do nothing.
         """
         try:
@@ -168,6 +168,7 @@ class ImplantConfig(db.Model):
         except ValueError:
             pass
         db.session.commit()
+
 
 @dataclass
 class Task(db.Model):
