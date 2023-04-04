@@ -16,7 +16,6 @@ A task has the following fields:
 | `read_at`     | `str` | The datetime the task was read by the implant, represented as a string in the format "YYYY-MM-DD HH:MM:SS.mmmmmm" |
 | `executed_at` | `str` | The datetime the task was executed by the implant, represented as a string in the format "YYYY-MM-DD HH:MM:SS.mmmmmm" |
 
-
 ## Task Status
 
 A task can have the following statuses:

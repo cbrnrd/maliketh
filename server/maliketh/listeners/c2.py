@@ -99,7 +99,7 @@ def register():
 
     # Create a new implant and add it to the db
     implant = Implant(
-        implant_id=random_id(),
+        implant_id=random_id(n=8),
         hostname=request.host,
         ip=request.remote_addr,
         os=request.user_agent.platform,

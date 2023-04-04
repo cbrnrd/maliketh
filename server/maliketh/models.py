@@ -17,8 +17,8 @@ COMPLETE = "COMPLETE"
 ERROR = "ERROR"
 
 
-def random_id():
-    return os.urandom(16).hex()
+def random_id(n=16):
+    return os.urandom(n).hex()[0:n]
 
 
 @dataclass
