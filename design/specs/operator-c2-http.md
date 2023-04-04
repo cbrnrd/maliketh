@@ -4,15 +4,15 @@ These are the *default* endpoints for the operator HTTP server. These endpoints 
 
 | Endpoint | Verb | Purpose | Details |
 |:-------- | :-- | :------ | :-----: |
-| `/op/stats` | `GET` | Gets basic statistics about the C2 | |
-| `/op/tasks/list` | `GET` | Lists currently running or new tasks given by this operator | |
-| `/op/tasks/add`  | `POST`| Adds a new task for an implant| |
-| `/op/tasks/results/:task_id` | `GET` | Gets the results of a task | |
-| `/op/tasks/delete/:task_id`| `DELETE` | Deletes the task with the given ID | |
-| `/op/implant/config/:implant_id` | `GET` | Gets the malleable configuration of the implant with the given ID | |
-| `/op/implant/config/:implant_id` | `POST` | Updates the malleable configuration of the implant with the given ID | |
-| `/op/implant/list` | `GET` | Lists all implants | |
-| `/op/implant/kill/:id` | `GET` | Removes the given implant from the database and purges it from the affected system. | |
+| `/op/stats` | `GET` | Gets basic statistics about the C2 | [example](#opstats) |
+| `/op/tasks/list` | `GET` | Lists currently running or new tasks given by this operator | [example](#optaskslist) |
+| `/op/tasks/add`  | `POST`| Adds a new task for an implant| [example](#optasksadd) |
+| `/op/tasks/results/:task_id` | `GET` | Gets the results of a task | [example](#optasksresultstask_id) |
+| `/op/tasks/delete/:task_id`| `DELETE` | Deletes the task with the given ID | [example](#optasksdeletetask_id) |
+| `/op/implant/config/:implant_id` | `GET` | Gets the malleable configuration of the implant with the given ID | [example](#get-opimplantconfigimplant_id) |
+| `/op/implant/config/:implant_id` | `POST` | Updates the malleable configuration of the implant with the given ID | [example](#post-opimplantconfigimplant_id) |
+| `/op/implant/list` | `GET` | Lists all implants | [example](#opimplantlist) |
+| `/op/implant/kill/:id` | `GET` | Removes the given implant from the database and purges it from the affected system. | [example](#opimplantkillimplant_id) |
 | `/op/auth/token/request` | `GET` | Used for fetching an operators authentication token | [example](#opauthtokenrequest) |
 | `/op/auth/token/revoke` | `DELETE` | Revokes the current operator authentication token | [example](#opauthtokenrevoke) |
 | `/op/auth/token/status` | `GET` | Checks the status of the current operator authentication token | [example](#opauthtokenstatus) |
