@@ -336,6 +336,13 @@ def update_config(operator: Operator, implant_id: str) -> Any:
         return jsonify({"status": False, "msg": "Unknown implant"}), 400
     
     try:
+
+        # Remove keys in the request that are not valid
+        config = {k: v for k, v in config.items() if k in ImplantConfig.__table__.columns.keys()}
+
+        if len(config) == 0:
+            return jsonify({"status": False, "msg": "No valid fields found in request"}), 400
+
         # Update fields present in the request
         for key, value in config.items():
             setattr(current_config, key, value)
@@ -370,3 +377,32 @@ def get_implant_config(implant_id: str, operator: Operator) -> Any:
         return jsonify({"status": False, "msg": "Unknown implant"}), 400
 
     return jsonify({"status": True, "config": config.toJSON()}), 200
+
+@admin.route(
+    OP_ROUTES["kill_implant"]["path"],
+    methods=OP_ROUTES["kill_implant"]["methods"],
+)
+@verified
+def kill_implant(operator: Operator, implant_id: str) -> Any:
+    """
+    Kill an implant
+    """
+    # Create the task
+    task = Task.new_task(
+        operator.username,
+        implant_id,
+        Opcodes.SELFDESTRUCT.value,
+        [],
+    )
+
+    to_delete = Implant.query.filter_by(implant_id=implant_id).first()
+    if to_delete is None:
+        return jsonify({"status": False, "msg": "Unknown implant"}), 400
+
+    db.session.delete(to_delete)
+    db.session.commit()
+
+    return jsonify({"status": True}), 200
+
+
+    

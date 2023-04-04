@@ -36,7 +36,7 @@ Ex: `[10]`
 
 Args: A map of strings (key, value) to update the malleable configuration.
 Invalid keys will be ignored. See [profile.md](profile.md#client-options) for a list of valid keys.
-Ex: `["key1", "new_value_for_key1", "key2", "value_for_key2"]`
+Ex: `{"kill_date": "2021-01-01"}`
 
 ## DOWNLOAD
 

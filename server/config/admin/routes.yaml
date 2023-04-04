@@ -36,11 +36,6 @@ list_implants:
   methods:
     - GET
 
-implant_info:
-  path: /implant/info/<implant_id>
-  methods:
-    - GET
-
 kill_implant:
   path: /implant/kill/<implant_id>
   methods: 

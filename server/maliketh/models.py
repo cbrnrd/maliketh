@@ -1,5 +1,6 @@
 from dataclasses import dataclass, asdict
 from datetime import datetime
+from typing import Any
 from maliketh.db import db
 from maliketh.profile import *
 import base64
@@ -208,7 +209,7 @@ class Task(db.Model):
         )
 
     @staticmethod
-    def new_task(operator_name: str, implant_id: str, opcode: int, args: List[str]):
+    def new_task(operator_name: str, implant_id: str, opcode: int, args: Any):
         """
         Helper to create a new task with the minimum required fields, and add it to the database.
         """
