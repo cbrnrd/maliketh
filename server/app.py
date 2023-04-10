@@ -2,6 +2,7 @@ import os
 import sys
 from maliketh.buildapp import build_operator_app, build_c2_app, init_db
 from maliketh.logging.standard_logger import StandardLogger, LogLevel
+from maliketh.operator.rmq import rmq_setup
 from optparse import OptionParser
 
 from maliketh.config import set_c2_profile, DEFAULT_C2_PROFILE
@@ -108,29 +109,30 @@ def init_simple_logger(level: LogLevel = LogLevel.INFO) -> StandardLogger:
 
 
 def main():
-    global operator_app, c2_app
-    opts = parse_options()
-    if opts.init_db:
-        choice = input(
-            "Are you sure you want to initialize the database? You will lose all operators and implants (y/n): "
-        )
-        if choice != "y" or choice != "Y":
-            sys.exit(0)
-        init_db()
-        sys.exit(0)
+  global operator_app, c2_app
+  opts = parse_options()
+  if opts.init_db:
+    choice = input("Are you sure you want to initialize the database? You will lose all operators and implants (y/n): ")
+    if choice != "y" or choice != "Y":
+      sys.exit(0)
+    init_db()
+    sys.exit(0)
 
-    logger = init_simple_logger(LogLevel[opts.log_level])
+  logger = init_simple_logger(LogLevel[opts.log_level])
 
-    validate_args(opts)
-    set_c2_profile(opts.profile)
-
-    if opts.start_operator:
-        logger.info("Starting operator listener on %s:%s" % (opts.address, opts.port))
-        operator_app.run(host=opts.address, port=opts.port, debug=opts.debug)
-    elif opts.start_c2:
-        logger.info("Starting C2 listener on %s:%s" % (opts.c2_address, opts.c2_port))
-        c2_app.run(host=opts.c2_address, port=opts.c2_port, debug=opts.debug)
+  validate_args(opts)
+  set_c2_profile(opts.profile)
+  rmq_setup()
 
 
-if __name__ == "__main__":
-    main()
+  if opts.start_operator:
+    logger.info("Starting operator listener on %s:%s" % (opts.address, opts.port))
+    operator_app.run(host=opts.address, port=opts.port, debug=opts.debug)
+  elif opts.start_c2:
+    logger.info("Starting C2 listener on %s:%s" % (opts.c2_address, opts.c2_port))
+    c2_app.run(host=opts.c2_address, port=opts.c2_port, debug=opts.debug)
+
+
+if __name__ == '__main__':
+  main()
+

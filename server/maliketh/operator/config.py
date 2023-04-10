@@ -19,6 +19,10 @@ def generate_config(name: str, outfile: Optional[str]) -> Dict[str, Any]:
     """
     keypair = generate_b64_ecc_keypair()
     signing_keypair = generate_b64_signing_keypair()
+<<<<<<< HEAD
+=======
+    rmq_queue = random_string(32)
+>>>>>>> 3844e34d6064dabaea245aff7d85cb3b1080d599
     with open(SERVER_PUB_KEY_PATH, "r") as f:
         server_pub = f.read()
         config = {
@@ -31,6 +35,10 @@ def generate_config(name: str, outfile: Optional[str]) -> Dict[str, Any]:
             "signing_key": signing_keypair[0],
             "verify_key": signing_keypair[1],
             "server_pub": server_pub,
+<<<<<<< HEAD
+=======
+            "rmq_queue": rmq_queue,
+>>>>>>> 3844e34d6064dabaea245aff7d85cb3b1080d599
         }
 
     if outfile is not None:

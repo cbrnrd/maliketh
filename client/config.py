@@ -19,6 +19,7 @@ class OperatorConfig:
     signing_key: str
     verify_key: str
     server_pub: str
+    rmq_queue: str
     auth_token: Optional[str] = None
 
     def to_dict(self) -> dict:
@@ -44,6 +45,7 @@ class OperatorConfig:
             signing_key=args["signing_key"],
             verify_key=args["verify_key"],
             server_pub=args["server_pub"],
+            rmq_queue=args["rmq_queue"],
         )
 
     def enc_and_sign_secret(self) -> str:

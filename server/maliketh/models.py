@@ -251,6 +251,7 @@ class Operator(db.Model):
     auth_token_expiry: str = db.Column(db.String)  # The time the auth token expires
     created_at: str = db.Column(db.String)
     last_login: str = db.Column(db.String)
+    rmq_queue: str = db.Column(db.String)  # The RabbitMQ queue name for this operator
 
     def toJSON(self):
         return asdict(self)
