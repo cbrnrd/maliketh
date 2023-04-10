@@ -2,7 +2,7 @@
 #define CRYPTO_H
 
 //#include <windows.h>
-#include <sodium.h>
+#include "sodium/sodium.h"
 #include <string>
 #include <string.h>
 
