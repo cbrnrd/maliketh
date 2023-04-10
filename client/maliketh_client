@@ -4,6 +4,7 @@ import optparse
 import sys
 import os
 import json
+from rmq import listen_for_messages_in_thread
 import config
 
 from typing import cast
@@ -74,6 +75,7 @@ def main():
     operator_config.auth_token = auth_result
 
     # Subscribe to RabbitMQ queue
+    listen_for_messages_in_thread(operator_config)
 
     # Go into main loop
     main_loop(operator_config)

@@ -2,6 +2,7 @@ import os
 import sys
 from maliketh.buildapp import build_operator_app, build_c2_app, init_db
 from maliketh.logging.standard_logger import StandardLogger, LogLevel
+from maliketh.operator.rmq import rmq_setup
 from optparse import OptionParser
 
 from maliketh.config import set_c2_profile, DEFAULT_C2_PROFILE
@@ -66,6 +67,8 @@ def main():
 
   validate_args(opts)
   set_c2_profile(opts.profile)
+  rmq_setup()
+
 
   if opts.start_operator:
     logger.info("Starting operator listener on %s:%s" % (opts.address, opts.port))

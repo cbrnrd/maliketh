@@ -114,6 +114,7 @@ def main():
                         auth_token=None,
                         auth_token_expiry=None,
                         created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        rmq_queue=operator_config["rmq_queue"],
                     )
                     db.session.add(operator)
                     db.session.commit()
