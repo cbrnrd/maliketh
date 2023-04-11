@@ -83,7 +83,8 @@ def register():
     try:
         base64.b64decode(implant_public_key_b64)
         implant_public_key = load_pubkey(implant_public_key_b64)
-    except:
+    except Exception as e:
+        logger.error(f"{e}")
         logger.error(f"Failed to load implant public key: {implant_public_key_b64}")
         return "Unauthorized", 401
 

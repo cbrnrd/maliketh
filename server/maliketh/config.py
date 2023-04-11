@@ -30,6 +30,7 @@ def set_c2_profile(path: str):
     print(f"Setting C2 profile to {path}")
     C2_PROFILE = MaleableProfile.from_yaml(open(path).read())
     print(f"Set C2 profile to {path}")
+    print(C2_PROFILE)
 
 
 def get_config(config_file: str):

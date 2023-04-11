@@ -86,6 +86,7 @@ class GlobalOptions(Profile):
 @dataclass
 class ImplantProfile(Profile):
     kill_date: str = field(default="")
+    user_agent: str = field(default="")
     sleep: int = field(default=0)
     jitter: float = field(default=0.0)
     max_retries: int = field(default=-1)
@@ -111,7 +112,7 @@ class ImplantProfile(Profile):
     @staticmethod
     def from_dict(d: dict) -> "ImplantProfile":
         field_set = {f.name for f in fields(ImplantProfile) if f.init}
-        filtered_args = {k: v for k, v in d.items() if k in field_set}
+        filtered_args = {k: v for k, v in d["client"].items() if k in field_set}
         return ImplantProfile(**filtered_args)
 
     @staticmethod

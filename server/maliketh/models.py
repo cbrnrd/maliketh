@@ -77,6 +77,10 @@ class ImplantConfig(db.Model):
         db.String
     )  # The cookie name to use for implant identification
     kill_date: str = db.Column(db.String)  # The timestamp of the kill date
+    user_agent: str = db.Column(db.String)  # The user agent to use for HTTP requests
+    auto_self_destruct: bool = db.Column(
+        db.Boolean
+    )  # Whether to self destruct on failed checkins
     sleep_time: int = db.Column(
         db.Integer
     )  # The number of seconds to sleep between tasks/checkin
@@ -86,6 +90,12 @@ class ImplantConfig(db.Model):
     max_retries: int = db.Column(
         db.Integer
     )  # The number of times to retry a task before giving up. -1 for infinite
+    retry_wait: int = db.Column(
+        db.Integer
+    )  # The number of seconds to wait between retries
+    retry_jitter: float = db.Column(
+        db.Float
+    )  # The percentage of jitter to add to the retry wait time
     enc_key: str = db.Column(
         db.String
     )  # The Base64 encoded public key (of the server, EC) to use for encryption
@@ -117,10 +127,14 @@ class ImplantConfig(db.Model):
         return ImplantConfig(
             implant_id=implant_id,
             cookie=profile.globals.implant_id_cookie,
+            auto_self_destruct=implant_profile.auto_self_destruct,
             kill_date=implant_profile.kill_date,
+            user_agent=implant_profile.user_agent,
             sleep_time=implant_profile.sleep,
             jitter=implant_profile.jitter,
             max_retries=implant_profile.max_retries,
+            retry_wait=implant_profile.retry_wait,
+            retry_jitter=implant_profile.retry_jitter,
             enc_key=enc_key,
             tailoring_hash_function=implant_profile.tailoring_hash_function,
             tailoring_hash_rounds=implant_profile.tailoring_hash_rounds,
