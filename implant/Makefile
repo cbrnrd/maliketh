@@ -1,12 +1,12 @@
 CC=x86_64-w64-mingw32-g++
 NATIVE_CC=g++
 CFLAGS=-std=c++14
-LDFLAGS=-lwinhttp -lkernel32
-OBJ_FILES=../bin/libsodium-23.dll
+LDFLAGS= -L ./bin/libsodium-win64/lib -Wl,-Bstatic -lsodium -Wl,-Bdynamic -lwinhttp -lcrypt32 -ladvapi32 -lkernel32 -Wl,--as-needed
+OBJ_FILES=./bin/libsodium-win64/bin/libsodium-23.dll
 INCLUDES=-I ./include -I ./include/sodium
 
 implant:
-	$(CC) -o implant.exe $(INCLUDES) $(LDFLAGS) $(OBJ_FILES) src/*.cpp
+	$(CC) -o implant.exe src/*.cpp $(INCLUDES) $(LDFLAGS) $(OBJ_FILES) $(CFLAGS)
 
-native:
-	$(NATIVE_CC) -o implant $(INCLUDES) -lsodium src/main.cpp
+clean:
+	rm -f implant.exe

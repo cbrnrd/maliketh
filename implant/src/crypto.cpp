@@ -1,38 +1,91 @@
 #include "crypto.h"
 
-int createKeyPair(unsigned char *privateKeyOut, unsigned char *publicKeyOut)
+int createKeyPair(unsigned char* privateKeyOut, unsigned char* publicKeyOut)
 {
-  return crypto_box_keypair(publicKeyOut, privateKeyOut);
+	return crypto_box_keypair(publicKeyOut, privateKeyOut);
 }
 
-int createBase64KeyPair(std::string *privateKeyOut, std::string *publicKeyOut)
+int createBase64KeyPair(std::string* privateKeyOut, std::string* publicKeyOut)
 {
-  unsigned char privateKey[crypto_box_SECRETKEYBYTES];
-  unsigned char publicKey[crypto_box_PUBLICKEYBYTES];
-  int status = createKeyPair(privateKey, publicKey);
-  if (status != 0)
-  {
-    return status;
-  }
-  *privateKeyOut = base64Encode(std::vector<unsigned char>(privateKey, privateKey + crypto_box_SECRETKEYBYTES));
-  *publicKeyOut = base64Encode(std::vector<unsigned char>(publicKey, publicKey + crypto_box_PUBLICKEYBYTES));
-  return 0;
+	unsigned char privateKey[crypto_box_SECRETKEYBYTES];
+	unsigned char publicKey[crypto_box_PUBLICKEYBYTES];
+	int status = createKeyPair(privateKey, publicKey);
+	if (status != 0)
+	{
+		return status;
+	}
+	*privateKeyOut = base64Encode(std::vector<unsigned char>(privateKey, privateKey + crypto_box_SECRETKEYBYTES));
+	*publicKeyOut = base64Encode(std::vector<unsigned char>(publicKey, publicKey + crypto_box_PUBLICKEYBYTES));
+	return 0;
 }
 
-std::string base64Encode(const std::vector<unsigned char> &data)
+std::vector<BYTE> encrypt(std::vector<BYTE> pubKey, std::vector<BYTE> privKey, std::vector<BYTE> message)
 {
-  DWORD outlen = 0;
-  CryptBinaryToStringA(&data[0], static_cast<DWORD>(data.size()), CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, nullptr, &outlen);
-  std::vector<char> out(outlen);
-  CryptBinaryToStringA(&data[0], static_cast<DWORD>(data.size()), CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, &out[0], &outlen);
-  return std::string(&out[0], outlen - 1); // -1 to remove the null terminator
+	std::vector<BYTE> cipherText(message.size() + crypto_box_MACBYTES);
+	std::vector<BYTE> nonce(crypto_box_NONCEBYTES);
+	randombytes_buf(nonce.data(), crypto_box_NONCEBYTES);
+	crypto_box_easy(cipherText.data(), message.data(), message.size(), nonce.data(), pubKey.data(), privKey.data());
+	cipherText.insert(cipherText.begin(), nonce.begin(), nonce.end());
+	return cipherText;
 }
 
-std::vector<unsigned char> base64Decode(const std::string &str)
+std::string decrypt(std::vector<BYTE> pubKey, std::vector<BYTE> privKey, std::vector<BYTE> cipherText)
 {
-  DWORD outlen = 0;
-  CryptStringToBinaryA(str.c_str(), static_cast<DWORD>(str.size()), CRYPT_STRING_BASE64, nullptr, &outlen, nullptr, nullptr);
-  std::vector<unsigned char> out(outlen);
-  CryptStringToBinaryA(str.c_str(), static_cast<DWORD>(str.size()), CRYPT_STRING_BASE64, &out[0], &outlen, nullptr, nullptr);
-  return out;
+	std::vector<BYTE> message(cipherText.size() - crypto_box_MACBYTES);
+	// Get nonce from ciphertext
+	std::vector<BYTE> nonce(cipherText.begin(), cipherText.begin() + crypto_box_NONCEBYTES);
+	crypto_box_open_easy(message.data(), cipherText.data() + crypto_box_NONCEBYTES, cipherText.size() - crypto_box_NONCEBYTES, nonce.data(), pubKey.data(), privKey.data());
+	return std::string(message.begin(), message.end());
+}
+std::string decryptB64String(std::string pubKey, std::string privKey, std::string cipherText)
+{
+	std::vector<BYTE> pubKeyBytes = base64Decode(pubKey);
+	std::vector<BYTE> privKeyBytes = base64Decode(privKey);
+	std::vector<BYTE> cipherTextBytes = base64Decode(cipherText);
+	return decrypt(pubKeyBytes, privKeyBytes, cipherTextBytes);
+}
+
+
+std::string base64Encode(const std::vector<BYTE> & data)
+{
+	DWORD length = 0;
+	CryptBinaryToStringA(data.data(), static_cast<DWORD>(data.size()), CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, NULL, &length);
+
+	std::string encoded(length, 0);
+	CryptBinaryToStringA(data.data(), static_cast<DWORD>(data.size()), CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, &encoded[0], &length);
+
+	return encoded;
+}
+
+std::string base64EncodeString(const std::string & data)
+{
+	DWORD length = 0;
+	CryptBinaryToStringA(reinterpret_cast<const BYTE*>(data.c_str()), static_cast<DWORD>(data.size()), CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, NULL, &length);
+
+	std::string encoded(length, 0);
+	CryptBinaryToStringA(reinterpret_cast<const BYTE*>(data.c_str()), static_cast<DWORD>(data.size()), CRYPT_STRING_BASE64 | CRYPT_STRING_NOCRLF, &encoded[0], &length);
+
+	return encoded;
+}
+
+std::vector<BYTE> base64Decode(const std::string & encoded)
+{
+	DWORD length = 0;
+	CryptStringToBinaryA(encoded.c_str(), static_cast<DWORD>(encoded.length()), CRYPT_STRING_BASE64, NULL, &length, NULL, NULL);
+
+	std::vector<BYTE> decoded(length, 0);
+	CryptStringToBinaryA(encoded.c_str(), static_cast<DWORD>(encoded.length()), CRYPT_STRING_BASE64, decoded.data(), &length, NULL, NULL);
+
+	return decoded;
+}
+
+std::string base64DecodeToString(const std::string & base64String)
+{
+	DWORD dwDecodedLength = 0;
+	CryptStringToBinaryA(base64String.c_str(), base64String.length(), CRYPT_STRING_BASE64, nullptr, &dwDecodedLength, nullptr, nullptr);
+
+	std::vector<BYTE> buffer(dwDecodedLength);
+	CryptStringToBinaryA(base64String.c_str(), base64String.length(), CRYPT_STRING_BASE64, buffer.data(), &dwDecodedLength, nullptr, nullptr);
+
+	return std::string(buffer.begin(), buffer.end());
 }
