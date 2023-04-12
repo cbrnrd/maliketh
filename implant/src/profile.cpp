@@ -1,5 +1,6 @@
 #include "profile.h"
 #include "rapidjson/rapidjson.h"
+#include "obfuscator/MetaString.h"
 
 using namespace rapidjson;
 
@@ -16,28 +17,28 @@ MalleableProfile* parseMalleableConfig(std::string configString, std::string b64
 	Document d;
 	d.Parse(configString.c_str());
 
-	Value& config = d["config"];
+	Value& config = d[OBFUSCATED("config")];
 
 	// Create MalleableProfile struct
 	MalleableProfile* profile = new MalleableProfile;
 
 	// Parse JSON into MalleableProfile struct
-	profile->implantId = d["id"].GetString();
-	profile->cookie = config["cookie"].GetString();
-	profile->userAgent = config["user_agent"].GetString();
-	profile->autoSelfDestruct = config["auto_self_destruct"].GetBool();
-	profile->sleep = config["sleep_time"].GetInt();
-	profile->jitter = config["jitter"].GetFloat();
-	profile->maxRetries = config["max_retries"].GetInt();
-	profile->retryWait = config["retry_wait"].GetInt();
-	profile->retryJitter = config["retry_jitter"].GetFloat();
-	profile->tailoringHashRounds = config["tailoring_hash_rounds"].GetInt();
+	profile->implantId = d[OBFUSCATED("id")].GetString();
+	profile->cookie = config[OBFUSCATED("cookie")].GetString();
+	profile->userAgent = config[OBFUSCATED("user_agent")].GetString();
+	profile->autoSelfDestruct = config[OBFUSCATED("auto_self_destruct")].GetBool();
+	profile->sleep = config[OBFUSCATED("sleep_time")].GetInt();
+	profile->jitter = config[OBFUSCATED("jitter")].GetFloat();
+	profile->maxRetries = config[OBFUSCATED("max_retries")].GetInt();
+	profile->retryWait = config[OBFUSCATED("retry_wait")].GetInt();
+	profile->retryJitter = config[OBFUSCATED("retry_jitter")].GetFloat();
+	profile->tailoringHashRounds = config[OBFUSCATED("tailoring_hash_rounds")].GetInt();
 	profile->base64EncryptionKey = b64PrivateKey;
-	profile->base64ServerPublicKey = config["enc_key"].GetString();
-	profile->tailoringHashFunction = config["tailoring_hash_function"].GetString();
+	profile->base64ServerPublicKey = config[OBFUSCATED("enc_key")].GetString();
+	profile->tailoringHashFunction = config[OBFUSCATED("tailoring_hash_function")].GetString();
 	profile->tailoringHashes = std::vector<std::string>();
 
-	for (auto& m : config["tailoring_hashes"].GetArray())
+	for (auto& m : config[OBFUSCATED("tailoring_hashes")].GetArray())
 	{
 		profile->tailoringHashes.push_back(m.GetString());
 	}

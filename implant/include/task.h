@@ -15,12 +15,12 @@
 typedef struct {
     std::string taskId;
     INT opcode;
-    rapidjson::Document args; // Could be any json object
+    rapidjson::Value* args; // Could be any json object
 } Task;
 
 /**
  * Function used to convert a rapidjson Document to a Task struct
  */
-Task parseTask(rapidjson::Document &d);
+Task* parseTask(std::string taskJson);
 
 #endif
