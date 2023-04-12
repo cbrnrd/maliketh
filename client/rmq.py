@@ -6,7 +6,7 @@ import pika
 def listen_for_messages_in_thread(op: OperatorConfig):
     logger = get_styled_logger()
     def callback(ch, method, properties, body):
-        logger.ok(f"{body.decode()}")
+        logger.ok(f"[{method.exchange}] {body.decode()}")
 
     def listen_for_messages():
         connection = pika.BlockingConnection(
@@ -14,11 +14,24 @@ def listen_for_messages_in_thread(op: OperatorConfig):
         )
         channel = connection.channel()
 
-        channel.queue_bind(exchange='logs', queue=op.rmq_queue)
+        channel.exchange_declare(exchange='announcements', exchange_type='fanout')
+        channel.exchange_declare(exchange='logs', exchange_type='direct')
+
+        announcement_queue = channel.queue_declare(queue='', exclusive=True)
+        logs_queue = channel.queue_declare(queue='', exclusive=False)
+        announcement_queue_name = announcement_queue.method.queue
+        logs_queue_name = logs_queue.method.queue
+
+        channel.queue_bind(exchange='announcements', queue=announcement_queue_name)
+        channel.queue_bind(exchange='logs', queue=logs_queue_name, routing_key=op.rmq_queue)
 
         channel.basic_consume(
-            queue=op.rmq_queue, on_message_callback=callback, auto_ack=True
+            queue=announcement_queue_name, on_message_callback=callback, auto_ack=True
         )
+        channel.basic_consume(
+            queue=logs_queue_name, on_message_callback=callback, auto_ack=True
+        )
+
         channel.start_consuming()
 
     t = Thread(target=listen_for_messages, daemon=True)
