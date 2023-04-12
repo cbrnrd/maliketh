@@ -23,6 +23,6 @@ MalleableProfile* Register(LPCWSTR serverUrl, std::string pubKey, std::string pr
 /**
  * Checks in with the server at the given URL and returns a Task.
 */
-Task* Checkin(std::string serverUrl, MalleableProfile *profile);
+Task* Checkin(LPCWSTR serverUrl, MalleableProfile *profile);
 
 #endif // IMPLANT_H

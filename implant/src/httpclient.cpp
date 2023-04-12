@@ -1,4 +1,5 @@
 #include "httpclient.h"
+#include "debug.h"
 
 std::string
 HTTPRequest(
@@ -42,16 +43,22 @@ HTTPRequest(
 			WINHTTP_DEFAULT_ACCEPT_TYPES,
 			bTLS ? WINHTTP_FLAG_SECURE : 0);
 
+	DEBUG_PRINTF("Sending request with headers (len: %d): %ls\n", wcslen(additionalHeaders), additionalHeaders);
 	// Send a request.
 	if (hRequest)
 		bResults = WinHttpSendRequest(hRequest,
-			additionalHeaders, -1,
+			additionalHeaders, -1L,
 			data, stData,
 			stData, 0);
 
 	// End the request.
-	if (bResults)
+	if (bResults){
+		DEBUG_PRINTF("Receiving response...\n");
 		bResults = WinHttpReceiveResponse(hRequest, NULL);
+	}
+		
+
+	DEBUG_PRINTF("bResults: %d\n", bResults);
 
 	// Keep checking for data until there is nothing left.
 	if (bResults)

