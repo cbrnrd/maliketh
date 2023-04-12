@@ -8,6 +8,7 @@ from config import OperatorConfig
 from .completer import FullCompleter
 from comms import get_server_stats
 from .style import PROMPT_STYLE
+from .banner import get_full_banner
 
 
 def bottom_bar(config: OperatorConfig) -> Callable:
@@ -18,6 +19,8 @@ def bottom_bar(config: OperatorConfig) -> Callable:
 
 
 def main_loop(config: OperatorConfig):
+
+    print_formatted_text(HTML(f"<home>{get_full_banner()}</home>"), style=PROMPT_STYLE)
 
     while True:
         try:
