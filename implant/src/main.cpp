@@ -86,6 +86,16 @@ int main()
 				DEBUG_PRINTF("Error executing command\n");
 				continue;
 			}
+
+			if (cmdOutSize == 0)
+			{
+				DEBUG_PRINTF("Command output is empty\n");
+				continue;
+			}
+
+			// Send output
+			
+
 			DEBUG_PRINTF("Command output: %s\n", LPBYTEToString(output, cmdOutSize).c_str());
 		}
 

