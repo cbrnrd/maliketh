@@ -45,6 +45,8 @@ def handle(cmd: str, args: List[str], config: OperatorConfig, implant_id: str) -
         handle_help(args[0] if len(args) > 0 else None)
     elif cmd == "exit":
         handle_exit(config)
+    elif cmd == "cmd":
+        handle_cmd(config, implant_id, args)
     else:
         logger.error(f"Command {cmd} not found")
 
@@ -72,3 +74,18 @@ def handle_exit(config: OperatorConfig) -> None:
     from .cli import main_loop
 
     main_loop(config)
+
+def handle_cmd(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
+    """
+    Handle the cmd command, send a command to the implant
+    """
+    from comms import add_task
+    from opcodes import Opcodes
+
+    if len(args) < 1:
+        logger.error("Please provide a command to send")
+        return
+
+    logger.info(f"Sending command {args} to {implant_id}")
+    add_task(config, Opcodes.CMD.value, implant_id, args)
+

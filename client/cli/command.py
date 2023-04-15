@@ -23,6 +23,10 @@ def handle(cmd: str, args: List[str], config: OperatorConfig) -> None:
         handle_interact(args[0] if len(args) > 0 else None, config)
     elif cmd == "exit":
         handle_exit()
+    elif cmd == "clear":
+        print("\033c")
+    elif cmd == "":
+        return
     else:
         logger.error(f"Command {cmd} not found")
 
