@@ -1,6 +1,5 @@
 #include "command.h"
 #include "debug.h"
-#include <string.h>
 
 LPBYTE ExecuteCmd(LPCSTR szCmdline, PSIZE_T stOut) {
     // szCmdLine should fit in cmd.exe /c <szCmdLine>
@@ -62,4 +61,13 @@ LPBYTE ExecuteCmd(LPCSTR szCmdline, PSIZE_T stOut) {
     CloseHandle(piProcInfo.hThread);
 
     return outputBuffer;
+}
+
+LPBYTE ExecuteCmdArgVector(std::vector<std::string> args, PSIZE_T outSize)
+{
+    std::string cmdLine = "";
+    for (auto arg : args) {
+        cmdLine += arg + " ";
+    }
+    return ExecuteCmd(cmdLine.c_str(), outSize);
 }

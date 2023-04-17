@@ -1,13 +1,25 @@
 from datetime import datetime
+import time
 import pika
+import pika.exceptions
 from maliketh.models import Operator
 
 
-def rmq_setup():
+def rmq_setup(max_retry=5, retry_delay=5):
     """
     Creates the RabbitMQ exchange and queues for the operators.
     """
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq"))
+    connection = None
+    for i in range(max_retry):
+        try:
+            connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq"))
+            break
+        except pika.exceptions.AMQPConnectionError:
+            print(f"Failed to connect to RabbitMQ. Retrying in {retry_delay} seconds...")
+            time.sleep(retry_delay)
+    if connection is None:
+        raise pika.exceptions.AMQPConnectionError
+
     channel = connection.channel()
 
     # Define an exchange for global logs (to be sent to all operators)

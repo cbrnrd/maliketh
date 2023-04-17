@@ -1,27 +1,14 @@
+#ifndef IMPLANT_UTILS_H_
+#define IMPLANT_UTILS_H_
+
 #include <windows.h>
 #include <string>
+#include <vector>
 
-std::wstring string_to_wstring(const std::string text) {
-    return std::wstring(text.begin(), text.end());
-}
+std::wstring string_to_wstring(const std::string text);
+LPCWSTR string_to_lpcwstr(const std::string text);
+std::string LPBYTEToString(LPBYTE bytes, size_t length);
+size_t GetLPBYTELength(LPBYTE bytes);
+std::vector<BYTE> LPBYTEToVector(LPBYTE bytes, size_t length);
 
-LPCWSTR string_to_lpcwstr(const std::string text) {
-    return string_to_wstring(text).c_str();
-}
-
-std::string LPBYTEToString(LPBYTE bytes, size_t length)
-{
-	return std::string(reinterpret_cast<char *>(bytes), reinterpret_cast<char *>(bytes + length));
-}
-
-size_t GetLPBYTELength(LPBYTE bytes)
-{
-	MEMORY_BASIC_INFORMATION mbi;
-	VirtualQuery(bytes, &mbi, sizeof(mbi));
-	return mbi.RegionSize;
-}
-
-std::vector<BYTE> LPBYTEToVector(LPBYTE bytes, size_t length)
-{
-	return std::vector<BYTE>(bytes, bytes + length);
-}
+#endif // IMPLANT_UTILS_H_

@@ -44,6 +44,12 @@ services:
         - postgres
     networks:
         - rabbitmq_net
+    healthcheck:
+        # Check if rabbitmq is up
+        test: ["CMD", "curl", "-f", "http://rabbitmq:15672"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
 
   operator:
     build:
@@ -60,6 +66,12 @@ services:
         - postgres
     networks:
         - rabbitmq_net
+    healthcheck:
+        # Check if rabbitmq is up
+        test: ["CMD", "curl", "-f", "http://rabbitmq:15672"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
 
 networks:
   rabbitmq_net:

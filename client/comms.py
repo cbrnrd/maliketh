@@ -62,7 +62,7 @@ def server_auth(ip: str, port: int, name: str, login_secret: str) -> ServerAuthR
         )
     else:
         return ServerAuthResponseFailure(
-            status=False, message=response.json()["message"]
+            status=False, message=response.json()["msg"]
         )
 
 

