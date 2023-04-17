@@ -7,6 +7,7 @@ from comms import get_server_stats, list_implants, get_tasks, implant_exists
 from config import OperatorConfig
 from .logging import StyledLogger, get_styled_logger
 from .commands import *
+from opcodes import Opcodes
 
 logger = get_styled_logger()
 
@@ -168,7 +169,7 @@ def show_tasks(config: OperatorConfig) -> None:
             minified.append(
                 [
                     job["task_id"][0:8],
-                    job["opcode"],
+                    Opcodes.get_by_value(job["opcode"]),
                     job["status"],
                     job["implant_id"][0:8],
                     job["args"],

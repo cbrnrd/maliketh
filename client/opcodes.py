@@ -21,3 +21,10 @@ class Opcodes(Enum):
             if opcode.name == name or opcode.name.lower() == name.lower():
                 return opcode.value
         return None
+
+    @staticmethod
+    def get_by_value(value: int) -> Optional[str]:
+        for opcode in Opcodes:
+            if opcode.value == value:
+                return opcode.name
+        return None
