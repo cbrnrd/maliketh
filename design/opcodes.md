@@ -29,8 +29,7 @@ Args: None
 
 ## SLEEP
 
-Args: List of 1 string representing how many seconds to sleep for
-Ex: `[10]`
+Args: 1 integer (seconds to sleep)
 
 ## UPDATE_CONFIG
 

