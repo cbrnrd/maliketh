@@ -44,6 +44,7 @@ INTERACT_COMMANDS = {
             "tailoring_hash_rounds": "Show the number of rounds for payload tailoring",
         },
     },
+    "back": "Exit the interact menu",
     "exit": "Exit the interact menu",
 }
 

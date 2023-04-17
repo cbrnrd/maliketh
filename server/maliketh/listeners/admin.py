@@ -390,21 +390,19 @@ def get_implant_config(implant_id: str, operator: Operator) -> Any:
 @verified
 def kill_implant(operator: Operator, implant_id: str) -> Any:
     """
-    Kill an implant
+    Send a SELFDESTRUCT task to an implant
     """
+
+    # See if implant exists
+    implant = Implant.query.filter_by(implant_id=implant_id).first()
+    if implant is None:
+        return jsonify({"status": False, "msg": "Unknown implant"}), 400
+
     # Create the task
-    task = Task.new_task(
+    Task.new_task(
         operator.username,
         implant_id,
         Opcodes.SELFDESTRUCT.value,
         [],
     )
-
-    to_delete = Implant.query.filter_by(implant_id=implant_id).first()
-    if to_delete is None:
-        return jsonify({"status": False, "msg": "Unknown implant"}), 400
-
-    db.session.delete(to_delete)
-    db.session.commit()
-
     return jsonify({"status": True}), 200

