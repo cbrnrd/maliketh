@@ -88,7 +88,7 @@ HTTPRequest(
 					printf("Error %u in WinHttpReadData.\n", GetLastError());
 				else
 				{
-					printf("%s", pszOutBuffer);
+					//printf("%s", pszOutBuffer);
 					responseBody.append(pszOutBuffer, dwDownloaded);
 					dwDownloadedSize += dwDownloaded;
 				}

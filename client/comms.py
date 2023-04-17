@@ -160,7 +160,7 @@ def get_tasks(config: OperatorConfig) -> List[Dict[Any, Any]]:
 
 
 def add_task(
-    config: OperatorConfig, opcode: int, implant_id: str, args: List[str]
+    config: OperatorConfig, opcode: int, implant_id: str, args: Any
 ) -> Dict[str, Any]:
     try:
         ensure_token(config)
@@ -194,3 +194,28 @@ def implant_exists(config: OperatorConfig, id_prefix: str) -> bool:
         if implant["implant_id"].startswith(id_prefix):
             return True
     return False
+
+def get_implant_profile(config: OperatorConfig, implant_id: str) -> Dict[str, Any]:
+    url = f"http://{config.c2}:{config.c2_port}/op/implant/config/{implant_id}"
+    headers = {
+        "Authorization": f"Bearer {config.auth_token}",
+    }
+
+    response = requests.get(url, headers=headers)
+    if response.json()["status"] != True:
+        logger.error("Failed to get implant config")
+        return {}
+
+    return response.json()["config"]
+
+def update_implant_profile(config: OperatorConfig, implant_id: str, changes: Dict[str, Any]) -> None:
+    url = f"http://{config.c2}:{config.c2_port}/op/implant/config/{implant_id}"
+    headers = {
+        "Authorization": f"Bearer {config.auth_token}",
+    }
+
+    response = requests.post(url, headers=headers, json=changes)
+    if response.json()["status"] != True:
+        logger.error("Failed to update implant config")
+        return
+    logger.debug("Updated implant config")

@@ -20,5 +20,7 @@ HTTPRequest(
 	SIZE_T stData,
 	PSIZE_T stOut,
 	BOOL bTLS);
+	
+BOOL UploadFile(LPCWSTR serverName, LPCWSTR filePath, LPCWSTR destinationPath);
 
 #endif

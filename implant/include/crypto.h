@@ -24,6 +24,11 @@ int createBase64KeyPair(std::string* privateKeyOut, std::string* publicKeyOut);
 
 std::vector<BYTE> encrypt(std::vector<BYTE> pubKey, std::vector<BYTE> privKey, std::vector<BYTE> message);
 
+/**
+ * Encrypt a string and return its base64 encoded representation
+*/
+std::string encryptB64String(std::string pubKey, std::string privKey, std::string message);
+
 std::string decrypt(std::vector<BYTE> pubKey, std::vector<BYTE> privKey, std::vector<BYTE> cipherText);
 
 std::string decryptB64String(std::string pubKey, std::string privKey, std::string cipherText);
