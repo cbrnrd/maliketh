@@ -6,6 +6,7 @@ COMMANDS = {
         "stats": "Show basic statistics about the server and clients",
     },
     "interact <implant_id>": "Interact with a given implant id",
+    "results <task_id>": "Show the results of a given task id",
     "exit": "Exit the client",
 }
 
@@ -44,6 +45,7 @@ INTERACT_COMMANDS = {
             "tailoring_hash_rounds": "Show the number of rounds for payload tailoring",
         },
     },
+    "results <task_id>": "Show the results of a given task id",
     "back": "Exit the interact menu",
     "exit": "Exit the interact menu",
 }

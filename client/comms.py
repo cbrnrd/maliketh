@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 import requests
 from dataclasses import dataclass
 from functools import wraps
@@ -187,6 +187,25 @@ def add_task(
         logger.error(f"Exception: {sys.exc_info()[0]}")
         return {}
 
+def get_task_result(config: OperatorConfig, task_id: str) -> Optional[str]:
+    try:
+        ensure_token(config)
+
+        url = f"http://{config.c2}:{config.c2_port}/op/tasks/results/{task_id}"
+        headers = {
+            "Authorization": f"Bearer {config.auth_token}",
+        }
+
+        response = requests.get(url, headers=headers)
+        if response.json()["status"] != True:
+            logger.error("Failed to get task result")
+            return None
+
+        return response.json()["result"]
+    except Exception as e:
+        logger.error("Failed to get task result")
+        logger.error(f"Exception: {sys.exc_info()[0]}")
+        return ""
 
 def implant_exists(config: OperatorConfig, id_prefix: str) -> bool:
     implants = list_implants(config)
@@ -196,6 +215,9 @@ def implant_exists(config: OperatorConfig, id_prefix: str) -> bool:
     return False
 
 def get_implant_profile(config: OperatorConfig, implant_id: str) -> Dict[str, Any]:
+
+    ensure_token(config)
+
     url = f"http://{config.c2}:{config.c2_port}/op/implant/config/{implant_id}"
     headers = {
         "Authorization": f"Bearer {config.auth_token}",
@@ -209,6 +231,9 @@ def get_implant_profile(config: OperatorConfig, implant_id: str) -> Dict[str, An
     return response.json()["config"]
 
 def update_implant_profile(config: OperatorConfig, implant_id: str, changes: Dict[str, Any]) -> None:
+
+    ensure_token(config)
+
     url = f"http://{config.c2}:{config.c2_port}/op/implant/config/{implant_id}"
     headers = {
         "Authorization": f"Bearer {config.auth_token}",
@@ -221,6 +246,9 @@ def update_implant_profile(config: OperatorConfig, implant_id: str, changes: Dic
     logger.debug("Updated implant config")
 
 def kill_implant(config: OperatorConfig, implant_id: str) -> None:
+
+    ensure_token(config)
+
     url = f"http://{config.c2}:{config.c2_port}/op/implant/kill/{implant_id}"
     headers = {
         "Authorization": f"Bearer {config.auth_token}",

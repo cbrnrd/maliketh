@@ -1,9 +1,11 @@
+import base64
 from dataclasses import dataclass
+import json
 from typing import Callable, Dict, List, Optional, Union
 from tabulate import tabulate
 import cli.interact
 
-from comms import get_server_stats, list_implants, get_tasks, implant_exists
+from comms import get_server_stats, get_task_result, list_implants, get_tasks, implant_exists
 from config import OperatorConfig
 from .logging import StyledLogger, get_styled_logger
 from .commands import *
@@ -22,6 +24,8 @@ def handle(cmd: str, args: List[str], config: OperatorConfig) -> None:
         handle_show(args[0] if len(args) > 0 else None, config)
     elif cmd == "interact":
         handle_interact(args[0] if len(args) > 0 else None, config)
+    elif cmd == "result" or cmd == "results":
+        handle_result(config, args)
     elif cmd == "exit":
         handle_exit()
     elif cmd == "clear":
@@ -84,6 +88,15 @@ def handle_interact(implant_id: Optional[str], config: OperatorConfig) -> None:
             print(f"Interacting with implant {implant_id}...")
             cli.interact.interact_prompt(config, implant_id)
 
+def handle_result(config: OperatorConfig, args: List[str]) -> None:
+    """
+    Handle the result command
+    """
+    if len(args) < 1:
+        logger.error("Please provide a task ID")
+        return
+
+    print_task_result(config, args[0])
 
 def handle_exit() -> None:
     """
@@ -184,3 +197,25 @@ def show_tasks(config: OperatorConfig) -> None:
             tablefmt="fancy_grid",
         )
     )
+
+def print_task_result(config: OperatorConfig, task_id: str) -> None:
+    """
+    Print the result of a task
+    """
+    taskB64 = get_task_result(config, task_id)
+    if taskB64 is None:
+        return
+    
+    if taskB64 == "":
+        logger.info("Task had no output")
+        return
+
+    decoded = base64.b64decode(taskB64).decode("utf-8")
+    try:
+        task = json.loads(decoded)
+    except Exception as e:
+        logger.warning("Result is not JSON, printing raw output")
+        print(decoded)
+        return
+
+    print(tabulate(task.items(), headers=["Key", "Value"], tablefmt="fancy_grid"))

