@@ -1,0 +1,9 @@
+version: '3.3'
+services:
+    nginx:
+        container_name: revproxy
+        build: .
+        ports:
+            - '80:80'
+            - '443:443'
+        image: 'nginx:latest'
