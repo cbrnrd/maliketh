@@ -2,11 +2,11 @@
     "name": "admin",
     "c2": "localhost",
     "c2_port": 5000,
-    "login_secret": "RtEl.usKG@+@Ey/8LU[eEqH`uVC*FC_M",
-    "secret": "yalsrURU0oxU+qPBSF7vv41bNX7tG3Bb8zi4caXM/is=",
-    "public": "7Yi3+TvHC7G8iq28p7Y2dn/0dF9XjGjRJ5K3mcHZJic=",
-    "signing_key": "8jE0g9YP9zX6NlmhBqUrAXlf4ovzGIPi87leZYIJHkA=",
-    "verify_key": "L3d1Rd5d7V3mAlLZc5I3yy/TGHXS9UuStk91hZorP9U=",
-    "server_pub": "Wum5IVMIbhuj6817C8UCl5BHuRHpL3QlsnuiE4yMRzw=",
-    "rmq_queue": "pK6K5{,LWp6OG-szU>Wg)M5i5^M&^Sxm"
+    "login_secret": "b=c&iC;`;97-Tbw3tr8=]Ug:_Rv+FZy}",
+    "secret": "/6udahvVtsGtApu5AftRp5BnxTjxwXRFw4q6qm7p68o=",
+    "public": "g3oEXubSNf7EWYzDn9D+ox5bNm11nmczfITCOn1Woiw=",
+    "signing_key": "URdxUl9iNbzmVsKedbEC8QVXFAJ/ImgpR+cfAFXz2aE=",
+    "verify_key": "z05MeXwUtXS5nntM7eFB4S7MWA3T0mVIA3cJM/Ira94=",
+    "server_pub": "eAqtTdm1Sy/wss05fTx/KTk9DBpy+1G+3q6P5pfR22g=",
+    "rmq_queue": "rIt7L^B-?,(T@XY++bT+ut25(0xlwQQ6"
 }
