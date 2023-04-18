@@ -1,84 +1,83 @@
 version: "3.2"
 services:
-  # Set up RabbitMQ
-  rabbitmq:
-    image: rabbitmq:3.11-management
-    container_name: 'rabbitmq'
-    ports:
-        - 5672:5672
-        - 15672:15672
-    volumes:
-        - rabbitmq_data:/var/lib/rabbitmq/
-        - rabbitmq_log:/var/log/rabbitmq/
-    networks:
-        - rabbitmq_net
+    rabbitmq:
+        image: rabbitmq:3.11-management
+        container_name: 'rabbitmq'
+        ports:
+            - ${WIREGUARD_IP}:5672:5672
+            - ${WIREGUARD_IP}:15672:15672
+        volumes:
+            - rabbitmq_data:/var/lib/rabbitmq/
+            - rabbitmq_log:/var/log/rabbitmq/
+        networks:
+            - rabbitmq_net
 
-  postgres:
-    image: postgres:13.3-alpine
-    container_name: 'postgres'
-    ports:
-        - 5432:5432
-    volumes:
-        - db:/var/lib/postgresql/data/
-    environment:
-        - POSTGRES_USER=postgres
-        - POSTGRES_PASSWORD=Vv4QZnP7eS#K7Z!4HWzx  # Change me!
-        - PGDATA=/var/lib/postgresql/data/pgdata
-    networks:
-        - rabbitmq_net
+    postgres:
+        image: postgres:13.3-alpine
+        container_name: 'postgres'
+        ports:
+            - 172.20.0.1:5432:5432
+        volumes:
+            - db:/var/lib/postgresql/data/
+        environment:
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+            - PGDATA=${PGDATA}
+        networks:
+            - rabbitmq_net
 
-  # Start our Flask apps
-  c2:
-    build:
-        context: .
-        dockerfile: Dockerfile.c2
-    container_name: 'c2'
-    restart: always
-    ports:
-        - 443:443      # For implants
-        - 8080:8080    # For debugging
-    volumes:
-        - .:/app
-    depends_on:
-        - rabbitmq
-        - postgres
-    networks:
-        - rabbitmq_net
-    healthcheck:
-        # Check if rabbitmq is up
-        test: ["CMD", "curl", "-f", "http://rabbitmq:15672"]
-        interval: 30s
-        timeout: 10s
-        retries: 5
+    # Start our Flask apps
+    c2:
+        build:
+            context: .
+            dockerfile: Dockerfile.c2
+        container_name: 'c2'
+        restart: always
+        ports:
+            - 443:443 # For implants
+            - 8080:8080 # For debugging
+        volumes:
+            - .:/app
+        depends_on:
+            - rabbitmq
+            - postgres
+        networks:
+            - rabbitmq_net
+        healthcheck:
+            # Check if rabbitmq is up
+            test: [ "CMD", "curl", "-f", "http://rabbitmq:15672" ]
+            interval: 30s
+            timeout: 10s
+            retries: 5
 
-  operator:
-    build:
-        context: .
-        dockerfile: Dockerfile.operator
-    container_name: 'operator'
-    restart: always
-    ports:
-        - 5000:5000        # For operator
-    volumes:
-        - .:/app
-    depends_on:
-        - rabbitmq
-        - postgres
-    networks:
-        - rabbitmq_net
-    healthcheck:
-        # Check if rabbitmq is up
-        test: ["CMD", "curl", "-f", "http://rabbitmq:15672"]
-        interval: 30s
-        timeout: 10s
-        retries: 5
+    operator:
+        build:
+            context: .
+            dockerfile: Dockerfile.operator
+        container_name: 'operator'
+        restart: always
+        ports:
+            - ${WIREGUARD_IP}:5000:5000 # For operator
+        volumes:
+            - .:/app
+        depends_on:
+            - rabbitmq
+            - postgres
+        networks:
+            - rabbitmq_net
+        healthcheck:
+            # Check if rabbitmq is up
+            test: [ "CMD", "curl", "-f", "http://rabbitmq:15672" ]
+            interval: 30s
+            timeout: 10s
+            retries: 5
 
 networks:
-  rabbitmq_net:
-    driver: bridge
+    rabbitmq_net:
+        driver: bridge
 
 volumes:
     rabbitmq_data:
-    rabbitmq_log: 
+    rabbitmq_log:
     db:
         driver: local

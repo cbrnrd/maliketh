@@ -1,9 +1,11 @@
+import sys
+import threading
 from typing import Callable
 from prompt_toolkit import print_formatted_text, HTML, PromptSession
 from prompt_toolkit.shortcuts import prompt
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
-from cli.logging import LogLevel, StyledLogger
 from cli.command import handle
+from cli.logging import get_styled_logger
 from config import OperatorConfig
 from .completer import FullCompleter
 from comms import get_server_stats

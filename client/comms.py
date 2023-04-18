@@ -133,6 +133,9 @@ def get_server_stats(config: OperatorConfig) -> Dict[str, Any]:
 
         response = requests.get(url, headers=headers)
         return response.json()
+    except requests.exceptions.ConnectionError as ce:
+        logger.error("Server is down. Please check the server logs for more information.")
+        sys.exit(1)
     except Exception as e:
         logger.error("Failed to get server stats")
         logger.error(f"Exception: {sys.exc_info()[0]}")
