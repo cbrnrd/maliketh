@@ -1,4 +1,8 @@
+#include "implant.h"
 #include "profile.h"
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
 #include "rapidjson/rapidjson.h"
 #include "obfuscator/MetaString.h"
 

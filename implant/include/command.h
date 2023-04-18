@@ -28,4 +28,8 @@ std::string SysInfo();
 */
 void UpdateProfile(rapidjson::Value* changes, MalleableProfile* currentProfile);
 
+std::string Upload(rapidjson::Value* uploaded);
+
+std::string Download(std::string filepath);
+
 #endif

