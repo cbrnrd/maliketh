@@ -1,4 +1,4 @@
-#include <Lmcons.h>
+#include <winsock.h>
 #include "command.h"
 #include "debug.h"
 #include "profile.h"
