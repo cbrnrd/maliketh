@@ -4,6 +4,8 @@
 ********************************************************************/
 
 #include <schtask.h>
+#include <combaseapi.h>
+#include <oleauto.h>
 
 using namespace std;
 
