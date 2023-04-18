@@ -140,13 +140,14 @@ def main():
   set_c2_profile(opts.profile)
   rmq_setup()
 
-
   if opts.start_operator:
     logger.info("Starting operator listener on %s:%s" % (opts.address, opts.port))
-    StandaloneApplication(operator_app, {}).run(host=opts.address, port=opts.port, debug=opts.debug)
+    operator_app.run(host=opts.address, port=opts.port, debug=opts.debug)
+    #StandaloneApplication(operator_app, {}).run(host=opts.address, port=opts.port, debug=opts.debug)
   elif opts.start_c2:
     logger.info("Starting C2 listener on %s:%s" % (opts.c2_address, opts.c2_port))
-    StandaloneApplication(c2_app, {}).run(host=opts.c2_address, port=opts.c2_port, debug=opts.debug)
+    c2_app.run(host=opts.c2_address, port=opts.c2_port, debug=opts.debug)
+    #StandaloneApplication(c2_app, {}).run(host=opts.c2_address, port=opts.c2_port, debug=opts.debug)
 
 
 if __name__ == '__main__':

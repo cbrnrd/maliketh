@@ -69,6 +69,7 @@ def init_db():
         auth_token=None,
         auth_token_expiry=None,
         created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        rmq_queue=admin_config["rmq_queue"],
     )
 
     db.session.add(admin)
