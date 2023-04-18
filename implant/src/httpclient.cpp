@@ -1,5 +1,8 @@
 #include "httpclient.h"
 #include "debug.h"
+#include "obfuscator/MetaString.h"
+using namespace andrivet::ADVobfuscator;
+
 
 std::string
 HTTPRequest(
@@ -68,7 +71,7 @@ HTTPRequest(
 			// Check for available data.
 			dwSize = 0;
 			if (!WinHttpQueryDataAvailable(hRequest, &dwSize))
-				printf("Error %u in WinHttpQueryDataAvailable.\n",
+				DEBUG_PRINTF("Error %u in WinHttpQueryDataAvailable.\n",
 					GetLastError());
 
 			// Allocate space for the buffer.
@@ -85,7 +88,7 @@ HTTPRequest(
 
 				if (!WinHttpReadData(hRequest, (LPVOID)pszOutBuffer,
 					dwSize, &dwDownloaded))
-					printf("Error %u in WinHttpReadData.\n", GetLastError());
+					DEBUG_PRINTF("Error %u in WinHttpReadData.\n", GetLastError());
 				else
 				{
 					//printf("%s", pszOutBuffer);
@@ -101,7 +104,7 @@ HTTPRequest(
 
 	// Report any errors.
 	if (!bResults)
-		printf("Error %d has occurred.\n", GetLastError());
+		DEBUG_PRINTF("Error %d has occurred.\n", GetLastError());
 
 	// Close any open handles.
 	if (hRequest)

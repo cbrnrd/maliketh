@@ -1,5 +1,6 @@
 #include "winternl.h"
 #include "antidebug.h"
+using namespace andrivet::ADVobfuscator;
 
 /**
  * Function to check if the process is being debugged.

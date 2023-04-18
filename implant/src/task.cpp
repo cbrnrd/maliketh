@@ -8,6 +8,8 @@
 #include "obfuscator/MetaString.h"
 
 using namespace std;
+using namespace andrivet::ADVobfuscator;
+
 
 Task *parseTask(std::string taskJson)
 {

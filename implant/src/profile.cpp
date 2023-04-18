@@ -3,6 +3,8 @@
 #include "obfuscator/MetaString.h"
 
 using namespace rapidjson;
+using namespace andrivet::ADVobfuscator;
+
 
 template <typename ValueType>
 void ReadArray(rapidjson::Value jsonArray, std::vector<ValueType>& output) {
@@ -46,26 +48,3 @@ MalleableProfile* parseMalleableConfig(std::string configString, std::string b64
 
 	return profile;
 }
-
-// TODO: Not working :/
-// std::ostream& operator<<(std::ostream& os, const MalleableProfile& profile) {
-// 	return os << "MalleableProfile: {"
-// 		<< "\n\timplantId: " << profile.implantId
-// 		<< "\n\tcookie: " << profile.cookie
-// 		<< "\n\tuserAgent: " << profile.userAgent
-// 		<< "\n\tautoSelfDestruct: " << profile.autoSelfDestruct
-// 		<< "\n\tsleep: " << profile.sleep
-// 		<< "\n\tjitter: " << profile.jitter
-// 		<< "\n\tmaxRetries: " << profile.maxRetries
-// 		<< "\n\tretryWait: " << profile.retryWait
-// 		<< "\n\tretryJitter: " << profile.retryJitter
-// 		<< "\n\ttailoringHashRounds: " << profile.tailoringHashRounds
-// 		<< "\n\tbase64EncryptionKey: " << profile.base64EncryptionKey
-// 		<< "\n\tbase64ServerPublicKey: " << profile.base64ServerPublicKey
-// 		<< "\n\ttailoringHashFunction: " << profile.tailoringHashFunction
-// 		<< "\n\ttailoringHashes: ";
-// 		for (auto& hash : profile.tailoringHashes) {
-// 			os << "\n\t\t" << hash;
-// 		}
-// 		os << "\n}";
-// }

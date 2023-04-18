@@ -12,7 +12,7 @@ implant:
 
 release:
 	@echo "Building implant (Release)"
-	$(CC) -o implant.exe src/*.cpp $(INCLUDES) $(LDFLAGS) $(OBJ_FILES) $(CFLAGS)
+	$(CC) -o implant.exe src/*.cpp $(INCLUDES) $(LDFLAGS) $(CFLAGS)
 	strip implant.exe
 
 clean:

