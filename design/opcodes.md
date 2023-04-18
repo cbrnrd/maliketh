@@ -40,12 +40,12 @@ Ex: `{"kill_date": "2021-01-01"}`
 ## DOWNLOAD
 
 Args: List of 1 string (path to file on the implant)
-Ex: `["C:\\Users\\user\\Desktop\\file.txt"]`
+Ex: `"C:\\Users\\user\\Desktop\\file.txt"`
 
 ## UPLOAD
 
-Args: List of 1 string (path to save the file on the implant)
-Ex: `["C:\\Users\\user\\Desktop\\file.txt"]`
+Args: List of 2 strings (path to save the file on the implant)
+Ex: `["C:\\Users\\user\\Desktop\\file.txt", ""]`
 
 ## INJECT
 

