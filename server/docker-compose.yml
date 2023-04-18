@@ -34,8 +34,7 @@ services:
         container_name: 'c2'
         restart: always
         ports:
-            - 443:443 # For implants
-            - 8080:8080 # For debugging
+            - 80:80
         volumes:
             - .:/app
         depends_on:

@@ -3,6 +3,6 @@ ADD . /app
 WORKDIR /app
 ENV FLASK_APP=app:app
 ENV DEBUG=-d
-ENV PORT=8080
+ENV PORT=80
 RUN pip install -r requirements.txt
 CMD python app.py -c ${PORT} ${DEBUG}
