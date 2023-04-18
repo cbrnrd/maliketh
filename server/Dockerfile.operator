@@ -4,4 +4,4 @@ WORKDIR /app
 ENV DEBUG=-d
 ENV PORT=5000
 RUN pip install -r requirements.txt
-CMD python app.py --start-operator -p ${PORT} ${DEBUG}
+CMD python make_db.py && python app.py --start-operator -p ${PORT} ${DEBUG}

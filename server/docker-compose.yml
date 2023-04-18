@@ -16,7 +16,7 @@ services:
         image: postgres:13.3-alpine
         container_name: 'postgres'
         ports:
-            - 172.20.0.1:5432:5432
+            - ${WIREGUARD_IP}:5432:5432
         volumes:
             - db:/var/lib/postgresql/data/
         environment:
@@ -70,7 +70,7 @@ services:
             test: [ "CMD", "curl", "-f", "http://rabbitmq:15672" ]
             interval: 30s
             timeout: 10s
-            retries: 5
+            retries: 5        
 
 networks:
     rabbitmq_net:
