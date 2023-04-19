@@ -13,3 +13,4 @@
 #pragma comment(lib, "credui.lib")
 #pragma comment(lib, "ole32.lib")
 
+int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily);

