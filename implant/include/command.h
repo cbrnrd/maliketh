@@ -32,4 +32,6 @@ std::string Upload(rapidjson::Value* uploaded);
 
 std::string Download(std::string filepath);
 
+std::string Inject(rapidjson::GenericArray<false, rapidjson::Value> injected);
+
 #endif
