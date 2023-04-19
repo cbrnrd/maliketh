@@ -45,7 +45,7 @@ Ex: `"C:\\Users\\user\\Desktop\\file.txt"`
 ## UPLOAD
 
 Args: List of 2 strings (path to save the file on the implant)
-Ex: `["C:\\Users\\user\\Desktop\\file.txt", ""]`
+Ex: `["C:\\Users\\user\\Desktop\\file.txt", "b64encoded-file-content=="]`
 
 ## INJECT
 

