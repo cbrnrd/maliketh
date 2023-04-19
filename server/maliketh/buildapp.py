@@ -52,9 +52,6 @@ def init_db():
     logger = StandardLogger(sys.stdout, sys.stderr, LogLevel.INFO)
     logger.info("Initializing database")
 
-    if Operator.query.filter_by(username="admin").first():
-        logger.info("Admin already exists, skipping")
-        return
 
     db.drop_all()
     db.create_all()

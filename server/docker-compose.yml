@@ -70,21 +70,6 @@ services:
             interval: 30s
             timeout: 10s
             retries: 5
-    # run make_db.py to create the database
-    make_db:
-        build:
-            context: .
-            dockerfile: Dockerfile.make_db
-        container_name: 'make_db'
-        volumes:
-            - .:/app
-        depends_on:
-            - rabbitmq
-            - postgres
-            - operator
-            - c2
-        networks:
-            - rabbitmq_net
 
 networks:
     rabbitmq_net:
