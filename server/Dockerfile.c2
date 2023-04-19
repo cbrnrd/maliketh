@@ -4,5 +4,8 @@ WORKDIR /app
 ENV FLASK_APP=app:app
 ENV DEBUG=-d
 ENV PORT=80
+ENV BIND=0.0.0.0
+ENV WORKERS=4
 RUN pip install -r requirements.txt
-CMD python app.py -c ${PORT} ${DEBUG}
+#CMD python app.py -c ${PORT} ${DEBUG}
+CMD gunicorn app:c2_app --bind ${BIND}:${PORT} --workers ${WORKERS}
