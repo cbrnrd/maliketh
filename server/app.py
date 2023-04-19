@@ -138,7 +138,6 @@ def main():
 
   validate_args(opts)
   set_c2_profile(opts.profile)
-  rmq_setup()
 
   if opts.start_operator:
     logger.info("Starting operator listener on %s:%s" % (opts.address, opts.port))

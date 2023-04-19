@@ -16,6 +16,12 @@ name: default
 ######################################
 implant_id_cookie: SESSID
 
+######################################
+# REQUIRED
+# The base64 encoded password to encrypt the initial registration request
+# (SecretBox, 32 bytes)
+######################################
+registration_password: SWh5bHhGOENYQWF1TW9KR3VTb0YwVkVWbDRud1RFaHc=
 
 client:
 

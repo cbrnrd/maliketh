@@ -71,6 +71,7 @@ class MaleableProfile(Profile):
 @dataclass
 class GlobalOptions(Profile):
     implant_id_cookie: str = field(default="SESSID")
+    registration_password: str = field(default="")
 
     @staticmethod
     def from_dict(d: dict) -> "GlobalOptions":

@@ -9,6 +9,7 @@ from maliketh.db import db
 from maliketh.models import Operator
 from maliketh.logging.standard_logger import StandardLogger, LogLevel
 from maliketh.crypto.ec import generate_b64_ecc_keypair
+from maliketh.operator.rmq import rmq_setup
 
 
 def build_operator_app(postgres_host='postgres'):
@@ -20,6 +21,8 @@ def build_operator_app(postgres_host='postgres'):
     from .listeners.admin import admin as admin_blueprint
 
     app.register_blueprint(admin_blueprint)
+
+    rmq_setup()
 
     db.init_app(app)
 

