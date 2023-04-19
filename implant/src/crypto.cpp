@@ -38,6 +38,24 @@ std::string encryptB64String(std::string pubKey, std::string privKey, std::strin
 	return base64Encode(cipherText);
 }
 
+std::string encryptB64SecretBox(std::string key, std::string message)
+{
+	std::vector<BYTE> keyBytes = base64Decode(key);
+	std::vector<BYTE> messageBytes(message.begin(), message.end());
+	std::vector<BYTE> cipherText = encryptSecretBox(keyBytes, messageBytes);
+	return base64Encode(cipherText);
+}
+
+std::vector<BYTE> encryptSecretBox(std::vector<BYTE> key, std::vector<BYTE> message)
+{
+	std::vector<BYTE> cipherText(message.size() + crypto_secretbox_MACBYTES);
+	std::vector<BYTE> nonce(crypto_secretbox_NONCEBYTES);
+	randombytes_buf(nonce.data(), crypto_secretbox_NONCEBYTES);
+	crypto_secretbox_easy(cipherText.data(), message.data(), message.size(), nonce.data(), key.data());
+	cipherText.insert(cipherText.begin(), nonce.begin(), nonce.end());
+	return cipherText;
+}
+
 std::string decrypt(std::vector<BYTE> pubKey, std::vector<BYTE> privKey, std::vector<BYTE> cipherText)
 {
 	std::vector<BYTE> message(cipherText.size() - crypto_box_MACBYTES);
