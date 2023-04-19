@@ -10,5 +10,6 @@ LPCWSTR string_to_lpcwstr(const std::string text);
 std::string LPBYTEToString(LPBYTE bytes, size_t length);
 size_t GetLPBYTELength(LPBYTE bytes);
 std::vector<BYTE> LPBYTEToVector(LPBYTE bytes, size_t length);
+FARPROC HashImport(char* name);
 
 #endif // IMPLANT_UTILS_H_
