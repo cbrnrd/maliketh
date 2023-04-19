@@ -22,16 +22,6 @@ def random_id(n=16):
 
 
 @dataclass
-class TestDB(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    foo: str = db.Column(db.String)
-    bar: str = db.Column(db.String)
-
-    def toJSON(self):
-        return asdict(self)
-
-
-@dataclass
 class Implant(db.Model):
     """
     An implant is a remote computer that is running the maliketh agent"""

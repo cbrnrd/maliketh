@@ -7,4 +7,4 @@ ENV BIND=0.0.0.0
 ENV WORKERS=1
 RUN pip install -r requirements.txt
 #CMD python make_db.py && python app.py --start-operator -p ${PORT} ${DEBUG}
-CMD gunicorn "app:operator_app" --bind ${BIND}:${PORT} --workers ${WORKERS}
+CMD gunicorn "app:operator_app" --bind ${BIND}:${PORT} --workers ${WORKERS} --reload

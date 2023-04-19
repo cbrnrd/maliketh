@@ -8,4 +8,4 @@ ENV BIND=0.0.0.0
 ENV WORKERS=4
 RUN pip install -r requirements.txt
 #CMD python app.py -c ${PORT} ${DEBUG}
-CMD gunicorn app:c2_app --bind ${BIND}:${PORT} --workers ${WORKERS}
+CMD gunicorn app:c2_app --bind ${BIND}:${PORT} --workers ${WORKERS} --reload

@@ -21,10 +21,13 @@ def build_operator_app(postgres_host='postgres'):
     from .listeners.admin import admin as admin_blueprint
 
     app.register_blueprint(admin_blueprint)
-
+    
     rmq_setup()
 
     db.init_app(app)
+
+    # with app.app_context():
+    #     init_db()
 
     return app
 
@@ -48,6 +51,10 @@ def build_c2_app():
 def init_db():
     logger = StandardLogger(sys.stdout, sys.stderr, LogLevel.INFO)
     logger.info("Initializing database")
+
+    if Operator.query.filter_by(username="admin").first():
+        logger.info("Admin already exists, skipping")
+        return
 
     db.drop_all()
     db.create_all()
