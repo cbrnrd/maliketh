@@ -54,9 +54,9 @@ FARPROC HashImport(char* name) {
 /**
  * Gets filepath of self (implant)
 */
-wchar_t* GetImplantPath() {
-    LPWSTR filePath[MAX_PATH];
-    GetModuleFileName(NULL, *filePath, MAX_PATH);
+char* GetImplantPath() {
+    char filePath[MAX_PATH];
+    GetModuleFileName(NULL, filePath, MAX_PATH);
 
-    return filePath[0];
+    return filePath;
 }

