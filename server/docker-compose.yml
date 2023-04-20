@@ -42,6 +42,9 @@ services:
             - postgres
         networks:
             - rabbitmq_net
+        environment:
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
         healthcheck:
             # Check if rabbitmq is up
             test: [ "CMD", "curl", "-f", "http://rabbitmq:15672" ]
@@ -64,6 +67,9 @@ services:
             - postgres
         networks:
             - rabbitmq_net
+        environment:
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
         healthcheck:
             # Check if rabbitmq is up
             test: [ "CMD", "curl", "-f", "http://rabbitmq:15672" ]
