@@ -49,5 +49,5 @@ Ex: `["C:\\Users\\user\\Desktop\\file.txt", "b64encoded-file-content=="]`
 
 ## INJECT
 
-Args: List of 2 strings (Base64 encoded DLL, process name/id)
-Ex: `["dll_base64==", "notepad.exe"]`
+Args: List of 2 strings (base64 encoded shellcode, process name/id)
+Ex: `["shellcode==", "notepad.exe"]`

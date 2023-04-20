@@ -14,7 +14,7 @@ INTERACT_COMMANDS = {
     "cmd <args>": "Execute a shell command on the implant",
     "download <remote_path>": "Download a file from the implant",
     "upload <local_path> <remote_path>": "Upload a file to the implant and store it in <remote_path>",
-    "inject <local_dll>": "Inject a DLL into the implant",
+    "inject <shellcode_path> <process_name>": "Spawn a process then inject shellcode into it",
     "sysinfo": "Get system information from the implant",
     "sleep <seconds>": "Sleep for a given number of seconds",
     "selfdestruct": "Remove and kill the implant",

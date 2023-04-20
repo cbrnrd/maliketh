@@ -181,7 +181,7 @@ def show_tasks(config: OperatorConfig) -> None:
         if job["status"] != "COMPLETE":
             minified.append(
                 [
-                    job["task_id"][0:8],
+                    job["task_id"],
                     Opcodes.get_by_value(job["opcode"]),
                     job["status"],
                     job["implant_id"][0:8],
@@ -195,7 +195,7 @@ def show_tasks(config: OperatorConfig) -> None:
             minified,
             headers=["ID", "Opcode", "Status", "Implant ID", "Args", "Created At"],
             tablefmt="fancy_grid",
-            maxcolwidths=[8, 8, 8, 8, 45, 20],
+            maxcolwidths=[16, 8, 8, 8, 45, 20],
         )
     )
 

@@ -1,4 +1,6 @@
 #include "utils.h"
+#include "rapidjson/document.h"
+#include "debug.h"
 
 std::wstring string_to_wstring(const std::string text)
 {
@@ -59,4 +61,44 @@ char* GetImplantPath() {
     GetModuleFileName(NULL, filePath, MAX_PATH);
 
     return filePath;
+}
+
+void PrintJsonType(const rapidjson::GenericValue<rapidjson::UTF8<>> *json)
+{
+	if (json->IsObject())
+	{
+		DEBUG_PRINTF("JSON is object\n");
+
+		for (rapidjson::Value::ConstMemberIterator itr = json->MemberBegin(); itr != json->MemberEnd(); ++itr)
+		{
+			DEBUG_PRINTF("Key: %s\n", itr->name.GetString());
+			PrintJsonType(&itr->value);
+		}
+
+	} else if (json->IsArray())
+	{
+		DEBUG_PRINTF("JSON is array\n");
+		for (rapidjson::SizeType i = 0; i < json->Size(); i++)
+		{
+			PrintJsonType(&(*json)[i]);
+		}
+	} else if (json->IsString())
+	{
+		DEBUG_PRINTF("JSON is string: %s\n", json->GetString());
+	} else if (json->IsInt())
+	{
+		DEBUG_PRINTF("JSON is int: %d\n", json->GetInt());
+	} else if (json->IsBool())
+	{
+		DEBUG_PRINTF("JSON is bool: %d\n", json->GetBool());
+	} else if (json->IsNull())
+	{
+		DEBUG_PRINTF("JSON is null\n");
+	} else if (json->IsDouble())
+	{
+		DEBUG_PRINTF("JSON is double: %f\n", json->GetDouble());
+	} else
+	{
+		DEBUG_PRINTF("JSON is unknown\n");
+	}
 }
