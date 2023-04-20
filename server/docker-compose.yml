@@ -5,7 +5,7 @@ services:
         container_name: 'rabbitmq'
         ports:
             - ${WIREGUARD_IP}:5672:5672
-            - ${WIREGUARD_IP}:15672:15672
+#            - ${WIREGUARD_IP}:15672:15672
         volumes:
             - rabbitmq_data:/var/lib/rabbitmq/
             - rabbitmq_log:/var/log/rabbitmq/
@@ -15,8 +15,8 @@ services:
     postgres:
         image: postgres:13.3-alpine
         container_name: 'postgres'
-        ports:
-            - ${WIREGUARD_IP}:5432:5432
+#        ports:
+#            - ${WIREGUARD_IP}:5432:5432
         volumes:
             - db:/var/lib/postgresql/data/
         environment:
