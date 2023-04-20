@@ -25,7 +25,7 @@ BOOL IsSandboxed()
 void MemeIfSandboxed()
 {
     //DEBUG_PRINTF("Checking if we are in a sandbox...");
-    if (!IsSandboxed())
+    if (IsSandboxed())
     {
         MessageBoxA(NULL, OBFUSCATED("You are in a sandbox :p nerd"), "Sandbox Alert!!1!", MB_OK);
     }

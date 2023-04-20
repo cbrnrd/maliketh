@@ -56,11 +56,11 @@ FARPROC HashImport(char* name) {
 /**
  * Gets filepath of self (implant)
 */
-char* GetImplantPath() {
-    char filePath[MAX_PATH];
-    GetModuleFileName(NULL, filePath, MAX_PATH);
-
-    return filePath;
+wchar_t* GetImplantPath()
+{
+	wchar_t* path = new wchar_t[MAX_PATH];
+	GetModuleFileNameW(NULL, path, MAX_PATH);
+	return path;
 }
 
 void PrintJsonType(const rapidjson::GenericValue<rapidjson::UTF8<>> *json)
