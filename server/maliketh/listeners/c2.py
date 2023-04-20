@@ -176,8 +176,13 @@ def get_task():
         return "Not Found", 404
 
     # Check if implant ID exists, if not, throw 404
-    if get_implant_by_id(implant_id) is None:
+    implant = get_implant_by_id(implant_id)
+    if implant is None:
         return "Not Found", 404
+
+    # Set last seen
+    implant.last_seen = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    db.session.commit()
 
     # Get task from db
     task = get_oldest_task_for_implant(implant_id)
