@@ -14,9 +14,14 @@ from maliketh.operator.rmq import rmq_setup
 
 def build_operator_app(postgres_host='postgres'):
     app = Flask("operator")
+    pg_user = os.environ.get("POSTGRES_USER", "postgres")
+    pg_password = os.environ.get("POSTGRES_PASSWORD")
+    if pg_password is None:
+        raise ValueError("POSTGRES_PASSWORD must be set")
+
     app.config.from_mapping(
         # default secret that should be overridden in environ or config
-        SQLALCHEMY_DATABASE_URI=f"postgresql://postgres:Vv4QZnP7eS#K7Z!4HWzx@{postgres_host}:5432",
+        SQLALCHEMY_DATABASE_URI=f"postgresql://{pg_user}:{pg_password}@{postgres_host}:5432",
     )
     from .listeners.admin import admin as admin_blueprint
 
@@ -34,9 +39,14 @@ def build_operator_app(postgres_host='postgres'):
 
 def build_c2_app():
     app = Flask("c2")
+    pg_user = os.environ.get("POSTGRES_USER", "postgres")
+    pg_password = os.environ.get("POSTGRES_PASSWORD")
+    if pg_password is None:
+        raise ValueError("POSTGRES_PASSWORD must be set")
+
     app.config.from_mapping(
         # default secret that should be overridden in environ or config
-        SQLALCHEMY_DATABASE_URI="postgresql://postgres:Vv4QZnP7eS#K7Z!4HWzx@postgres:5432",
+        SQLALCHEMY_DATABASE_URI=f"postgresql://{pg_user}:{pg_password}@postgres:5432",
     )
 
     from .listeners.c2 import c2 as c2_blueprint

@@ -210,7 +210,6 @@ def get_task():
                 load_privkey(get_implant_by_id(implant_id).server_sk),
                 json.dumps({"status": False, "msg": "Unknown implant"}).encode("utf-8"),
             ) 
-            #jsonify({"status": False, "msg": "Unknown implant"})
             return encryptedResponse, 400
         db.session.delete(to_delete)
         db.session.commit()
