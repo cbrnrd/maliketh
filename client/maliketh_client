@@ -40,6 +40,14 @@ def parse_args() -> optparse.Values:
         help="Enable debug mode",
         action="store_true",
     )
+    parser.add_option(
+        "-t",
+        "--with-timestamps",
+        dest="with_timestamps",
+        default=False,
+        help="Enable timestamps in server log messages",
+        action="store_true",
+    )
     opts, args = parser.parse_args()
     return opts
 
@@ -66,6 +74,7 @@ def main():
     validate_args(opts)
     if opts.debug:
         config.log_level = LogLevel.DEBUG
+    
 
     with open(opts.config, "r") as f:
         operator_config = config.OperatorConfig.from_json(f.read())
@@ -75,7 +84,7 @@ def main():
     operator_config.auth_token = auth_result
 
     # Subscribe to RabbitMQ queue
-    listen_for_messages_in_thread(operator_config)
+    listen_for_messages_in_thread(operator_config, opts)
 
     # Go into main loop
     main_loop(operator_config)

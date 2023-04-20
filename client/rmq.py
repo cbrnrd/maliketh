@@ -1,11 +1,14 @@
+from typing import Any, Dict
 from config import OperatorConfig
 from threading import Thread
 from cli.logging import get_styled_logger
 import pika
+import datetime
 
-def listen_for_messages_in_thread(op: OperatorConfig):
+def listen_for_messages_in_thread(op: OperatorConfig, cli_opts: Dict[str, Any]):
     logger = get_styled_logger()
     def callback(ch, method, properties, body):
+        msg = f"[{method.exchange}] {f'[{datetime.now()}]' if cli_opts.with_timestamps else ''} {body.decode()}"
         logger.ok(f"[{method.exchange}] {body.decode()}")
 
     def listen_for_messages():

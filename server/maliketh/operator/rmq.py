@@ -41,7 +41,6 @@ def send_message_to_operator(op: Operator, msg: str):
     Sends a message to the operator's RabbitMQ queue.
     """
     connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq"))
-    msg = f"[{datetime.now()}] {msg}"
     channel = connection.channel()
     channel.basic_publish(exchange="logs", routing_key=op.rmq_queue, body=msg)
     connection.close()
@@ -52,7 +51,6 @@ def send_message_to_all_queues(msg: str):
     Sends a message to all RabbitMQ queues using fanout.
     """
     connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq"))
-    msg = f"[{datetime.now()}] {msg}"
     channel = connection.channel()
     channel.basic_publish(exchange="announcements", routing_key="", body=msg)
     connection.close()

@@ -52,8 +52,6 @@ Task *parseTask(std::string taskJson)
     task->opcode = document[OBFUSCATED("opcode")].GetInt();
     task->args = &document[OBFUSCATED("args")];
 
-    //cout << task << endl;
-
     return task;
 }
 

@@ -6,14 +6,14 @@ COMMANDS = {
         "stats": "Show basic statistics about the server and clients",
     },
     "interact <implant_id>": "Interact with a given implant id",
-    "results <task_id>": "Show the results of a given task id",
+    "results <task_id> [local_path]": "Show the results of a given task id. Optionally write the results to a file",
     "exit": "Exit the client",
 }
 
 INTERACT_COMMANDS = {
     "cmd <args>": "Execute a shell command on the implant",
-    "download <remote_path> <local_path>": "Download a file from the implant",
-    "upload <local_path>": "Upload a file to the implant",
+    "download <remote_path>": "Download a file from the implant",
+    "upload <local_path> <remote_path>": "Upload a file to the implant and store it in <remote_path>",
     "inject <local_dll>": "Inject a DLL into the implant",
     "sysinfo": "Get system information from the implant",
     "sleep <seconds>": "Sleep for a given number of seconds",
@@ -45,7 +45,7 @@ INTERACT_COMMANDS = {
             "tailoring_hash_rounds": "Show the number of rounds for payload tailoring",
         },
     },
-    "results <task_id>": "Show the results of a given task id",
+    "results <task_id> [local_path]": "Show the results of a given task id. Optionally write the results to a file",
     "back": "Exit the interact menu",
     "exit": "Exit the interact menu",
 }

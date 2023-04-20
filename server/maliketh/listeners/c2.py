@@ -245,7 +245,9 @@ def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]] = None):
         db.session.commit()
 
         op = Operator.query.filter_by(username=task.operator_name).first()
-        send_message_to_operator(op, f"Task {task.task_id} completed")
+        send_message_to_operator(op, f"Task {task.task_id} completed - {task.status}")
+        if task.status == ERROR:
+            send_message_to_operator(op, f"Task {task.task_id} error output - {base64.b64decode(task.output).decode('utf-8')}")
 
         return "OK"
     # If task is None, return empty task

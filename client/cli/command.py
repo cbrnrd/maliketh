@@ -195,6 +195,7 @@ def show_tasks(config: OperatorConfig) -> None:
             minified,
             headers=["ID", "Opcode", "Status", "Implant ID", "Args", "Created At"],
             tablefmt="fancy_grid",
+            maxcolwidths=[8, 8, 8, 8, 45, 20],
         )
     )
 

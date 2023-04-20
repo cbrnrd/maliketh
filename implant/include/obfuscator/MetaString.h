@@ -48,7 +48,7 @@ namespace andrivet { namespace ADVobfuscator {
       for(size_t i = 0; i < sizeof...(I); ++i)
         buffer_[i] = decrypt(buffer_[i]);
       buffer_[sizeof...(I)] = 0;
-      LOG("--- Implementation #" << 0 << " with key 0x" << hex(key_));
+      //LOG("--- Implementation #" << 0 << " with key 0x" << hex(key_));
       return const_cast<const char*>(buffer_);
     }
 
@@ -78,7 +78,7 @@ namespace andrivet { namespace ADVobfuscator {
       for(size_t i = 0; i < sizeof...(I); ++i)
         buffer_[i] = decrypt(buffer_[i], i);
       buffer_[sizeof...(I)] = 0;
-      LOG("--- Implementation #" << 1 << " with key 0x" << hex(key_));
+      //LOG("--- Implementation #" << 1 << " with key 0x" << hex(key_));
       return const_cast<const char*>(buffer_);
     }
 
@@ -107,7 +107,7 @@ namespace andrivet { namespace ADVobfuscator {
     {
       for(size_t i = 0; i < sizeof...(I); ++i)
         buffer_[i] = decrypt(buffer_[i]);
-      LOG("--- Implementation #" << 2 << " with key 0x" << hex(K));
+      //LOG("--- Implementation #" << 2 << " with key 0x" << hex(K));
       return const_cast<const char*>(buffer_);
     }
 

