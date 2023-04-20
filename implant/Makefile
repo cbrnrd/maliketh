@@ -9,12 +9,12 @@ DEBUG=-DDEBUG
 
 implant:
 	@echo "Building implant (Debug)"
-	$(CC)   -o implant.exe src/*.cpp -g $(DEBUG) $(INCLUDES) $(LDFLAGS) $(OBJ_FILES) $(CFLAGS) 
+	$(CC) -o implant.exe src/*.cpp -g $(DEBUG) $(INCLUDES) $(LDFLAGS) $(CFLAGS) 
 
 release:
 	@echo "Building implant (Release)"
-	$(CC) -o implant.exe src/*.cpp $(INCLUDES) $(LDFLAGS) $(CFLAGS) -O3
-	$(STRIP) implant.exe
+	$(CC) -o implant_release.exe src/*.cpp $(INCLUDES) $(LDFLAGS) $(CFLAGS) -O3
+	$(STRIP) implant_release.exe
 
 clean:
-	rm -f implant.exe
+	rm -f implant.exe implant_release.exe

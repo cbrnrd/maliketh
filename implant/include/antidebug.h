@@ -15,5 +15,9 @@
  * Explicitly loads the ntdll.dll library and calls the NtQueryInformationProcess function.
 */
 BOOL isBeingDebugged();
+void HideFromDebugger();
+void StartAntiDebugThread();
+void CrashIfDebuggerPresent();
+bool DetectSleepSkip(long long Timeout);
 
 #endif
