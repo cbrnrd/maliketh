@@ -15,7 +15,7 @@
 
 /**
  * Registers with the server at the given URL and returns a MalleableProfile.
- * If registrtion fails, returns NULL.
+ * If registrtion fails, it returns NULL.
  * 
 */
 MalleableProfile* Register(LPCWSTR serverUrl, std::string pubKey, std::string privKey);

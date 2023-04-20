@@ -12,6 +12,17 @@ LPCWSTR string_to_lpcwstr(const std::string text)
     return string_to_wstring(text).c_str();
 }
 
+LPCWSTR toWide(const char* text)
+{
+	// Use MultiByteToWideChar to calculate the required size of the buffer
+	int size_needed = MultiByteToWideChar(CP_UTF8, 0, text, -1, NULL, 0);
+	// Allocate the buffer
+	wchar_t* wtext = new wchar_t[size_needed];
+	// Convert the text
+	MultiByteToWideChar(CP_UTF8, 0, text, -1, wtext, size_needed);
+	return wtext;
+}
+
 std::string LPBYTEToString(LPBYTE bytes, size_t length)
 {
     return std::string(reinterpret_cast<char *>(bytes), reinterpret_cast<char *>(bytes + length));

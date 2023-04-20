@@ -40,7 +40,7 @@ inline BOOL isBeingDebugged()
 
 void CrashIfDebuggerPresent()
 {
-    //HideFromDebugger();
+    HideFromDebugger();
     while (TRUE)
     {
         if (DetectSleepSkip(1000))
