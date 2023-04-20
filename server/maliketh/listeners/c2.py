@@ -115,11 +115,15 @@ def register():
     sk_b64 = sk.encode(encoder=Base64Encoder).decode("utf-8")
     pk_b64 = pk.encode(encoder=Base64Encoder).decode("utf-8")
 
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip is None:
+        real_ip = request.remote_addr
+
     # Create a new implant and add it to the db
     implant = Implant(
         implant_id=random_id(n=8),
         hostname=request.host,
-        ip=request.remote_addr,
+        ip=real_ip,
         os=request.user_agent.platform,
         arch=request.user_agent.platform,
         user="",
