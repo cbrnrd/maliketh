@@ -12,4 +12,13 @@ Maliketh is a multi-user, customizable C2 framework. The goal of Maliketh is to 
 * Easily deployable (via Docker)
 
 ## Implant features
-TODO
+
+
+## Future work
+- [ ] Implement Golang client
+- [ ] Stealer/basic looter
+- [ ] Keylogger
+- [ ] Route RabbitMQ traffic through Admin listener instead of directly connecting
+- [ ] More stable file uploads/downloads
+- [ ] Alternate C2 channels
+- [ ] Basic OS functions built in (changing directory)
