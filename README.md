@@ -1,3 +1,8 @@
+<!-- Centered logo -->
+<p align="center">
+  <img src="./data/maliketh_logo.png" alt="Maliketh logo" width="900"/>
+</p>
+
 # Maliketh
 Maliketh is a multi-user, customizable C2 framework. The goal of Maliketh is to provide a flexible, easy to use C2 framework that can be customized to fit the needs of the operator.
 
