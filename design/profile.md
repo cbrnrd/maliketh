@@ -4,7 +4,7 @@
 
 In order to make the implant more suitable to different situations, we have implemented a maleable profile system. This allows the implant to be configured to behave differently from build to build. These options can also be changed on the fly, allowing the implant to be reconfigured without having to be rebuilt.
 
-The default profile is located in [`server/comfig/profiles/default.yaml`](../server/config/profiles/default.yaml). This is the profile that is used if no profile is specified. The default profile is also used if the specified profile is not found.
+The default profile is located in [`server/config/profiles/default.yaml`](../server/config/profiles/default.yaml). This is the profile that is used if no profile is specified. The default profile is also used if the specified profile is not found.
 
 ## Profile Format
 
