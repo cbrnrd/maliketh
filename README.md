@@ -59,4 +59,5 @@ On the server side, Wireguard should be installed and configured. The server sho
 - [ ] Route RabbitMQ traffic through Admin listener instead of directly connecting
 - [ ] More stable file uploads/downloads
 - [ ] Alternate C2 channels
-- [ ] Basic OS functions built in (changing directory)
+- [ ] Basic OS functions built in
+- [ ] Situational Awareness
