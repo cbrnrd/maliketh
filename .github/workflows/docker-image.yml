@@ -1,0 +1,20 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Operator Docker image
+      run: docker build . --file server/Dockerfile.operator --tag operator:$(date +%s)
+    - name: Build the C2 Docker image
+      run: docker build . --file server/Dockerfile.c2 --tag c2:$(date +%s)
