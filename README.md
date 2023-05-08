@@ -1,6 +1,6 @@
 <!-- Centered logo -->
 <p align="center">
-  <img src="./data/maliketh_logo.png" alt="Maliketh logo" width="900"/>
+  <img src="./data/maliketh_logo.png" alt="Maliketh logo" width="900" height="300"/>
 </p>
 
 # Maliketh
