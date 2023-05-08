@@ -57,7 +57,8 @@ On the server side, Wireguard should be installed and configured. The server sho
 - [ ] Stealer/basic looter
 - [ ] Keylogger
 - [ ] Route RabbitMQ traffic through Admin listener instead of directly connecting
-- [ ] More stable file uploads/downloads
-- [ ] Alternate C2 channels
-- [ ] Basic OS functions built in
-- [ ] Situational Awareness
+- [ ] Improved anti-vm (check BIOS information)
+- [x] More stable file uploads/downloads ([91a40f2](https://github.com/cbrnrd/maliketh/commit/91a40f2ba1cded5a025004a6143578fa84baec66))
+- [ ] Alternate C2 channels (WireGuard, DNS, Discord, Slack, etc.)
+- [x] Basic OS functions built in ([91a40f2](https://github.com/cbrnrd/maliketh/commit/91a40f2ba1cded5a025004a6143578fa84baec66))
+- [x] Situational Awareness ([91a40f2](https://github.com/cbrnrd/maliketh/commit/91a40f2ba1cded5a025004a6143578fa84baec66))
