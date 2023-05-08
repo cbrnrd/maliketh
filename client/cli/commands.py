@@ -18,6 +18,12 @@ INTERACT_COMMANDS = {
     "sysinfo": "Get system information from the implant",
     "sleep <seconds>": "Sleep for a given number of seconds",
     "selfdestruct": "Remove and kill the implant",
+    "chdir <path>": "Change the implant's working directory",
+    "pwd": "Get the implant's working directory",
+    "getenv": "Get all environment variables",
+    "ls": "List files in the implant's working directory",
+    "ps": "List running processes",
+    "whoami": "Get the current user",
     "config": {
         "set": {
             "user_agent <user_agent>": "Set the user agent for the implant",

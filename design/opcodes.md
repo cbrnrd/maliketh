@@ -5,14 +5,20 @@ Arguments for each opcode must be a valid JSON type supported by [SQLAlchemy](ht
 
 | Opcode | Action | Description |
 |--------|--------|-------------|
-| `0x1` | `CMD` | Execute a command on the implant |
-| `0x2` | `SELFDESTRUCT` | Delete and kill the implant |
-| `0x3` | `SYSINFO` | Get system information |
+| `0x01` | `CMD` | Execute a command on the implant |
+| `0x02` | `SELFDESTRUCT` | Delete and kill the implant |
+| `0x03` | `SYSINFO` | Get system information |
 | `0x04` | `SLEEP` | Sleep for a specified amount of time |
 | `0x05` | `UPDATE_CONFIG` | Update the malleable configuration of the implant |
 | `0x06` | `DOWNLOAD` | Download a file from the implant |
 | `0x07` | `UPLOAD` | Upload a file to the implant |
-| `0x08` | `INJECT` | Inject a DLL from the server into a process |
+| `0x08` | `INJECT` | Inject shellcode from the server into a process |
+| `0x09` | `CHDIR` | Change the working directory of the implant |
+| `0x0A` | `PWD` | Get the current working directory of the implant |
+| `0x0B` | `GETENV` | Gets all environment variables from the implant |
+| `0x0C` | `LS` | List files in the current working directory |
+| `0x0D` | `PS` | List running processes |
+| `0x0E` | `WHOAMI` | Get the current user of the implant |
 
 ## CMD
 
@@ -51,3 +57,28 @@ Ex: `["C:\\Users\\user\\Desktop\\file.txt", "b64encoded-file-content=="]`
 
 Args: List of 2 strings (base64 encoded shellcode, process name/id)
 Ex: `["shellcode==", "notepad.exe"]`
+
+## CHDIR
+
+Args: 1 string (path to change to)
+Ex: `"C:\\Users\\user\\Desktop"`
+
+## PWD
+
+Args: None
+
+## GETENV
+
+Args: None
+
+## LS
+
+Args: None
+
+## PS
+
+Args: None
+
+## WHOAMI
+
+Args: None

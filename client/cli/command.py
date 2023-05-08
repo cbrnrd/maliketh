@@ -90,13 +90,15 @@ def handle_interact(implant_id: Optional[str], config: OperatorConfig) -> None:
 
 def handle_result(config: OperatorConfig, args: List[str]) -> None:
     """
-    Handle the result command
+    Handle the result command. Optionally write results to a file
     """
     if len(args) < 1:
         logger.error("Please provide a task ID")
         return
-
-    print_task_result(config, args[0])
+    if len(args) == 2:
+        write_task_results_to_file(config, args[0], args[1])
+    else:
+        print_task_result(config, args[0])
 
 def handle_exit() -> None:
     """
@@ -211,7 +213,7 @@ def print_task_result(config: OperatorConfig, task_id: str) -> None:
         logger.info("Task had no output")
         return
 
-    decoded = base64.b64decode(taskB64).decode("utf-8")
+    decoded = base64.b64decode(taskB64)
     try:
         task = json.loads(decoded)
     except Exception as e:
@@ -220,3 +222,27 @@ def print_task_result(config: OperatorConfig, task_id: str) -> None:
         return
 
     print(tabulate(task.items(), headers=["Key", "Value"], tablefmt="fancy_grid"))
+
+def write_task_results_to_file(config: OperatorConfig, task_id: str, outfile: str):
+    """
+    Write the result of a task to a file
+    """
+    taskB64 = get_task_result(config, task_id)
+    if taskB64 is None:
+        return
+    
+    if taskB64 == "":
+        logger.info("Task had no output")
+        return
+
+    decoded = base64.b64decode(taskB64)
+    try:
+        task = json.loads(decoded)
+    except Exception as e:
+        logger.warning("Result is not JSON, writing raw output")
+        with open(outfile, "wb") as f:
+            f.write(decoded)
+        return
+    
+    with open(outfile, "w") as f:
+        json.dump(task, f, indent=4)

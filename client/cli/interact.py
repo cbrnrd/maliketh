@@ -72,6 +72,18 @@ def handle(cmd: str, args: List[str], config: OperatorConfig, implant_id: str) -
         handle_upload(config, implant_id, args)
     elif cmd == "inject":
         handle_inject(config, implant_id, args)
+    elif cmd == "cd":
+        handle_cd(config, implant_id, args)
+    elif cmd == "pwd":
+        handle_pwd(config, implant_id)
+    elif cmd == "getenv":
+        handle_getenv(config, implant_id)
+    elif cmd == "ls":
+        handle_ls(config, implant_id, args)
+    elif cmd == "ps":
+        handle_ps(config, implant_id)
+    elif cmd == "whoami":
+        handle_whoami(config, implant_id)
     elif cmd == "back":
         return True
     elif cmd == "clear":
@@ -237,14 +249,8 @@ def handle_result(config: OperatorConfig, args: List[str]) -> None:
     """
     Handle the result command, get the results of a task
     """
-    from .command import print_task_result
-    if len(args) < 1:
-        logger.error("Please provide a task id")
-        return
-
-    task_id = args[0]
-    logger.debug(f"Getting results for task {task_id}")
-    print_task_result(config, task_id)
+    from .command import handle_result
+    handle_result(config, args)
 
 def handle_sleep(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
     """
@@ -322,3 +328,61 @@ def handle_inject(config: OperatorConfig, implant_id: str, args: List[str]) -> N
 
     logger.debug(f"Sending inject task to {implant_id}")
     add_task(config, Opcodes.INJECT.value, implant_id, [file_contents, process_name])
+
+def handle_cd(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
+    """
+    Handle the cd command, send a cd task to the implant
+    """
+    if len(args) < 1:
+        logger.error("Please provide a directory to change to")
+        return
+
+    directory = args[0]
+    logger.debug(f"Sending cd task to {implant_id}")
+    add_task(config, Opcodes.CHDIR.value, implant_id, directory)
+
+def handle_ls(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
+    """
+    Handle the ls command, send an ls task to the implant
+    """
+    if len(args) < 1:
+        logger.error("Please provide a directory to list")
+        return
+
+    logger.debug(f"Sending ls task to {implant_id}")
+    add_task(config, Opcodes.LS.value, implant_id, None)
+
+def handle_pwd(config: OperatorConfig, implant_id: str) -> None:
+    """
+    Handle the pwd command, send a pwd task to the implant
+    """
+    logger.debug(f"Sending pwd task to {implant_id}")
+    add_task(config, Opcodes.PWD.value, implant_id, None)
+
+def handle_ls(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
+    """
+    Handle the ls command, send an ls task to the implant
+    """
+    logger.debug(f"Sending ls task to {implant_id}")
+    add_task(config, Opcodes.LS.value, implant_id, None)
+
+def handle_getenv(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
+    """
+    Handle the getenv command, send a getenv task to the implant
+    """
+    logger.debug(f"Sending getenv task to {implant_id}")
+    add_task(config, Opcodes.GETENV.value, implant_id, None)
+
+def handle_ps(config: OperatorConfig, implant_id: str) -> None:
+    """
+    Handle the ps command, send a ps task to the implant
+    """
+    logger.debug(f"Sending ps task to {implant_id}")
+    add_task(config, Opcodes.PS.value, implant_id, None)
+
+def handle_whoami(config: OperatorConfig, implant_id: str) -> None:
+    """
+    Handle the whoami command, send a whoami task to the implant
+    """
+    logger.debug(f"Sending whoami task to {implant_id}")
+    add_task(config, Opcodes.WHOAMI.value, implant_id, None)

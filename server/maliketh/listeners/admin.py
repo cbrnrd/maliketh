@@ -405,4 +405,7 @@ def kill_implant(operator: Operator, implant_id: str) -> Any:
         Opcodes.SELFDESTRUCT.value,
         [],
     )
+
+    # Do not handle deleting here, the C2 listener will take care of it.
+
     return jsonify({"status": True}), 200

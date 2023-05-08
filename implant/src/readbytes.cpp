@@ -1,8 +1,9 @@
 #include "readbytes.h"
+#include "debug.h"
 
 BYTE* LoadFileBytes(char* filePath, DWORD* dwSize){
     HANDLE hFile = NULL;
-    printf("[*] Loading binary payload: %s\n", filePath);
+    DEBUG_PRINTF("[*] Loading binary payload: %s\n", filePath);
 
     hFile = CreateFileA(
         filePath, 
@@ -14,7 +15,7 @@ BYTE* LoadFileBytes(char* filePath, DWORD* dwSize){
         NULL);
 
     if (!hFile) {
-        printf("[!] Could not open payload: %s\n", filePath);
+        DEBUG_PRINTF("[!] Could not open payload: %s\n", filePath);
         return NULL;
     }
         // Note the maximum size in bytes is 2^32 
@@ -25,13 +26,13 @@ BYTE* LoadFileBytes(char* filePath, DWORD* dwSize){
         //HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, *dwSize);
 
         if (! ReadFile(hFile, buffer, *dwSize, &dwBytesRead, NULL)) {
-            printf("[!] Could not read file: %lu!\n", GetLastError());
+            DEBUG_PRINTF("[!] Could not read file: %lu!\n", GetLastError());
             free(buffer);
             //HeapFree(GetProcessHeap(), 0 ,buffer);
             buffer = NULL;
         }
     
     CloseHandle(hFile);
-    printf("[+] Loaded PE File Bytes!");
+    DEBUG_PRINTF("[+] Loaded PE File Bytes!");
     return buffer;
 }

