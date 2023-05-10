@@ -416,8 +416,8 @@ std::map<std::string, DWORD> GetProcessNameToPIDMap()
 }
 
 std::string Whoami() {
-    char username[UNLEN + 1];
-    DWORD username_len = UNLEN + 1;
-    GetUserNameA(username, &username_len);
-    return std::string(username);
+    char userName[4096];
+    DWORD userNameSize = sizeof(userName) / sizeof(userName[0]);
+    GetUserName(userName, &userNameSize);
+    return std::string(userName);
 }
