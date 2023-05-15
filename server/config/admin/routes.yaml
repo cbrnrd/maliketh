@@ -51,6 +51,11 @@ update_implant_config:
   methods:
     - POST
 
+build_implant:
+  path: /implant/build
+  methods:
+    - POST
+
 request_auth_token:
   path: /auth/token/request
   methods:

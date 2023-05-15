@@ -5,7 +5,9 @@ CFLAGS=-std=c++14
 LDFLAGS=-L ./bin/libsodium-win64/lib -Wl,-Bstatic -lsodium -static-libgcc -static-libstdc++ -Wl,-Bdynamic -lws2_32 -lwinhttp -lcrypt32 -ladvapi32 -lshlwapi -lkernel32 -lcabinet -lole32 -loleaut32 -ltaskschd -Wl,--as-needed
 OBJ_FILES=./bin/libsodium-win64/bin/libsodium-23.dll
 INCLUDES=-I ./include -I ./include/sodium
+BUILDER_OPTS=
 DEBUG=-DDEBUG
+RELEASE_OUTFILE=implant_release.exe
 
 SRCDIR := src
 RELEASE_SRC_TMP_DIR := src_copy
@@ -16,8 +18,8 @@ implant:
 
 release:
 	@echo "Building implant (Release)"
-	$(CC) -o implant_release.exe $(RELEASE_SRC_TMP_DIR)/*.cpp $(INCLUDES) $(LDFLAGS) $(CFLAGS) -O3
-	$(STRIP) implant_release.exe
+	$(CC) -o $(RELEASE_OUTFILE) $(RELEASE_SRC_TMP_DIR)/*.cpp $(INCLUDES) $(LDFLAGS) $(CFLAGS) -O3
+	$(STRIP) $(RELEASE_OUTFILE)
 
 clean:
 	rm -f implant.exe implant_release.exe

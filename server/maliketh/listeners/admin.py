@@ -409,3 +409,21 @@ def kill_implant(operator: Operator, implant_id: str) -> Any:
     # Do not handle deleting here, the C2 listener will take care of it.
 
     return jsonify({"status": True}), 200
+
+
+@admin.route(
+    OP_ROUTES["build_implant"]["path"],
+    methods=OP_ROUTES["build_implant"]["methods"],
+)
+@verified
+def build_implant(operator: Operator) -> Any:
+    """
+    Build an implant
+    """
+    if request.json is None:
+        return jsonify({"status": False, "msg": "Invalid request, no JSON body"}), 400
+
+    # Get the task
+    task = request.json
+
+    # TODO implement
