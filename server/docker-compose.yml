@@ -54,9 +54,10 @@ services:
 
     operator:
         build:
-            context: .
-            dockerfile: Dockerfile.operator
+            context: ..
+            dockerfile: server/Dockerfile.operator
         container_name: 'operator'
+        working_dir: '/app'
         restart: always
         ports:
             - ${WIREGUARD_IP}:5000:5000 # For operator

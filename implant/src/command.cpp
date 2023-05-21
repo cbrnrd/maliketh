@@ -12,7 +12,7 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 #include "obfuscator/MetaString.h"
-#include <Lmcons.h>
+//#include <Lmcons.h>
 using namespace andrivet::ADVobfuscator;
 
 

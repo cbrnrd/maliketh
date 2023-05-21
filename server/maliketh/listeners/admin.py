@@ -10,6 +10,7 @@ from maliketh.crypto.ec import *
 from maliketh.crypto.utils import random_hex, random_string
 from maliketh.config import OP_ROUTES
 from maliketh.opcodes import Opcodes
+from maliketh.builder.builder import ImplantBuilder, BuilderOptions
 from functools import wraps
 
 admin = Blueprint("admin", __name__, url_prefix=OP_ROUTES["base_path"])
@@ -423,7 +424,10 @@ def build_implant(operator: Operator) -> Any:
     if request.json is None:
         return jsonify({"status": False, "msg": "Invalid request, no JSON body"}), 400
 
-    # Get the task
-    task = request.json
+    # Get the build options
+    build_opts_json = request.json
 
-    # TODO implement
+    builder = ImplantBuilder(operator.username)
+    implant_bytes = builder.with_options(BuilderOptions.from_dict(build_opts_json)).build()
+
+    return jsonify({"status": True, "implant": base64.b64encode(implant_bytes).decode('utf-8')}), 200
