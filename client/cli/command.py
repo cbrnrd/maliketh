@@ -5,8 +5,8 @@ from typing import Callable, Dict, List, Optional, Union
 from tabulate import tabulate
 import cli.interact
 
-from comms import get_server_stats, get_task_result, list_implants, get_tasks, implant_exists
-from config import OperatorConfig
+from comms import get_server_stats, get_task_result, list_implants, get_tasks, implant_exists, build_implant
+from config import OperatorConfig, implant_build_options
 from .logging import StyledLogger, get_styled_logger
 from .commands import *
 from opcodes import Opcodes
@@ -30,6 +30,10 @@ def handle(cmd: str, args: List[str], config: OperatorConfig) -> None:
         handle_exit()
     elif cmd == "clear":
         print("\033c")
+    elif cmd == "builder":
+        handle_builder(args, config)
+    elif cmd == "build":
+        handle_build(args, config)
     elif cmd == "":
         return
     else:
@@ -42,13 +46,7 @@ def handle_help(args: Optional[str]) -> None:
     """
     if args is None:
         print("Available commands:\n")
-        for k, v in COMMANDS.items():
-            if type(v) == str:
-                print(f"  {k}: {v}")
-            else:
-                print(f"  {k}:")
-                for k2, v2 in v.items():
-                    print(f"    - {k2}: {v2}")
+        walk_dict(COMMANDS, 0)
         print()
     else:
         if args in COMMANDS:
@@ -107,6 +105,50 @@ def handle_exit() -> None:
     print("Exiting...")
     exit(0)
 
+def handle_builder(args: List[str], config: OperatorConfig) -> None:
+    """
+    Handle the build command
+    """
+    if len(args) < 1:
+        logger.error("Please provide an action and a field")
+
+    if args[0] == "set":
+        if len(args) < 2:
+            logger.error("Please provide a field and a value")
+            return
+        if args[2] not in implant_build_options:
+            logger.error(f"Field {args[2]} not found")
+            return
+        
+        if len(args) < 3:
+            logger.error("Please provide a value")
+            return
+        
+        implant_build_options[args[1]] = args[2]
+        logger.info(f"Set {args[1]} to {args[2]}")
+    elif args[0] == "show":
+        if args[1] == "all":
+            print(tabulate(implant_build_options.items(), headers=["Field", "Value"], tablefmt="fancy_grid"))
+        elif args[1] in implant_build_options:
+            print(tabulate([implant_build_options[args[2]]], headers=["Field", "Value"], tablefmt="fancy_grid"))
+        else:
+            logger.error(f"Field {args[2]} not found")
+    
+def handle_build(args: List[str], config: OperatorConfig) -> None:
+    if len(args) < 1:
+        logger.error("Please provide an output file path")
+        return
+
+    if len(args) == 1:
+        logger.warning("This can take a while to build (~2 min). Please be patient.")
+        logger.info("Building implant...")
+        implant_b64 = build_implant(config, implant_build_options)
+        if implant_b64 == "":
+            return
+        with open(args[0], "wb") as f:
+            f.write(base64.b64decode(implant_b64))
+        logger.ok(f"Implant written to {args[0]}")
+    
 
 ############
 # Functions to show the implants, operators, tasks, and stats

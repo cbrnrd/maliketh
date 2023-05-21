@@ -151,7 +151,7 @@ def get_tasks(config: OperatorConfig) -> List[Dict[Any, Any]]:
             "Authorization": f"Bearer {config.auth_token}",
         }
 
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, timeout=120)
         if response.json()["status"] != True:
             logger.error("Failed to get tasks")
             return []
@@ -262,3 +262,23 @@ def kill_implant(config: OperatorConfig, implant_id: str) -> None:
         logger.error("Failed to kill implant")
         return
     logger.info("Killed implant")
+
+def build_implant(config: OperatorConfig, build_options: dict) -> str:
+    """
+    Requests the server to build an implant with the given `build_options` and return the base64 encoded
+    representation of the final binary.
+    """
+
+    ensure_token(config)
+
+    url = f"http://{config.c2}:{config.c2_port}/op/implant/build"
+    headers = {
+        "Authorization": f"Bearer {config.auth_token}",
+    }
+
+    response = requests.post(url, headers=headers, json=build_options)
+    if response.status_code != 200:
+        logger.error("Failed to build implant")
+        logger.error(f"Server response: {response.text}")
+        return ""
+    return response.json()["implant"]

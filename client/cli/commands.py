@@ -5,6 +5,28 @@ COMMANDS = {
         "tasks": "Show all active tasks",
         "stats": "Show basic statistics about the server and clients",
     },
+    "builder": {
+        "set": {
+            "initial_sleep_seconds <seconds>": "Set the initial sleep time",
+            "schtask_persist <true|false>": "Set the schtask_persist option",
+            "use_antidebug <true|false>": "Set the use_antidebug option",
+            "kill_parent <true|false>": "Set the kill_parent option",
+            "use_antivm <true|false>": "Set the use_antivm option",
+            "scheduled_task_name <name>": "Set the scheduled task name",
+            "register_max_retries <number>": "Set the max number of retries for registering",
+        },
+        "show": {
+            "all": "Show all builder options",
+            "initial_sleep_seconds": "Show the initial sleep time",
+            "schtask_persist": "Show the schtask_persist option",
+            "use_antidebug": "Show the use_antidebug option",
+            "kill_parent": "Show the kill_parent option",
+            "use_antivm": "Show the use_antivm option",
+            "scheduled_task_name": "Show the scheduled task name",
+            "register_max_retries": "Show the max number of retries for registering",
+        }
+    },
+    "build <output_file>": "Build an implant with the given options and write it to <output_file>",
     "interact <implant_id>": "Interact with a given implant id",
     "results <task_id> [local_path]": "Show the results of a given task id. Optionally write the results to a file",
     "exit": "Exit the client",
