@@ -12,6 +12,7 @@ Maliketh is a multi-user, customizable C2 framework. The goal of Maliketh is to 
 * Multi-user (operators)
 * Easily configurable (via YAML files)
 * Easily deployable (via Docker)
+* Per-operator implant builder
 
 ## Implant features
 
@@ -30,15 +31,15 @@ The implant is written in C++ and targeted for Windows. The main feature of the 
 
 ## Server deployment
 
-To start the server, 90% of your work can be done by running the following command in the `server/` directory:
+To start the server, 90% of your work can be done by running the following command in the project root:
 
 ```bash
-docker-compose --env-file .env up -d
+docker-compose -f server/docker-compose.yml --env-file server/.env.example up
 ```
 
 Note: You will need to create a `.env` file in the `server/` directory. See `.env.example` for an example.
 
-The only thing left to do is bootstrap the database and create the admin user. To do this, run the following command:
+The only thing left to do is bootstrap the database and create the admin user. To do this, run the following command in the `server` directory:
 
 ```bash
 ./bootstrap_db.sh
