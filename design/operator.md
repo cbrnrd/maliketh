@@ -4,10 +4,12 @@ Operators are a single user of the C2 framework. A server can have many operator
 
 ## Creating an operator
 
-In order to create an operator, the admin of the server needs to run the `create_operator.py` script:
+In order to create an operator, the admin of the server needs to run the `create_operator.py` script in the `operator` docker container:
+
+For this example, assume the docker container has ID `37fc3915b843`.
 
 ```bash
-python create_operator.py --name operator_name
+docker exec 37fc3915b843 python create_operator.py --name operator_name
 ```
 
 More options can be found in the help section of that script.

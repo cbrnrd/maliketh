@@ -13,6 +13,7 @@ These are the *default* endpoints for the operator HTTP server. These endpoints 
 | `/op/implant/config/:implant_id` | `POST` | Updates the malleable configuration of the implant with the given ID | [example](#post-opimplantconfigimplant_id) |
 | `/op/implant/list` | `GET` | Lists all implants | [example](#opimplantlist) |
 | `/op/implant/kill/:id` | `GET` | Removes the given implant from the database and purges it from the affected system. | [example](#opimplantkillimplant_id) |
+| `/op/implant/build` | `POST` | Builds an implant with the given configuration | [example](#opimplantbuild) |
 | `/op/auth/token/request` | `GET` | Used for fetching an operators authentication token | [example](#opauthtokenrequest) |
 | `/op/auth/token/revoke` | `DELETE` | Revokes the current operator authentication token | [example](#opauthtokenrevoke) |
 | `/op/auth/token/status` | `GET` | Checks the status of the current operator authentication token | [example](#opauthtokenstatus) |
@@ -409,5 +410,41 @@ Failure:
 {
   "status": false,
   "message": "Invalid token"
+}
+```
+
+### `/op/implant/build`
+
+This endpoint is used to build a new implant. Note that depending on the power of the C2 server, this may take a while (a few minutes). The request should be a valid JSON object with any of the following fields:
+
+| Name | Meaning | Default |
+| :-- | :----- | :----- |
+| `initial_sleep_seconds` | The number of seconds to wait before connecting to the server | `180` |
+| `schtask_persist` | Whether or not to use schtasks for persistence | `true` |
+| `use_antidebug` | Whether or not to use antidebugging techniques | `true` |
+| `kill_parent` | Whether or not to kill the parent process after spawning (unused) | `true` |
+| `use_antivm` | Whether or not to use antivm techniques | `true` |
+| `scheduled_task_name` | The name of the scheduled task | `MicrosoftEdgeUpdateTaskMachineUA` |
+| `register_max_retries` | The maximum number of times to retry registering with the server | `5` |
+
+__Example request__:
+
+```json
+{
+  "initial_sleep_seconds": 180,
+  "schtask_persist": true,
+  "use_antidebug": true,
+  "kill_parent": true,
+  "use_antivm": true,
+  "scheduled_task_name": "MicrosoftEdgeUpdateTaskMachineUA",
+  "register_max_retries": 5
+}
+```
+
+__Example response__:
+
+```json
+{
+  "implant": "base64_encoded_implant_pe"
 }
 ```
