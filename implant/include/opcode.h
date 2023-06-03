@@ -15,5 +15,6 @@
 #define OPCODE_LS 0xC
 #define OPCODE_PS 0xD
 #define OPCODE_WHOAMI 0xE
+#define OPCODE_DISABLE_DEFENDER 0xF
 
 #endif

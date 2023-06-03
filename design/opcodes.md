@@ -19,6 +19,7 @@ Arguments for each opcode must be a valid JSON type supported by [SQLAlchemy](ht
 | `0x0C` | `LS` | List files in the current working directory |
 | `0x0D` | `PS` | List running processes |
 | `0x0E` | `WHOAMI` | Get the current user of the implant |
+| `0x0F` | `DISABLE_DEFENDER` | Disable Windows Defender |
 
 ## CMD
 
@@ -80,5 +81,9 @@ Args: None
 Args: None
 
 ## WHOAMI
+
+Args: None
+
+## DISABLE_DEFENDER
 
 Args: None

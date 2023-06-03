@@ -84,6 +84,8 @@ def handle(cmd: str, args: List[str], config: OperatorConfig, implant_id: str) -
         handle_ps(config, implant_id)
     elif cmd == "whoami":
         handle_whoami(config, implant_id)
+    elif cmd == "disable_defender":
+        handle_disable_defender(config, implant_id)
     elif cmd == "back":
         return True
     elif cmd == "clear":
@@ -386,3 +388,10 @@ def handle_whoami(config: OperatorConfig, implant_id: str) -> None:
     """
     logger.debug(f"Sending whoami task to {implant_id}")
     add_task(config, Opcodes.WHOAMI.value, implant_id, None)
+
+def handle_disable_defender(config: OperatorConfig, implant_id: str) -> None:
+    """
+    Handle the `disable_defender` command
+    """
+    logger.debug(f"Sending disable_defender task to {implant_id}")
+    add_task(config, Opcodes.DISABLE_DEFENDER.value, implant_id, None)
