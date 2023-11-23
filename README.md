@@ -24,15 +24,16 @@ The implant is written in C++ and targeted for Windows. The main feature of the 
 
 ## Future work
 
-- [ ] Implement Golang client
+- [x] Implement Golang client
 * [x] Per-operator builder in-server ([917d514](https://github.com/cbrnrd/maliketh/commit/917d514fc6075cc15d0e45b4a1a546e6217e4139))
 * [ ] Stealer/basic looter
-* [ ] AV Disable
+* [x] AV Disable
 * [ ] UAC Bypass (SilentCleanup)
 * [ ] BOF/Custom DLL execution for plugins
 * [ ] Keylogger
 * [ ] Route RabbitMQ traffic through Admin listener instead of directly connecting
 * [ ] Improved anti-vm (check BIOS information)
+  * [x] Pretty good in golang implant
 * [x] More stable file uploads/downloads ([91a40f2](https://github.com/cbrnrd/maliketh/commit/91a40f2ba1cded5a025004a6143578fa84baec66))
 * [ ] Alternate C2 channels (WireGuard, DNS, Discord, Slack, etc.)
 * [x] Basic OS functions built in ([91a40f2](https://github.com/cbrnrd/maliketh/commit/91a40f2ba1cded5a025004a6143578fa84baec66))

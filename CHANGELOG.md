@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## 11/23/2023
+
+### Added
+
+* Golang implant! ([0639f87](https://github.com/cbrnrd/maliketh/commit/0639f8797838469a068d91f095e3307d2d73ecc4))
+* Add AV disable ([0aeec4c](https://github.com/cbrnrd/maliketh/commit/0aeec4c4be8f1efaeaf15ee3d289507036c691df))
+
+### Fixed
+
+* Fix a few minor bugs with the client ([0639f87](https://github.com/cbrnrd/maliketh/commit/0639f8797838469a068d91f095e3307d2d73ecc4))
+* Fix `chdir` command not working in client ([0639f87](https://github.com/cbrnrd/maliketh/commit/0639f8797838469a068d91f095e3307d2d73ecc4))
+
 ## 5/21/2023
 
 ### Added
