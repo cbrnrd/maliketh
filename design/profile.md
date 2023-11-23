@@ -24,7 +24,7 @@ Profiles are YAML files with three main top level directives: `client`, `server`
 |--------|-------------|----------|------|
 | `user_agent` | The user agent to use when making HTTP requests | Yes | String |
 | `encoding` | The encoding to use when sending encrypted data to the C2. | Yes | One of: `base64`, `hex` |
-| `sleep` | The number of seconds to sleep between each HTTP request | Yes | Integer |
+| `sleep_time` | The number of seconds to sleep between each HTTP request | Yes | Integer |
 | `jitter` | % jitter. The implant will sleep for a random amount of time between `sleep` and `sleep * (1 + jitter)` | Yes | Float, `[0, 0.99]` |
 | `max_retries` | The maximum number of times to retry a request before giving up | Yes | Integer |
 | `auto_self_destruct` | Whether or not to self destruct on failed checkins. If set to true, the implant will delete itself after `max_retries` failed checkins. | Yes | Boolean |
@@ -34,6 +34,25 @@ Profiles are YAML files with three main top level directives: `client`, `server`
 | `tailoring_hash_function` | The hash function to use for payload tailoring. | Yes | One of: `sha256`, `md5` |
 | `tailoring_hash_rounds` | The number of hash rounds to use for payload tailoring. | Yes | Integer |
 
+#### Example JSON config
+
+```json
+{
+    "cookie": "SESSID",
+    "kill_date": "",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Firefox/68.0",
+    "auto_self_destruct": true,
+    "sleep_time": 60,
+    "jitter": 0.1,
+    "max_retries": 3,
+    "retry_wait": 5,
+    "retry_jitter": 0.1,
+    "enc_key": "kX7tvu+8/ChkNuP2ScZRfz26OHde9DSfshaqSyIoEXY=",
+    "tailoring_hash_function": "sha256",
+    "tailoring_hash_rounds": 1,
+    "tailoring_hashes": []
+  }
+```
 
 ### Server options
 

@@ -6,6 +6,7 @@ from crypto import base64_encrypt_and_sign_str
 
 # Globals
 log_level: LogLevel = LogLevel.INFO
+log_with_timestamps: bool = False
 
 IMPLANT_DEFAULT_BUILD_OPTIONS = {
     "initial_sleep_seconds": 180,  # The number of seconds to sleep before the first checkin

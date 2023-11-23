@@ -1,4 +1,5 @@
 from datetime import datetime
+import traceback
 from typing import Callable, Dict, Optional, Union, cast
 from flask import Blueprint, jsonify, make_response, redirect, request
 from maliketh.db import db
@@ -50,6 +51,7 @@ def implant_authenticated(func: Callable):
             )
                 decrypted = json.loads(raw_decrypted)
             except Exception as e:
+                logger.error(traceback.format_exc())
                 logger.error(f"Failed to decrypt request body: {e}: {request.get_data()}")
                 return "Failed to decrypt", 401
             return func(*args, **kwargs, decrypted_body=decrypted)

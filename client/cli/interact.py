@@ -72,7 +72,7 @@ def handle(cmd: str, args: List[str], config: OperatorConfig, implant_id: str) -
         handle_upload(config, implant_id, args)
     elif cmd == "inject":
         handle_inject(config, implant_id, args)
-    elif cmd == "cd":
+    elif cmd in ["cd", "chdir"]:
         handle_cd(config, implant_id, args)
     elif cmd == "pwd":
         handle_pwd(config, implant_id)
@@ -368,7 +368,7 @@ def handle_ls(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
     logger.debug(f"Sending ls task to {implant_id}")
     add_task(config, Opcodes.LS.value, implant_id, None)
 
-def handle_getenv(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
+def handle_getenv(config: OperatorConfig, implant_id: str) -> None:
     """
     Handle the getenv command, send a getenv task to the implant
     """

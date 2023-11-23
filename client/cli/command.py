@@ -259,8 +259,8 @@ def print_task_result(config: OperatorConfig, task_id: str) -> None:
     try:
         task = json.loads(decoded)
     except Exception as e:
-        logger.warning("Result is not JSON, printing raw output")
-        print(decoded)
+        logger.debug("Result is not JSON, printing raw output")
+        print(str(decoded, "utf-8"))
         return
 
     print(tabulate(task.items(), headers=["Key", "Value"], tablefmt="fancy_grid"))

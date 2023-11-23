@@ -1,4 +1,5 @@
-FROM python:3.11
+FROM scratch
+FROM python:3.11 as base
 ADD ./server /app
 ADD ./implant/ /implant
 WORKDIR /app
@@ -10,5 +11,6 @@ RUN pip install -r requirements.txt
 RUN apt update
 RUN apt install g++-mingw-w64 -y
 #CMD python make_db.py && python app.py --start-operator -p ${PORT} ${DEBUG}
-# Need long timeout here for compilation of the implant
+
+FROM base
 CMD gunicorn "app:operator_app" --bind ${BIND}:${PORT} --workers ${WORKERS} --reload --timeout 120

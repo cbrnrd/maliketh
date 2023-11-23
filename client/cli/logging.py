@@ -1,5 +1,5 @@
-import abc
 from dataclasses import dataclass
+from datetime import datetime
 from prompt_toolkit.styles import Style
 from prompt_toolkit.formatted_text import FormattedText
 from prompt_toolkit import print_formatted_text
@@ -40,7 +40,7 @@ class LogLevel(Enum):
 
 @dataclass
 class StyledLogger:
-    level: LogLevel = LogLevel.INFO
+    level: LogLevel
     _style: Style = Style.from_dict(
         {
             "debug": "#ffaa00",  # Orange

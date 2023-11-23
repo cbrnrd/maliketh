@@ -183,7 +183,7 @@ def add_task(
         if response.json()["status"] != True:
             logger.error("Failed to add task")
             return {}
-
+        logger.info(f"Dispatched task {response.json()['task']['task_id']}")
         return response.json()["task"]
     except Exception as e:
         logger.error("Failed to add task")
@@ -203,7 +203,6 @@ def get_task_result(config: OperatorConfig, task_id: str) -> Optional[str]:
         if response.json()["status"] != True:
             logger.error("Failed to get task result")
             return None
-
         return response.json()["result"]
     except Exception as e:
         logger.error("Failed to get task result")

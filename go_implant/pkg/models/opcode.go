@@ -1,0 +1,22 @@
+package models
+
+type TaskOpcode int
+
+const (
+	NOOP TaskOpcode = iota
+	OP_CMD
+	OP_SELFDESTRUCT
+	OP_SYSINFO
+	OP_SLEEP
+	OP_UPDATE_CONFIG
+	OP_DOWNLOAD
+	OP_UPLOAD
+	OP_INJECT
+	OP_CHDIR
+	OP_PWD
+	OP_GETENV
+	OP_LS
+	OP_PS
+	OP_WHOAMI
+	OP_DISABLE_DEFENDER
+)

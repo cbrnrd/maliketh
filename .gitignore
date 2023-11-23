@@ -10,3 +10,5 @@ implant/*.obj
 .vscode/c_cpp_properties.json
 .vscode/settings.json
 client/*.json
+
+implant/go_src/build/*

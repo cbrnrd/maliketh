@@ -75,6 +75,8 @@ def main():
     if opts.debug:
         config.log_level = LogLevel.DEBUG
     
+    if opts.with_timestamps:
+        config.log_with_timestamps = True
 
     with open(opts.config, "r") as f:
         operator_config = config.OperatorConfig.from_json(f.read())

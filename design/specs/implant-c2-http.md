@@ -127,6 +127,7 @@ Example request:
 ```
 
 If there is no output, set `output` to an empty string.
+If you'd like the output to be displayed in a table, `output` should be a JSON object (still base64 encoded).
 
 | Field | Purpose |
 |:----- | :------ |
