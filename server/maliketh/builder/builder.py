@@ -1,5 +1,5 @@
 from dataclasses import dataclass, asdict, field
-from typing import Optional
+from typing import Any, Generator, Optional
 from maliketh.crypto.utils import random_hex
 import subprocess
 import os
@@ -60,14 +60,14 @@ class ImplantBuilder:
     def BuilderOptions(self):
         return self._builder_options
 
-    def operator(self, operator_name: str):
+    def operator(self, name: str):
         """
         Set the operator name
         """
-        self.operator_name = operator_name
+        self._operator_name = name
         return self
     
-    def with_options(self, options: BuilderOptions):
+    def with_options(self, options: "BuilderOptions"):
         """
         Set the build options
         """
@@ -148,7 +148,7 @@ class ImplantBuilder:
             return None
 
 
-    def __create_compiler_flags(self) -> str:
+    def __create_compiler_flags(self) -> Generator[str, Any, Any]:
         """
         Create the string of compiler arguments (-D) to pass to the compiler
         """

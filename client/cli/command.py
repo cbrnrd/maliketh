@@ -111,6 +111,7 @@ def handle_builder(args: List[str], config: OperatorConfig) -> None:
     """
     if len(args) < 1:
         logger.error("Please provide an action and a field")
+        return
 
     if args[0] == "set":
         if len(args) < 2:

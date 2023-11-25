@@ -70,3 +70,8 @@ auth_token_status:
   path: /auth/token/status
   methods:
     - GET
+
+admin_revoke_operator:
+  path: /admin/revoke_access
+  methods:
+    - POST

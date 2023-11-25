@@ -1,5 +1,6 @@
 from dataclasses import dataclass, asdict
 from datetime import datetime
+import enum
 from typing import Any
 from maliketh.db import db
 from maliketh.profile import *
@@ -240,6 +241,12 @@ def get_task_by_id(task_id: str):
 def get_oldest_task_for_implant(implant_id: str):
     return Task.query.filter_by(implant_id=implant_id, status=CREATED).first()
 
+class OperatorRole(enum.Enum):
+    ADMIN = 'admin'
+    OPERATOR = 'operator'
+    
+    def __str__(self):
+        return self.value
 
 @dataclass
 class Operator(db.Model):
@@ -256,6 +263,8 @@ class Operator(db.Model):
     created_at: str = db.Column(db.String)
     last_login: str = db.Column(db.String)
     rmq_queue: str = db.Column(db.String)  # The RabbitMQ queue name for this operator
+    role: OperatorRole = db.Column(db.String)
+    revoked: bool = db.Column(db.Boolean)
 
     def toJSON(self):
         return asdict(self)

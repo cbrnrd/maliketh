@@ -32,13 +32,7 @@ def check_auth_token(config: OperatorConfig) -> bool:
     """
     Check if the auth token is valid
     """
-    url = f"http://{config.c2}:{config.c2_port}/op/auth/token/status"
-    headers = {
-        "Authentication": f"Bearer {config.auth_token}",
-    }
-
-    response = requests.get(url, headers=headers)
-    return response.json()["status"]
+    return send_authenticated_request("GET", "/op/auth/token/status", config).json().get("status")
 
 
 def server_auth(ip: str, port: int, name: str, login_secret: str) -> ServerAuthResponse:
@@ -102,19 +96,29 @@ def ensure_token(config: OperatorConfig) -> None:
         config.auth_token = handle_server_auth(config)
 
 
+def send_authenticated_request(method: str, endpoint: str, config: OperatorConfig, **request_kwargs) -> requests.Response:
+    """
+    Build and send an authenticated response to the given endpoint. The C2 and authentication information
+    will be extracted from `config`.
+    """
+    url = f"http://{config.c2}:{config.c2_port}{endpoint}"
+    headers = {
+        "Authorization": f"Bearer {config.auth_token}",
+    }
+
+    return requests.request(
+        method=method,
+        url=url,
+        headers=headers,
+        **request_kwargs)
+
 def list_implants(config: OperatorConfig) -> list:
     """
     List all the implants
     """
     try:
         ensure_token(config)
-
-        url = f"http://{config.c2}:{config.c2_port}/op/implant/list"
-        headers = {
-            "Authorization": f"Bearer {config.auth_token}",
-        }
-
-        response = requests.get(url, headers=headers)
+        response = send_authenticated_request("GET", "/op/implant/list", config)
         return response.json()["implants"]
     except Exception as e:
         logger.error("Failed to list implants")
@@ -146,12 +150,7 @@ def get_tasks(config: OperatorConfig) -> List[Dict[Any, Any]]:
     try:
         ensure_token(config)
 
-        url = f"http://{config.c2}:{config.c2_port}/op/tasks/list"
-        headers = {
-            "Authorization": f"Bearer {config.auth_token}",
-        }
-
-        response = requests.get(url, headers=headers, timeout=120)
+        response = send_authenticated_request("GET", "/op/tasks/list", config, timeout=120)
         if response.json()["status"] != True:
             logger.error("Failed to get tasks")
             return []
@@ -168,18 +167,13 @@ def add_task(
     try:
         ensure_token(config)
 
-        url = f"http://{config.c2}:{config.c2_port}/op/tasks/add"
-        headers = {
-            "Authorization": f"Bearer {config.auth_token}",
-        }
-
         data = {
             "opcode": opcode,
             "implant_id": implant_id,
             "args": args,
         }
 
-        response = requests.post(url, headers=headers, json=data)
+        response = send_authenticated_request("POST", "/op/tasks/add", config, json=data)
         if response.json()["status"] != True:
             logger.error("Failed to add task")
             return {}
@@ -194,12 +188,7 @@ def get_task_result(config: OperatorConfig, task_id: str) -> Optional[str]:
     try:
         ensure_token(config)
 
-        url = f"http://{config.c2}:{config.c2_port}/op/tasks/results/{task_id}"
-        headers = {
-            "Authorization": f"Bearer {config.auth_token}",
-        }
-
-        response = requests.get(url, headers=headers)
+        response = send_authenticated_request("GET", f"/op/tasks/results/{task_id}", config)
         if response.json()["status"] != True:
             logger.error("Failed to get task result")
             return None
@@ -220,12 +209,7 @@ def get_implant_profile(config: OperatorConfig, implant_id: str) -> Dict[str, An
 
     ensure_token(config)
 
-    url = f"http://{config.c2}:{config.c2_port}/op/implant/config/{implant_id}"
-    headers = {
-        "Authorization": f"Bearer {config.auth_token}",
-    }
-
-    response = requests.get(url, headers=headers)
+    response = send_authenticated_request("GET", f"/op/implant/config/{implant_id}", config)
     if response.json()["status"] != True:
         logger.error("Failed to get implant config")
         return {}
@@ -242,6 +226,7 @@ def update_implant_profile(config: OperatorConfig, implant_id: str, changes: Dic
     }
 
     response = requests.post(url, headers=headers, json=changes)
+    response = send_authenticated_request("POST", f"/op/implant/config/{implant_id}", config, json=changes)
     if response.json()["status"] != True:
         logger.error("Failed to update implant config")
         return
@@ -251,12 +236,7 @@ def kill_implant(config: OperatorConfig, implant_id: str) -> None:
 
     ensure_token(config)
 
-    url = f"http://{config.c2}:{config.c2_port}/op/implant/kill/{implant_id}"
-    headers = {
-        "Authorization": f"Bearer {config.auth_token}",
-    }
-
-    response = requests.delete(url, headers=headers)
+    response = send_authenticated_request("DELETE", f"/op/implant/kill/{implant_id}", config)
     if response.json()["status"] != True:
         logger.error("Failed to kill implant")
         return
@@ -270,12 +250,7 @@ def build_implant(config: OperatorConfig, build_options: dict) -> str:
 
     ensure_token(config)
 
-    url = f"http://{config.c2}:{config.c2_port}/op/implant/build"
-    headers = {
-        "Authorization": f"Bearer {config.auth_token}",
-    }
-
-    response = requests.post(url, headers=headers, json=build_options)
+    response = send_authenticated_request("POST", "/op/implant/build", config, json=build_options)
     if response.status_code != 200:
         logger.error("Failed to build implant")
         logger.error(f"Server response: {response.text}")

