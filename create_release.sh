@@ -43,7 +43,7 @@ if ! command -v poetry &> /dev/null; then
     exit 1
 fi
 
-NEW_VERSION = $1
+NEW_VERSION=$1
 
 # Update the version number in server/pyproject.toml
 cd server && poetry version $NEW_VERSION && cd ..
@@ -67,7 +67,7 @@ read -p "Would you like to autogenerate the changelog? (y/n) " AUTOGEN
 
 if [[ $AUTOGEN == "y" ]]; then
     # Generate the changelog
-    generate_changelog
+    get_changelog
 else
     echo "Write the changelog below (markdown format). Press Ctrl+D when finished."
     prevChangelogContents=$(cat ./CHANGELOG.md)
