@@ -241,12 +241,14 @@ def get_task_by_id(task_id: str):
 def get_oldest_task_for_implant(implant_id: str):
     return Task.query.filter_by(implant_id=implant_id, status=CREATED).first()
 
+
 class OperatorRole(enum.Enum):
-    ADMIN = 'admin'
-    OPERATOR = 'operator'
-    
+    ADMIN = "admin"
+    OPERATOR = "operator"
+
     def __str__(self):
         return self.value
+
 
 @dataclass
 class Operator(db.Model):

@@ -12,7 +12,7 @@ from maliketh.crypto.ec import generate_b64_ecc_keypair
 from maliketh.operator.rmq import rmq_setup
 
 
-def build_operator_app(postgres_host='postgres'):
+def build_operator_app(postgres_host="postgres"):
     app = Flask("operator")
     pg_user = os.environ.get("POSTGRES_USER", "postgres")
     pg_password = os.environ.get("POSTGRES_PASSWORD")
@@ -26,7 +26,7 @@ def build_operator_app(postgres_host='postgres'):
     from .listeners.admin import admin as admin_blueprint
 
     app.register_blueprint(admin_blueprint)
-    
+
     rmq_setup()
 
     db.init_app(app)
@@ -61,7 +61,6 @@ def build_c2_app():
 def init_db():
     logger = StandardLogger(sys.stdout, sys.stderr, LogLevel.INFO)
     logger.info("Initializing database")
-
 
     db.drop_all()
     db.create_all()

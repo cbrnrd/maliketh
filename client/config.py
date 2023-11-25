@@ -20,6 +20,7 @@ IMPLANT_DEFAULT_BUILD_OPTIONS = {
 
 implant_build_options = IMPLANT_DEFAULT_BUILD_OPTIONS.copy()
 
+
 @dataclass
 class OperatorConfig:
     name: str

@@ -64,9 +64,11 @@ def verified(func):
         operator = verify_auth_token(request)
         if operator is None:
             return error_json("Not authenticated")
-        
+
         if operator.revoked:
-            return error_json("Your access has been revoked. Please contact the admin to resolve.")
+            return error_json(
+                "Your access has been revoked. Please contact the admin to resolve."
+            )
 
         kwargs = {**kwargs, "operator": operator}
         return func(*args, **kwargs)
@@ -134,7 +136,7 @@ def request_token() -> Any:
 
     if original_message != operator.login_secret:
         return error_json("Unable to verify signature", 400)
-            
+
     # If we get here, the operator is authenticated
 
     # Check if the token is still valid
@@ -212,7 +214,10 @@ def add_task(operator: Operator) -> Any:
 
     # Check if the task is valid
     if any(x not in task for x in required_fields):
-        return error_json(f"Invalid task, missing fields: {', '.join(required_fields - task.keys())}", 400)
+        return error_json(
+            f"Invalid task, missing fields: {', '.join(required_fields - task.keys())}",
+            400,
+        )
 
     # Create the task
     task = Task.new_task(
@@ -290,7 +295,6 @@ def update_config(operator: Operator, implant_id: str) -> Any:
         return error_json("Unknown implant", 400)
 
     try:
-
         # Remove keys in the request that are not valid
         config = {
             k: v
@@ -368,11 +372,19 @@ def build_implant(operator: Operator) -> Any:
     build_opts_json = request.json
 
     builder = ImplantBuilder(operator.username)
-    implant_bytes = builder.with_options(BuilderOptions.from_dict(build_opts_json)).build()
+    implant_bytes = builder.with_options(
+        BuilderOptions.from_dict(build_opts_json)
+    ).build()
     if implant_bytes is None:
         return error_json("Error building implant", 500)
 
-    return jsonify({"status": True, "implant": base64.b64encode(implant_bytes).decode('utf-8')}), 200
+    return (
+        jsonify(
+            {"status": True, "implant": base64.b64encode(implant_bytes).decode("utf-8")}
+        ),
+        200,
+    )
+
 
 @create_route(admin, "admin_revoke_operator")
 @verified

@@ -35,7 +35,7 @@ config = {
     "signing_key": "8xr5eIXznozGZQHPGKAIFtiAYhmtcHVfqlCcUruB0NQ=",
     "verify_key": "jUDh6pLSTvtLef3EucT9wAWCWT/f+WtIqwBWZiqn6vs=",
     "server_pub": "ObRCXhqntoOIESaUKaLO+6hS8YEEurtIzfBA23b7hUE=",
-    "rmq_queue": "@=$v^f4JIv2V1zo=)%WXjqpE6TNmTytf"
+    "rmq_queue": "@=$v^f4JIv2V1zo=)%WXjqpE6TNmTytf",
 }
 admin_signing_key = SigningKey(
     config["signing_key"].encode("utf-8"), encoder=Base64Encoder

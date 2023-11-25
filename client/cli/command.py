@@ -5,7 +5,14 @@ from typing import Callable, Dict, List, Optional, Union
 from tabulate import tabulate
 import cli.interact
 
-from comms import get_server_stats, get_task_result, list_implants, get_tasks, implant_exists, build_implant
+from comms import (
+    get_server_stats,
+    get_task_result,
+    list_implants,
+    get_tasks,
+    implant_exists,
+    build_implant,
+)
 from config import OperatorConfig, implant_build_options
 from .logging import StyledLogger, get_styled_logger
 from .commands import *
@@ -86,6 +93,7 @@ def handle_interact(implant_id: Optional[str], config: OperatorConfig) -> None:
             print(f"Interacting with implant {implant_id}...")
             cli.interact.interact_prompt(config, implant_id)
 
+
 def handle_result(config: OperatorConfig, args: List[str]) -> None:
     """
     Handle the result command. Optionally write results to a file
@@ -98,12 +106,14 @@ def handle_result(config: OperatorConfig, args: List[str]) -> None:
     else:
         print_task_result(config, args[0])
 
+
 def handle_exit() -> None:
     """
     Handle the exit command
     """
     print("Exiting...")
     exit(0)
+
 
 def handle_builder(args: List[str], config: OperatorConfig) -> None:
     """
@@ -120,21 +130,34 @@ def handle_builder(args: List[str], config: OperatorConfig) -> None:
         if args[2] not in implant_build_options:
             logger.error(f"Field {args[2]} not found")
             return
-        
+
         if len(args) < 3:
             logger.error("Please provide a value")
             return
-        
+
         implant_build_options[args[1]] = args[2]
         logger.info(f"Set {args[1]} to {args[2]}")
     elif args[0] == "show":
         if args[1] == "all":
-            print(tabulate(implant_build_options.items(), headers=["Field", "Value"], tablefmt="fancy_grid"))
+            print(
+                tabulate(
+                    implant_build_options.items(),
+                    headers=["Field", "Value"],
+                    tablefmt="fancy_grid",
+                )
+            )
         elif args[1] in implant_build_options:
-            print(tabulate([implant_build_options[args[2]]], headers=["Field", "Value"], tablefmt="fancy_grid"))
+            print(
+                tabulate(
+                    [implant_build_options[args[2]]],
+                    headers=["Field", "Value"],
+                    tablefmt="fancy_grid",
+                )
+            )
         else:
             logger.error(f"Field {args[2]} not found")
-    
+
+
 def handle_build(args: List[str], config: OperatorConfig) -> None:
     if len(args) < 1:
         logger.error("Please provide an output file path")
@@ -149,7 +172,7 @@ def handle_build(args: List[str], config: OperatorConfig) -> None:
         with open(args[0], "wb") as f:
             f.write(base64.b64decode(implant_b64))
         logger.ok(f"Implant written to {args[0]}")
-    
+
 
 ############
 # Functions to show the implants, operators, tasks, and stats
@@ -244,6 +267,7 @@ def show_tasks(config: OperatorConfig) -> None:
         )
     )
 
+
 def print_task_result(config: OperatorConfig, task_id: str) -> None:
     """
     Print the result of a task
@@ -251,7 +275,7 @@ def print_task_result(config: OperatorConfig, task_id: str) -> None:
     taskB64 = get_task_result(config, task_id)
     if taskB64 is None:
         return
-    
+
     if taskB64 == "":
         logger.info("Task had no output")
         return
@@ -266,6 +290,7 @@ def print_task_result(config: OperatorConfig, task_id: str) -> None:
 
     print(tabulate(task.items(), headers=["Key", "Value"], tablefmt="fancy_grid"))
 
+
 def write_task_results_to_file(config: OperatorConfig, task_id: str, outfile: str):
     """
     Write the result of a task to a file
@@ -273,7 +298,7 @@ def write_task_results_to_file(config: OperatorConfig, task_id: str, outfile: st
     taskB64 = get_task_result(config, task_id)
     if taskB64 is None:
         return
-    
+
     if taskB64 == "":
         logger.info("Task had no output")
         return
@@ -286,6 +311,6 @@ def write_task_results_to_file(config: OperatorConfig, task_id: str, outfile: st
         with open(outfile, "wb") as f:
             f.write(decoded)
         return
-    
+
     with open(outfile, "w") as f:
         json.dump(task, f, indent=4)

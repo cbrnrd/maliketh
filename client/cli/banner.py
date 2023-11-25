@@ -20,5 +20,6 @@ QUOTES = [
     "Praise the sun!",
 ]
 
+
 def get_full_banner():
-    return BANNER + f"\t\t\"{random.choice(QUOTES)}\""
+    return BANNER + f'\t\t"{random.choice(QUOTES)}"'

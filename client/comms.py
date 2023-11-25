@@ -32,7 +32,11 @@ def check_auth_token(config: OperatorConfig) -> bool:
     """
     Check if the auth token is valid
     """
-    return send_authenticated_request("GET", "/op/auth/token/status", config).json().get("status")
+    return (
+        send_authenticated_request("GET", "/op/auth/token/status", config)
+        .json()
+        .get("status")
+    )
 
 
 def server_auth(ip: str, port: int, name: str, login_secret: str) -> ServerAuthResponse:
@@ -55,9 +59,7 @@ def server_auth(ip: str, port: int, name: str, login_secret: str) -> ServerAuthR
             status=True,
         )
     else:
-        return ServerAuthResponseFailure(
-            status=False, message=response.json()["msg"]
-        )
+        return ServerAuthResponseFailure(status=False, message=response.json()["msg"])
 
 
 def handle_server_auth(config: OperatorConfig) -> str:
@@ -96,7 +98,9 @@ def ensure_token(config: OperatorConfig) -> None:
         config.auth_token = handle_server_auth(config)
 
 
-def send_authenticated_request(method: str, endpoint: str, config: OperatorConfig, **request_kwargs) -> requests.Response:
+def send_authenticated_request(
+    method: str, endpoint: str, config: OperatorConfig, **request_kwargs
+) -> requests.Response:
     """
     Build and send an authenticated response to the given endpoint. The C2 and authentication information
     will be extracted from `config`.
@@ -106,11 +110,8 @@ def send_authenticated_request(method: str, endpoint: str, config: OperatorConfi
         "Authorization": f"Bearer {config.auth_token}",
     }
 
-    return requests.request(
-        method=method,
-        url=url,
-        headers=headers,
-        **request_kwargs)
+    return requests.request(method=method, url=url, headers=headers, **request_kwargs)
+
 
 def list_implants(config: OperatorConfig) -> list:
     """
@@ -138,7 +139,9 @@ def get_server_stats(config: OperatorConfig) -> Dict[str, Any]:
         response = requests.get(url, headers=headers)
         return response.json()
     except requests.exceptions.ConnectionError as ce:
-        logger.error("Server is down. Please check the server logs for more information.")
+        logger.error(
+            "Server is down. Please check the server logs for more information."
+        )
         sys.exit(1)
     except Exception as e:
         logger.error("Failed to get server stats")
@@ -150,7 +153,9 @@ def get_tasks(config: OperatorConfig) -> List[Dict[Any, Any]]:
     try:
         ensure_token(config)
 
-        response = send_authenticated_request("GET", "/op/tasks/list", config, timeout=120)
+        response = send_authenticated_request(
+            "GET", "/op/tasks/list", config, timeout=120
+        )
         if response.json()["status"] != True:
             logger.error("Failed to get tasks")
             return []
@@ -173,7 +178,9 @@ def add_task(
             "args": args,
         }
 
-        response = send_authenticated_request("POST", "/op/tasks/add", config, json=data)
+        response = send_authenticated_request(
+            "POST", "/op/tasks/add", config, json=data
+        )
         if response.json()["status"] != True:
             logger.error("Failed to add task")
             return {}
@@ -184,11 +191,14 @@ def add_task(
         logger.error(f"Exception: {sys.exc_info()[0]}")
         return {}
 
+
 def get_task_result(config: OperatorConfig, task_id: str) -> Optional[str]:
     try:
         ensure_token(config)
 
-        response = send_authenticated_request("GET", f"/op/tasks/results/{task_id}", config)
+        response = send_authenticated_request(
+            "GET", f"/op/tasks/results/{task_id}", config
+        )
         if response.json()["status"] != True:
             logger.error("Failed to get task result")
             return None
@@ -198,6 +208,7 @@ def get_task_result(config: OperatorConfig, task_id: str) -> Optional[str]:
         logger.error(f"Exception: {sys.exc_info()[0]}")
         return ""
 
+
 def implant_exists(config: OperatorConfig, id_prefix: str) -> bool:
     implants = list_implants(config)
     for implant in implants:
@@ -205,19 +216,23 @@ def implant_exists(config: OperatorConfig, id_prefix: str) -> bool:
             return True
     return False
 
-def get_implant_profile(config: OperatorConfig, implant_id: str) -> Dict[str, Any]:
 
+def get_implant_profile(config: OperatorConfig, implant_id: str) -> Dict[str, Any]:
     ensure_token(config)
 
-    response = send_authenticated_request("GET", f"/op/implant/config/{implant_id}", config)
+    response = send_authenticated_request(
+        "GET", f"/op/implant/config/{implant_id}", config
+    )
     if response.json()["status"] != True:
         logger.error("Failed to get implant config")
         return {}
 
     return response.json()["config"]
 
-def update_implant_profile(config: OperatorConfig, implant_id: str, changes: Dict[str, Any]) -> None:
 
+def update_implant_profile(
+    config: OperatorConfig, implant_id: str, changes: Dict[str, Any]
+) -> None:
     ensure_token(config)
 
     url = f"http://{config.c2}:{config.c2_port}/op/implant/config/{implant_id}"
@@ -226,21 +241,26 @@ def update_implant_profile(config: OperatorConfig, implant_id: str, changes: Dic
     }
 
     response = requests.post(url, headers=headers, json=changes)
-    response = send_authenticated_request("POST", f"/op/implant/config/{implant_id}", config, json=changes)
+    response = send_authenticated_request(
+        "POST", f"/op/implant/config/{implant_id}", config, json=changes
+    )
     if response.json()["status"] != True:
         logger.error("Failed to update implant config")
         return
     logger.debug("Updated implant config")
 
-def kill_implant(config: OperatorConfig, implant_id: str) -> None:
 
+def kill_implant(config: OperatorConfig, implant_id: str) -> None:
     ensure_token(config)
 
-    response = send_authenticated_request("DELETE", f"/op/implant/kill/{implant_id}", config)
+    response = send_authenticated_request(
+        "DELETE", f"/op/implant/kill/{implant_id}", config
+    )
     if response.json()["status"] != True:
         logger.error("Failed to kill implant")
         return
     logger.info("Killed implant")
+
 
 def build_implant(config: OperatorConfig, build_options: dict) -> str:
     """
@@ -250,7 +270,9 @@ def build_implant(config: OperatorConfig, build_options: dict) -> str:
 
     ensure_token(config)
 
-    response = send_authenticated_request("POST", "/op/implant/build", config, json=build_options)
+    response = send_authenticated_request(
+        "POST", "/op/implant/build", config, json=build_options
+    )
     if response.status_code != 200:
         logger.error("Failed to build implant")
         logger.error(f"Server response: {response.text}")

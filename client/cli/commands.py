@@ -24,7 +24,7 @@ COMMANDS = {
             "use_antivm": "Show the use_antivm option",
             "scheduled_task_name": "Show the scheduled task name",
             "register_max_retries": "Show the max number of retries for registering",
-        }
+        },
     },
     "build <output_file>": "Build an implant with the given options and write it to <output_file>",
     "interact <implant_id>": "Interact with a given implant id",

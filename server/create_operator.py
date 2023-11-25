@@ -58,7 +58,7 @@ def main():
         action="store",
         dest="role",
         default="operator",
-        help="The role to give to the new user, if applicable. One of \"admin\", \"operator\"."
+        help='The role to give to the new user, if applicable. One of "admin", "operator".',
     )
     other.add_option(
         "-v",
@@ -122,7 +122,7 @@ def main():
                         auth_token_expiry=None,
                         created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         rmq_queue=operator_config["rmq_queue"],
-                        role=options.role
+                        role=options.role,
                     )
                     db.session.add(operator)
                     db.session.commit()

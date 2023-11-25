@@ -12,10 +12,14 @@ def rmq_setup(max_retry=5, retry_delay=5):
     connection = None
     for i in range(max_retry):
         try:
-            connection = pika.BlockingConnection(pika.ConnectionParameters(host="rabbitmq"))
+            connection = pika.BlockingConnection(
+                pika.ConnectionParameters(host="rabbitmq")
+            )
             break
         except pika.exceptions.AMQPConnectionError:
-            print(f"Failed to connect to RabbitMQ. Retrying in {retry_delay} seconds...")
+            print(
+                f"Failed to connect to RabbitMQ. Retrying in {retry_delay} seconds..."
+            )
             time.sleep(retry_delay)
     if connection is None:
         raise pika.exceptions.AMQPConnectionError
@@ -54,4 +58,3 @@ def send_message_to_all_queues(msg: str):
     channel = connection.channel()
     channel.basic_publish(exchange="announcements", routing_key="", body=msg)
     connection.close()
-

