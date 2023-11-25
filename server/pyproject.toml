@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "maliketh"
-version = "0.2.0"
+version = "0.2.1"
 description = "Maliketh command and control server"
 authors = ["Carter Brainerd <0xCB@protonmail.com>"]
 license = "GPL-3"
