@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "maliketh-client"
+version = "0.2.0"
+description = "Client software to interact with the Maliketh C2"
+authors = ["Carter Brainerd <0xCB@protonmail.com>"]
+license = "GPL-3"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+tabulate = "^0.9.0"
+prompt-toolkit = "^3.0.41"
+requests = "^2.31.0"
+pynacl = "^1.5.0"
+pika = "^1.3.2"
+types-requests = "^2.31.0.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

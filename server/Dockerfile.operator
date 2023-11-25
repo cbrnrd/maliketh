@@ -7,10 +7,11 @@ ENV DEBUG=True
 ENV PORT=5000
 ENV BIND=0.0.0.0
 ENV WORKERS=1
-RUN pip install -r requirements.txt
+RUN pip install poetry
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-dev
 RUN apt update
 RUN apt install g++-mingw-w64 -y
-#CMD python make_db.py && python app.py --start-operator -p ${PORT} ${DEBUG}
 
 FROM base
 CMD gunicorn "app:operator_app" --bind ${BIND}:${PORT} --workers ${WORKERS} --reload --timeout 120

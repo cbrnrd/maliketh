@@ -34,5 +34,5 @@ An ideal setup would involve 2 servers. 1 running nginx which the implants conne
 On the server side, Wireguard should be installed and unique WireGuard keys should be given to each operator along with their operator configuration. The server should be configured to only accept connections from the Wireguard interface. Wireguard keys should be generated for each operator. The server should be configured to only accept connections from the Wireguard interface.
 
 <p align="center">
-  <img src="./data/Maliketh%20Network%20Diagram.png" alt="Ideal setup" width="500"/>
+  <img src="../data/Maliketh%20Network%20Diagram.png" alt="Ideal setup" width="500"/>
 </p>

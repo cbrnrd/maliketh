@@ -1,17 +1,7 @@
 from typing import Tuple
 from nacl.public import PrivateKey, PublicKey, Box
-from nacl.signing import SigningKey, VerifyKey
-from nacl.encoding import Base64Encoder, RawEncoder
-from cryptography.hazmat.primitives.asymmetric.ed25519 import (
-    Ed25519PrivateKey,
-    Ed25519PublicKey,
-)
-from cryptography.hazmat.primitives.serialization import (
-    Encoding,
-    PrivateFormat,
-    PublicFormat,
-    NoEncryption,
-)
+from nacl.signing import SigningKey
+from nacl.encoding import Base64Encoder
 
 from maliketh.crypto.ec import *
 from maliketh.crypto.utils import random_hex, random_string

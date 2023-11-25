@@ -1,5 +1,5 @@
 import sys
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 import requests
 from dataclasses import dataclass
 from functools import wraps
