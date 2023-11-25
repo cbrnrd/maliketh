@@ -26,17 +26,25 @@ Arguments for each opcode must be a valid JSON type supported by [SQLAlchemy](ht
 Args: List of strings (command and arguments)
 Ex: `["ipconfig", "/all"]`
 
+Expected response: The output of the command, if any.
+
 ## SELFDESTRUCT
 
 Args: None
+
+Expected response: None
 
 ## SYSINFO
 
 Args: None
 
+Expected response: A map of strings (key, value) of system information.
+
 ## SLEEP
 
 Args: 1 integer (seconds to sleep)
+
+Expected response: None
 
 ## UPDATE_CONFIG
 
@@ -44,46 +52,68 @@ Args: A map of strings (key, value) to update the malleable configuration.
 Invalid keys will be ignored. See [profile.md](profile.md#client-options) for a list of valid keys.
 Ex: `{"kill_date": "2021-01-01"}`
 
+Expected response: None
+
 ## DOWNLOAD
 
 Args: List of 1 string (path to file on the implant)
 Ex: `"C:\\Users\\user\\Desktop\\file.txt"`
+
+Expected response: base64 encoded file content
 
 ## UPLOAD
 
 Args: List of 2 strings (path to save the file on the implant)
 Ex: `["C:\\Users\\user\\Desktop\\file.txt", "b64encoded-file-content=="]`
 
+Expected response: None
+
 ## INJECT
 
 Args: List of 2 strings (base64 encoded shellcode, process name/id)
 Ex: `["shellcode==", "notepad.exe"]`
+
+Expected response: None
 
 ## CHDIR
 
 Args: 1 string (path to change to)
 Ex: `"C:\\Users\\user\\Desktop"`
 
+Expected response: None
+
 ## PWD
 
 Args: None
+
+Expected response: 1 string (current working directory)
 
 ## GETENV
 
 Args: None
 
+Expected response: A map of strings (key, value) of environment variables.
+
 ## LS
 
 Args: None
+
+Expected response: A list of strings (file names)
 
 ## PS
 
 Args: None
 
+Expected response: A map of strings (pid, name) of running processes.
+
 ## WHOAMI
 
 Args: None
 
+Expected response: 1 string (current user)
+
 ## DISABLE_DEFENDER
 
 Args: None
+
+Expected response: None

@@ -25,13 +25,13 @@ This route allows implants to register with the server. The implant should send 
 
 ```json
 {
-  "txid": "base64_encoded_public_key"
+  "txid": "encrypted_base64_encoded_public_key"
 }
 ```
 
 | Field | Purpose |
 |:----- | :------ |
-| `txid` | The Base64 encoded LibSodium public key to use for encryption from server -> implant |
+| `txid` | The Base64 encoded LibSodium public key to use for encryption from server -> implant, encrypted with the C2 registration password |
 
 Example responses:
 

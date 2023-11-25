@@ -62,7 +62,7 @@ class ImplantConfig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     implant_id: str = db.Column(
         db.String
-    )  # The implant ID this config belongs to (note this is not the `id` field of Implant, rather the `implant_id` field))
+    )  # The implant ID this config belongs to (note this is not the `id` field of Implant, rather the `implant_id` field)
     cookie: str = db.Column(
         db.String
     )  # The cookie name to use for implant identification

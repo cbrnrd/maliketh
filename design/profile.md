@@ -23,7 +23,7 @@ Profiles are YAML files with three main top level directives: `client`, `server`
 | Option | Description | Required | Type |
 |--------|-------------|----------|------|
 | `user_agent` | The user agent to use when making HTTP requests | Yes | String |
-| `encoding` | The encoding to use when sending encrypted data to the C2. | Yes | One of: `base64`, `hex` |
+<!-- | `encoding` | The encoding to use when sending encrypted data to the C2. | Yes | One of: `base64`, `hex` | -->
 | `sleep_time` | The number of seconds to sleep between each HTTP request | Yes | Integer |
 | `jitter` | % jitter. The implant will sleep for a random amount of time between `sleep` and `sleep * (1 + jitter)` | Yes | Float, `[0, 0.99]` |
 | `max_retries` | The maximum number of times to retry a request before giving up | Yes | Integer |

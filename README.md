@@ -3,13 +3,19 @@
   <img src="./data/maliketh_logo.png" alt="Maliketh logo" width="900" height="300"/>
 </p>
 
-# Maliketh
+<p align="center">
+  A multi-user, customizable C2 framework. 
+</p>
 
-Maliketh is a multi-user, customizable C2 framework. The goal of Maliketh is to provide a flexible, easy to use C2 framework that can be customized to fit the needs of the operator. The poster used in the initial presentation is located [here](./data/Maliketh%20C2%20Poster.png).
+---
+
+The goal of Maliketh is to provide a flexible, easy to use C2 framework that can be customized to fit the needs of the operator. The poster used in the initial presentation is located [here](./data/Maliketh%20C2%20Poster.png).
 
 ## Implant features
 
-The implant is written in C++ and targeted for Windows. The main feature of the implant is its ability to change its behavior based on the configuration file it receives from the server. This allows the operator to customize the implant to fit their needs. The implant also has the following features (see [here](./design/opcodes.md) for more info):
+The initial implant was written in C++ and targeted for Windows, but a Golang implant has also been implemented and supports all major platforms.
+
+The main feature of the implant is its ability to change its behavior based on the configuration file it receives from the server. This allows the operator to customize the implant to fit their needs. The implant also has the following features (see [here](./design/opcodes.md) for more info):
 
 * File upload/download
 * Command execution
@@ -24,17 +30,31 @@ The implant is written in C++ and targeted for Windows. The main feature of the 
 
 ## Future work
 
-- [x] Implement Golang client
+- [x] Implement Golang client ([0639f87](https://github.com/cbrnrd/maliketh/commit/0639f8797838469a068d91f095e3307d2d73ecc4))
 * [x] Per-operator builder in-server ([917d514](https://github.com/cbrnrd/maliketh/commit/917d514fc6075cc15d0e45b4a1a546e6217e4139))
 * [ ] Stealer/basic looter
-* [x] AV Disable
-* [ ] UAC Bypass (SilentCleanup)
-* [ ] BOF/Custom DLL execution for plugins
+* [x] AV Disable ([0aeec4c](https://github.com/cbrnrd/maliketh/commit/0aeec4c4be8f1efaeaf15ee3d289507036c691df))
+* [ ] Change design of config to be protocol agnostic.
+  * ie Define an HTTPS layer/adapter and separate out the code better.
 * [ ] Keylogger
+* [ ] More fine grained backend roles and actions (blocking users, % bot allocation)
+* [ ] Add ability to send command to every bot
+* [ ] Floods
 * [ ] Route RabbitMQ traffic through Admin listener instead of directly connecting
 * [ ] Improved anti-vm (check BIOS information)
-  * [x] Pretty good in golang implant
+  * [x] Not bad in golang implant
 * [x] More stable file uploads/downloads ([91a40f2](https://github.com/cbrnrd/maliketh/commit/91a40f2ba1cded5a025004a6143578fa84baec66))
-* [ ] Alternate C2 channels (WireGuard, DNS, Discord, Slack, etc.)
 * [x] Basic OS functions built in ([91a40f2](https://github.com/cbrnrd/maliketh/commit/91a40f2ba1cded5a025004a6143578fa84baec66))
 * [x] Situational Awareness ([91a40f2](https://github.com/cbrnrd/maliketh/commit/91a40f2ba1cded5a025004a6143578fa84baec66))
+
+## Star History
+
+<a href="https://star-history.com/#cbrnrd/maliketh&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=cbrnrd/maliketh&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=cbrnrd/maliketh&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=cbrnrd/maliketh&type=Date" />
+  </picture>
+</a>
+
+<p align="center"><a href="https://github.com/cbrnrd/maliketh#"><img src="http://randojs.com/images/backToTopButtonTransparentBackground.png" alt="Back to top" height="29"/></a></p>
