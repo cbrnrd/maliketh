@@ -1,6 +1,26 @@
-# Changelog
+## v0.2.0
 
-All notable changes to this project will be documented in this file.
+[`b85030c`](https://github.com/cbrnrd/maliketh/commit/b85030c) - Bump version to v0.2.1
+[`eb6ca00`](https://github.com/cbrnrd/maliketh/commit/eb6ca00) - Fix create_release.sh permissions
+[`86bb9d0`](https://github.com/cbrnrd/maliketh/commit/86bb9d0) - Add create_release.sh script
+[`b3a87f5`](https://github.com/cbrnrd/maliketh/commit/b3a87f5) - Use poetry instead of requirements.txt
+[`01da32c`](https://github.com/cbrnrd/maliketh/commit/01da32c) - Run formatter
+[`22ad839`](https://github.com/cbrnrd/maliketh/commit/22ad839) - Reduce code duplication and remove some unused files/functions
+[`b0e71a1`](https://github.com/cbrnrd/maliketh/commit/b0e71a1) - Documentation and makefile improvements
+
+View diff [`v0.2.0...v0.2.1`](https://github.com/cbrnrd/maliketh/compare/v0.2.0...v0.2.1)
+
+## v0.1.1
+
+[`e8cf456`](https://github.com/cbrnrd/maliketh/commit/e8cf456) - Update changelog and readme
+[`0639f87`](https://github.com/cbrnrd/maliketh/commit/0639f87) - Add go implant
+[`0aeec4c`](https://github.com/cbrnrd/maliketh/commit/0aeec4c) - Add Defender disable command
+[`546054f`](https://github.com/cbrnrd/maliketh/commit/546054f) - Clean up docs and files
+[`cc63766`](https://github.com/cbrnrd/maliketh/commit/cc63766) - Update build instructions in README
+[`a130207`](https://github.com/cbrnrd/maliketh/commit/a130207) - Update README and CHANGELOG
+
+View diff [`v0.1.1...v0.2.0`](https://github.com/cbrnrd/maliketh/compare/v0.1.1...v0.2.0)
+
 
 ## 11/23/2023
 
