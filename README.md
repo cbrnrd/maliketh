@@ -4,7 +4,14 @@
 </p>
 
 <p align="center">
-  A multi-user, customizable C2 framework. 
+  A multi-user, customizable C2 framework.
+  <br>
+  <br>
+  <img alt="GitHub License" src="https://img.shields.io/github/license/cbrnrd/maliketh?style=flat-square&color=ff5733">
+  <img alt="Latest Release" src="https://img.shields.io/github/v/release/cbrnrd/maliketh?logo=github&style=flat-square&color=ff5733&link=https%3A%2F%2Fgithub.com%2Fcbrnrd%2Fmaliketh%2Freleases">
+  <img alt="GitHub Workflow Status (with event)" src="https://img.shields.io/github/actions/workflow/status/cbrnrd/maliketh/docker-image.yml?style=flat-square">
+  <img alt="GitHub Release Date - Published_At" src="https://img.shields.io/github/release-date/cbrnrd/maliketh?style=flat-square&color=ff5733&link=https%3A%2F%2Fgithub.com%2Fcbrnrd%2Fmaliketh%2Freleases">
+  <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/cbrnrd/maliketh?style=flat-square&color=ff5733">
 </p>
 
 ---
