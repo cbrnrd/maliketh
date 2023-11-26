@@ -1,6 +1,10 @@
 from typing import Callable, Tuple
+import uuid
 from flask import jsonify, Response, Blueprint
 from functools import wraps
+import flask
+
+import structlog
 from maliketh.config import OP_ROUTES
 
 
@@ -34,4 +38,17 @@ def create_route(bp: Blueprint, route_name: str) -> Callable:
 
         return wrap
 
+    return inner
+
+def setup_logger(func):
+    @wraps(func)
+    def inner(*args, **kwargs):
+        structlog.contextvars.clear_contextvars()
+        structlog.contextvars.bind_contextvars(
+            view=flask.request.path,
+            request_id=str(uuid.uuid4()),
+            peer=flask.request.access_route[0],
+        )
+        return func(*args, **kwargs)
+    
     return inner

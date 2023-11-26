@@ -1,37 +1,75 @@
+import logging
 import os
 import sys
-import gunicorn.app.base
+import logging.config
 from maliketh.buildapp import build_operator_app, build_c2_app, init_db
 from maliketh.logging.standard_logger import StandardLogger, LogLevel
 from maliketh.operator.rmq import rmq_setup
 from optparse import OptionParser
+import structlog
+from structlog.processors import TimeStamper, ExceptionPrettyPrinter, CallsiteParameterAdder
 
 from maliketh.config import set_c2_profile, DEFAULT_C2_PROFILE
 
-# init_db()
+timestamper = structlog.processors.TimeStamper(fmt="iso")
+pre_chain = [
+    # Add the log level and a timestamp to the event_dict if the log entry is not from structlog.
+    structlog.stdlib.add_log_level,
+    timestamper,
+]
+
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        CallsiteParameterAdder(),
+        timestamper,
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    ],
+    context_class=structlog.threadlocal.wrap_dict(dict),
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
 
 operator_app = build_operator_app()
 c2_app = build_c2_app()
 
 
-class StandaloneApplication(gunicorn.app.base.BaseApplication):
-    def __init__(self, app, options=None):
-        self.options = options or {}
-        self.application = app
-        super().__init__()
+gunicorn_logger = logging.getLogger("gunicorn.error")
+operator_app.logger.handlers = gunicorn_logger.handlers
+operator_app.logger.setLevel(gunicorn_logger.level)
+c2_app.logger.handlers = gunicorn_logger.handlers
+c2_app.logger.setLevel(logging.INFO)
 
-    def load_config(self):
-        config = {
-            key: value
-            for key, value in self.options.items()
-            if key in self.cfg.settings and value is not None
-        }
-        for key, value in config.items():
-            self.cfg.set(key.lower(), value)
+logging.getLogger("pika").setLevel(logging.WARNING)
 
-    def load(self):
-        return self.application
+logger = structlog.get_logger()
 
+logging.config.dictConfig(
+    {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "console": {
+                "()": structlog.stdlib.ProcessorFormatter,
+                "processor": structlog.dev.ConsoleRenderer(colors=True),
+                "foreign_pre_chain": pre_chain,
+            },
+            # "json": {"()": structlog.stdlib.ProcessorFormatter, "processor": structlog.processors.JSONRenderer(), "foreign_pre_chain": pre_chain},
+        },
+        "handlers": {
+            "development": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "console"},
+            "production": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "console"},
+        },
+        "loggers": {"": {"handlers": [c2_app.config["ENV"], operator_app.config["ENV"]], "level": "DEBUG", "propagate": True},
+                    "gunicorn.error": {"level": "DEBUG", "handlers": ["production"], "propagate": True},
+                    "gunicorn.access": {"level": "DEBUG", "handlers": ["production"], "propagate": True}},
+    }
+)
 
 def parse_options():
     opts = {}
@@ -124,8 +162,8 @@ def validate_args(opts) -> None:
         sys.exit(1)
 
 
-def init_simple_logger(level: LogLevel = LogLevel.INFO) -> StandardLogger:
-    return StandardLogger(sys.stdout, sys.stderr, level)  # type: ignore
+# def init_simple_logger(level: LogLevel = LogLevel.INFO) -> StandardLogger:
+#     return StandardLogger(sys.stdout, sys.stderr, level)  # type: ignore
 
 
 def main():
@@ -140,19 +178,15 @@ def main():
         init_db()
         sys.exit(0)
 
-    logger = init_simple_logger(LogLevel[opts.log_level])
-
     validate_args(opts)
     set_c2_profile(opts.profile)
 
     if opts.start_operator:
-        logger.info("Starting operator listener on %s:%s" % (opts.address, opts.port))
+        logger.info("Starting operator listener on %s:%s", opts.address, opts.port)
         operator_app.run(host=opts.address, port=opts.port, debug=opts.debug)
-        # StandaloneApplication(operator_app, {}).run(host=opts.address, port=opts.port, debug=opts.debug)
     elif opts.start_c2:
-        logger.info("Starting C2 listener on %s:%s" % (opts.c2_address, opts.c2_port))
+        logger.info("Starting C2 listener on %s:%s", opts.c2_address, opts.c2_port)
         c2_app.run(host=opts.c2_address, port=opts.c2_port, debug=opts.debug)
-        # StandaloneApplication(c2_app, {}).run(host=opts.c2_address, port=opts.c2_port, debug=opts.debug)
 
 
 if __name__ == "__main__":

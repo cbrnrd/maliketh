@@ -3,7 +3,7 @@ import nacl.exceptions
 
 from datetime import datetime, timedelta
 from typing import Any
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app
 from maliketh.db import db
 from maliketh.models import *
 from maliketh.crypto.ec import *
@@ -11,12 +11,14 @@ from maliketh.crypto.utils import random_hex
 from maliketh.config import OP_ROUTES
 from maliketh.opcodes import Opcodes
 from maliketh.builder.builder import ImplantBuilder, BuilderOptions
-from maliketh.listeners.utils import error_json, success_json, create_route
+from maliketh.listeners.utils import error_json, success_json, create_route, setup_logger
 from functools import wraps
+import structlog
 
 admin = Blueprint("admin", __name__, url_prefix=OP_ROUTES["base_path"])
 start_time = datetime.now()
 
+logger = structlog.get_logger()
 
 def verify_auth_token(request) -> Optional[Operator]:
     """
@@ -104,7 +106,11 @@ def server_stats(operator: Operator) -> Any:
 
 
 @create_route(admin, "request_auth_token")
+@setup_logger
 def request_token() -> Any:
+
+    logger.bind()
+
     # Check if X-ID and X-Signature header is present
     if any(x not in request.headers for x in ["X-ID", "X-Signature"]):
         return error_json("Unknown operator key", 400)
@@ -117,6 +123,9 @@ def request_token() -> Any:
     # So we need to decrypt it with the server public key,
     # Then verify the signature with the operator signing key
 
+    # current_app.logger.info("Received auth token request", 'operator', request.headers["X-ID"])
+    logger.info("Received auth token request", operator=request.headers["X-ID"])
+
     # Get the operator from X-ID
     operator = Operator.query.filter_by(username=request.headers["X-ID"]).first()
     if operator is None:
@@ -126,15 +135,18 @@ def request_token() -> Any:
         original_message = decrypt_and_verify(
             bytes(request.headers["X-Signature"], "utf-8"), operator
         )
-    except nacl.exceptions.CryptoError:
+    except nacl.exceptions.CryptoError as e:
+        logger.error("Couldn't decrypt signature", operator=request.headers["X-ID"], exc_info=e)
         return error_json("Couldn't decrypt signature", 400)
 
     if original_message is None:
+        logger.error("Couldn't verify signature", operator=request.headers["X-ID"])
         return error_json("Couldn't verify signature", 400)
 
     original_message = original_message.decode("utf-8")
 
     if original_message != operator.login_secret:
+        logger.error("Invalid signature", operator=request.headers["X-ID"])
         return error_json("Unable to verify signature", 400)
 
     # If we get here, the operator is authenticated
@@ -173,6 +185,7 @@ def request_token() -> Any:
 @create_route(admin, "revoke_auth_token")
 @verified
 def revoke_token(operator: Operator) -> Any:
+    logger.info("Revoking auth token", operator=operator.username)
     operator.auth_token = None  # type: ignore
     operator.auth_token_expiry = None  # type: ignore
     db.session.commit()
@@ -198,6 +211,7 @@ def list_tasks(operator: Operator) -> Any:
 
 
 @create_route(admin, "add_task")
+@setup_logger
 @verified
 def add_task(operator: Operator) -> Any:
     """
@@ -227,27 +241,33 @@ def add_task(operator: Operator) -> Any:
         task["args"],
     )
 
+    logger.info("Created task", task=task.toJSON(), operator=operator.username)
+
     return jsonify({"status": True, "task": task.toJSON()}), 200
 
 
 @create_route(admin, "task_results")
+@setup_logger
 @verified
 def get_task_result(operator: Operator, task_id: str) -> Any:
     """
     Get the result of a task
     """
+    logger.info("Getting task result", task_id=task_id, operator=operator.username)
     # Check if this operator owns the task
     task = Task.query.filter_by(task_id=task_id).first()
     if task is None:
         return error_json("Unknown task", 400)
 
     if task.operator_name != operator.username:
+        logger.warn("Operator tried to access task they don't own", task_id=task_id, operator=operator.username)
         return error_json("Unauthorized")
 
     return jsonify({"status": True, "result": task.output}), 200
 
 
 @create_route(admin, "delete_task")
+@setup_logger
 @verified
 def delete_task(operator: Operator, task_id: str) -> Any:
     """
@@ -259,10 +279,13 @@ def delete_task(operator: Operator, task_id: str) -> Any:
         return error_json("Unknown task", 400)
 
     if task.operator_name != operator.username:
+        logger.warn("Operator tried to delete task they don't own", task_id=task_id, operator=operator.username)
         return error_json("Unauthorized")
 
     db.session.delete(task)
     db.session.commit()
+
+    logger.info("Deleted task", task_id=task_id, operator=operator.username)
 
     return jsonify({"status": True}), 200
 
@@ -278,6 +301,7 @@ def list_implants(operator: Operator) -> Any:
 
 
 @create_route(admin, "update_implant_config")
+@setup_logger
 @verified
 def update_config(operator: Operator, implant_id: str) -> Any:
     """
@@ -310,12 +334,14 @@ def update_config(operator: Operator, implant_id: str) -> Any:
             setattr(current_config, key, value)
         db.session.commit()
 
+        logger.info("Updated implant config", implant_id=implant_id, operator=operator.username, config=config)
+
         # Create the task
         task = Task.new_task(
             operator.username, implant_id, Opcodes.UPDATE_CONFIG.value, config
         )
     except Exception as e:
-        print(e)
+        logger.error("Error updating config", implant_id=implant_id, operator=operator.username, exc_info=e)
         return error_json(f"Error updating config: {e}", 400)
 
     return jsonify({"status": True, "task": task.toJSON()}), 200
@@ -353,6 +379,8 @@ def kill_implant(operator: Operator, implant_id: str) -> Any:
         Opcodes.SELFDESTRUCT.value,
         [],
     )
+
+    logger.info("Sent SELFDESTRUCT task", implant_id=implant_id, operator=operator.username)
 
     # Do not handle deleting here, the C2 listener will take care of it.
 
