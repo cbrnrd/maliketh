@@ -8,21 +8,28 @@
 # 3. The CHANGELOG.md file
 # 4. The tag
 
-function get_changelog() {
-  local currentTag previousTag prevChangelogContents
-  currentTag=$(git describe --abbrev=0 --tags "$(git describe --abbrev=0)"^)
-  previousTag=$(git describe --abbrev=0)
-  prevChangelogContents=$(cat ./CHANGELOG.md)
+function get_changes() {
+    local currentTag previousTag
+    previousTag=$(git describe --abbrev=0 --tags "$(git describe --abbrev=0)"^)
+    currentTag=$(git describe --abbrev=0)
+    changes=$(git log --pretty=oneline --pretty=format:'[`%h`](https://github.com/cbrnrd/maliketh/commit/%h) - %s' --abbrev-commit "$previousTag...$currentTag" | grep -v "Upgrade")
+    cat << EOF
+## $currentTag
 
-  {
-    echo "## $currentTag";
-    echo "";
-    git log --pretty=oneline --pretty=format:'`%h` - %s' --abbrev-commit "$currentTag...$previousTag" | grep -v "Upgrade";
-    echo "";
-  } > CHANGELOG.md
-  echo "$prevChangelogContents" >> CHANGELOG.md
+$changes
+
+View diff [\`$previousTag...$currentTag\`](https://github.com/cbrnrd/maliketh/compare/$previousTag...$currentTag)
+
+EOF
 }
 
+function get_changelog() {
+  local prevChangelogContents
+  prevChangelogContents=$(cat ./CHANGELOG.md)
+
+  get_changes > CHANGELOG.md
+  echo "$prevChangelogContents" >> CHANGELOG.md
+}
 
 # Print usage if -h or no args
 if [[ $1 == "-h" || $# -eq 0 ]]; then
@@ -51,16 +58,11 @@ cd server && poetry version $NEW_VERSION && cd ..
 # Update the version number in client/pyproject.toml
 cd client && poetry version $NEW_VERSION && cd ..
 
-# Commit the changes
 git add server/pyproject.toml client/pyproject.toml
 git commit -m "Bump version to v$NEW_VERSION"
 
 # Create a new tag
 git tag -a v$NEW_VERSION
-
-# Push the changes
-git push
-git push origin v$NEW_VERSION
 
 # Prompt for changelog autogeneration
 read -p "Would you like to autogenerate the changelog? (y/n) " AUTOGEN
@@ -75,13 +77,21 @@ else
     echo "$prevChangelogContents" >> CHANGELOG.md
 fi
 
+# Commit the changes
+git add CHANGELOG.md
+git commit -m "Update changelog for v$NEW_VERSION"
+
+# Push the changes
+git push
+git push origin v$NEW_VERSION
+
 read -p "Would you like to add a custom release title? (y/n) " CUSTOM_TITLE
 
 if [[ $CUSTOM_TITLE == "y" ]]; then
     read -p "Enter the release title: " TITLE
-    gh release create v$NEW_VERSION --notes-from-tag --title "$TITLE"
+    get_changes | gh release create v$NEW_VERSION -F - --title "$TITLE"
 else
-    gh release create v$NEW_VERSION --notes-from-tag
+    get_changes | gh release create v$NEW_VERSION -F -
 fi
 
 echo "Done!"
