@@ -1,3 +1,16 @@
+## v0.2.1
+
+[`45d69bd`](https://github.com/cbrnrd/maliketh/commit/45d69bd) - Update changelog for v0.2.1
+[`b85030c`](https://github.com/cbrnrd/maliketh/commit/b85030c) - Bump version to v0.2.1
+[`eb6ca00`](https://github.com/cbrnrd/maliketh/commit/eb6ca00) - Fix create_release.sh permissions
+[`86bb9d0`](https://github.com/cbrnrd/maliketh/commit/86bb9d0) - Add create_release.sh script
+[`b3a87f5`](https://github.com/cbrnrd/maliketh/commit/b3a87f5) - Use poetry instead of requirements.txt
+[`01da32c`](https://github.com/cbrnrd/maliketh/commit/01da32c) - Run formatter
+[`22ad839`](https://github.com/cbrnrd/maliketh/commit/22ad839) - Reduce code duplication and remove some unused files/functions
+[`b0e71a1`](https://github.com/cbrnrd/maliketh/commit/b0e71a1) - Documentation and makefile improvements
+
+View diff [`v0.2.0...v0.2.1`](https://github.com/cbrnrd/maliketh/compare/v0.2.0...v0.2.1)
+
 ## v0.2.0
 
 [`b85030c`](https://github.com/cbrnrd/maliketh/commit/b85030c) - Bump version to v0.2.1
