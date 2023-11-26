@@ -13,7 +13,7 @@ else
 endif
 
 ifeq ($(DEBUG),1)
-	GOFLAGS:=$(GOFLAGS) -gcflags="all=-N -l" -ldflags="-X maliketh.config.DEBUG=true"
+	GOFLAGS:=$(GOFLAGS) -gcflags="all=-N -l" -ldflags="-X maliketh.config.DEBUG=true -X maliketh.config.INITIAL_SLEEP=1"
 else
 	GOFLAGS:=$(GOFLAGS) -ldflags="-s -w -X maliketh.config.DEBUG=false" -trimpath -gcflags=all="-l -B"
 endif

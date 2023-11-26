@@ -26,6 +26,7 @@ COMMANDS = {
             "register_max_retries": "Show the max number of retries for registering",
         },
     },
+    "broadcast <command>": "Send an interact command to every connected implant (this can get very noisy, USE WITH CAUTION!)",
     "build <output_file>": "Build an implant with the given options and write it to <output_file>",
     "interact <implant_id>": "Interact with a given implant id",
     "results <task_id> [local_path]": "Show the results of a given task id. Optionally write the results to a file",

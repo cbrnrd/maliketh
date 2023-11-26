@@ -1,11 +1,11 @@
 from dataclasses import dataclass, asdict
 import json
 from typing import Optional
-from cli.logging import LogLevel
+import logging
 from crypto import base64_encrypt_and_sign_str
 
 # Globals
-log_level: LogLevel = LogLevel.INFO
+log_level: int = logging.INFO
 log_with_timestamps: bool = False
 
 IMPLANT_DEFAULT_BUILD_OPTIONS = {

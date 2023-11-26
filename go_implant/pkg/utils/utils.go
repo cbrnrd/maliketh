@@ -33,7 +33,10 @@ func GetNTPTime() time.Time {
 		ReceiveTime        uint64
 		J                  uint64
 	}
-	sock, _ := net.Dial("udp", "us.pool.ntp.org:123")
+	sock, err := net.Dial("udp", "us.pool.ntp.org:123")
+	if err != nil {
+		return time.Date(1900, 1, 1, 0, 0, 0, 0, time.UTC)
+	}
 	sock.SetDeadline(time.Now().Add((2 * time.Second)))
 	defer sock.Close()
 	transmit := new(ntp)

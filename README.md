@@ -44,6 +44,8 @@ The main feature of the implant is its ability to change its behavior based on t
 * [ ] Change design of config to be protocol agnostic.
   * ie Define an HTTPS layer/adapter and separate out the code better.
 * [ ] Keylogger
+* [ ] Allow implant aliasing/renaming
+  * This shouldn't change the actual ID, just create a mapping table
 * [ ] More fine grained backend roles and actions (blocking users, % bot allocation)
 * [ ] Add ability to send command to every bot
 * [ ] Floods

@@ -16,9 +16,12 @@ from comms import (
 from config import OperatorConfig, implant_build_options
 from .logging import StyledLogger, get_styled_logger
 from .commands import *
+from .interact import handle as interact_handle
 from opcodes import Opcodes
+import structlog
 
-logger = get_styled_logger()
+# logger = get_styled_logger()
+logger = structlog.get_logger()
 
 
 def handle(cmd: str, args: List[str], config: OperatorConfig) -> None:
@@ -41,6 +44,8 @@ def handle(cmd: str, args: List[str], config: OperatorConfig) -> None:
         handle_builder(args, config)
     elif cmd == "build":
         handle_build(args, config)
+    elif cmd == "broadcast":
+        handle_broadcast(args, config)
     elif cmd == "":
         return
     else:
@@ -171,7 +176,29 @@ def handle_build(args: List[str], config: OperatorConfig) -> None:
             return
         with open(args[0], "wb") as f:
             f.write(base64.b64decode(implant_b64))
-        logger.ok(f"Implant written to {args[0]}")
+        logger.info(f"Implant written to {args[0]}")
+
+
+def handle_broadcast(args: List[str], config: OperatorConfig) -> None:
+    if len(args) < 1:
+        logger.error("Please provide a command to run")
+        return
+    
+    # Get all implant IDs
+    implants: List[str] = [i["implant_id"][0:8] for i in list_implants(config)]
+    if not implants:
+        logger.error("Failed to get implants")
+        return
+
+    # Prompt user
+    print(f"You are about to send the command '{' '.join(args)}' to {len(implants)} implants.")
+    res = input("Are you sure you want to do this? (y/n): ")
+    if res not in ['y', 'Y', 'yes']:
+        logger.info("Aborting broadcast")
+        return
+
+    for i in implants:
+        interact_handle(args[0], args[1:], config, i)
 
 
 ############

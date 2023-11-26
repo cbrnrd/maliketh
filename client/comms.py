@@ -2,12 +2,12 @@ import sys
 from typing import Any, Dict, List, Optional, Union
 import requests
 from dataclasses import dataclass
-from functools import wraps
-from cli.logging import get_styled_logger
+import structlog
+from opcodes import Opcodes
 
 from config import OperatorConfig
 
-logger = get_styled_logger()
+logger = structlog.get_logger()
 
 
 @dataclass
@@ -71,16 +71,16 @@ def handle_server_auth(config: OperatorConfig) -> str:
         auth_result = server_auth(
             config.c2, config.c2_port, config.name, config.enc_and_sign_secret()
         )
-    except requests.exceptions.ConnectionError:
-        print("Failed to connect to server")
+    except requests.exceptions.ConnectionError as ce:
+        logger.error("Failed to connect to server", exc_info=ce)
         sys.exit(1)
     if auth_result is None:
-        print("Failed to authenticate to server")
+        logger.error("Failed to authenticate to server", auth_result=None)
         sys.exit(1)
 
     if auth_result.status != True:
         assert type(auth_result) == ServerAuthResponseFailure
-        print("Failed to authenticate to server: {}".format(auth_result.message))
+        logger.error("Failed to authenticate to server", message=auth_result.message)
         sys.exit(1)
 
     assert type(auth_result) == ServerAuthResponseSuccess
@@ -113,7 +113,7 @@ def send_authenticated_request(
     return requests.request(method=method, url=url, headers=headers, **request_kwargs)
 
 
-def list_implants(config: OperatorConfig) -> list:
+def list_implants(config: OperatorConfig) -> List[Any]:
     """
     List all the implants
     """
@@ -122,30 +122,23 @@ def list_implants(config: OperatorConfig) -> list:
         response = send_authenticated_request("GET", "/op/implant/list", config)
         return response.json()["implants"]
     except Exception as e:
-        logger.error("Failed to list implants")
-        logger.error(f"Exception: {sys.exc_info()[0]}")
+        logger.error("Failed to list implants", exc_info=e)
         return []
 
 
 def get_server_stats(config: OperatorConfig) -> Dict[str, Any]:
     try:
         ensure_token(config)
-
-        url = f"http://{config.c2}:{config.c2_port}/op/stats"
-        headers = {
-            "Authorization": f"Bearer {config.auth_token}",
-        }
-
-        response = requests.get(url, headers=headers)
+        response = send_authenticated_request("GET", "/op/stats", config)
         return response.json()
     except requests.exceptions.ConnectionError as ce:
         logger.error(
-            "Server is down. Please check the server logs for more information."
+            "Server is down. Please check the server logs for more information.",
+            exc_info=ce
         )
         sys.exit(1)
     except Exception as e:
-        logger.error("Failed to get server stats")
-        logger.error(f"Exception: {sys.exc_info()[0]}")
+        logger.error("Failed to get server stats", exc_info=e)
         return {}
 
 
@@ -161,8 +154,7 @@ def get_tasks(config: OperatorConfig) -> List[Dict[Any, Any]]:
             return []
         return response.json()["tasks"]
     except Exception as e:
-        logger.error("Failed to get tasks")
-        logger.error(f"Exception: {sys.exc_info()[0]}")
+        logger.error("Failed to get tasks", exc_info=e)
         return []
 
 
@@ -184,11 +176,10 @@ def add_task(
         if response.json()["status"] != True:
             logger.error("Failed to add task")
             return {}
-        logger.info(f"Dispatched task {response.json()['task']['task_id']}")
+        logger.info(f"Dispatched task", type=Opcodes.get_by_value(opcode), task_id=response.json()['task']['task_id'], implant_id=implant_id, opcode=opcode)
         return response.json()["task"]
     except Exception as e:
-        logger.error("Failed to add task")
-        logger.error(f"Exception: {sys.exc_info()[0]}")
+        logger.error("Failed to add task", exc_info=e)
         return {}
 
 
@@ -204,8 +195,7 @@ def get_task_result(config: OperatorConfig, task_id: str) -> Optional[str]:
             return None
         return response.json()["result"]
     except Exception as e:
-        logger.error("Failed to get task result")
-        logger.error(f"Exception: {sys.exc_info()[0]}")
+        logger.error("Failed to get task result", exc_info=e)
         return ""
 
 
@@ -224,7 +214,7 @@ def get_implant_profile(config: OperatorConfig, implant_id: str) -> Dict[str, An
         "GET", f"/op/implant/config/{implant_id}", config
     )
     if response.json()["status"] != True:
-        logger.error("Failed to get implant config")
+        logger.error("Failed to get implant config: %s", response.json()["msg"])
         return {}
 
     return response.json()["config"]
@@ -247,7 +237,7 @@ def update_implant_profile(
     if response.json()["status"] != True:
         logger.error("Failed to update implant config")
         return
-    logger.debug("Updated implant config")
+    logger.debug("Updated implant config", implant_id=implant_id)
 
 
 def kill_implant(config: OperatorConfig, implant_id: str) -> None:
@@ -259,7 +249,7 @@ def kill_implant(config: OperatorConfig, implant_id: str) -> None:
     if response.json()["status"] != True:
         logger.error("Failed to kill implant")
         return
-    logger.info("Killed implant")
+    logger.info("Killed implant", implant_id=implant_id)
 
 
 def build_implant(config: OperatorConfig, build_options: dict) -> str:

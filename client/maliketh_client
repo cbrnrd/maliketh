@@ -1,21 +1,16 @@
 #! /usr/bin/env python3
 
+import logging
 import optparse
 import sys
 import os
-import json
+
+import structlog
 from rmq import listen_for_messages_in_thread
+from cli.logging import setup_structlog
 import config
 
-from typing import cast
-from cli.logging import LogLevel
-
-from comms import (
-    ServerAuthResponseSuccess,
-    handle_server_auth,
-    server_auth,
-    ServerAuthResponseFailure,
-)
+from comms import handle_server_auth
 from cli.cli import main_loop
 
 
@@ -45,7 +40,7 @@ def parse_args() -> optparse.Values:
         "--with-timestamps",
         dest="with_timestamps",
         default=False,
-        help="Enable timestamps in server log messages",
+        help="Enable timestamps in log messages",
         action="store_true",
     )
     opts, args = parser.parse_args()
@@ -73,17 +68,23 @@ def main():
     opts = parse_args()
     validate_args(opts)
     if opts.debug:
-        config.log_level = LogLevel.DEBUG
+        config.log_level = logging.DEBUG
     
     if opts.with_timestamps:
         config.log_with_timestamps = True
+
+    setup_structlog(config.log_level, opts.with_timestamps)
+    logger = structlog.get_logger()
 
     with open(opts.config, "r") as f:
         operator_config = config.OperatorConfig.from_json(f.read())
 
     # Authenticate to server
-    auth_result = handle_server_auth(operator_config)
-    operator_config.auth_token = auth_result
+    try:
+        auth_result = handle_server_auth(operator_config)
+        operator_config.auth_token = auth_result
+    except Exception as e:
+        logger.error("Could not connect to server", exc_info=e)
 
     # Subscribe to RabbitMQ queue
     listen_for_messages_in_thread(operator_config, opts)

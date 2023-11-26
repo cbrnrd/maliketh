@@ -12,7 +12,6 @@ from .style import PROMPT_STYLE
 from config import OperatorConfig
 from .completer import InteractCompleter
 from .commands import INTERACT_COMMANDS, COMMANDS, walk_dict
-from .logging import get_styled_logger
 from comms import (
     add_task,
     get_implant_profile,
@@ -21,8 +20,9 @@ from comms import (
     update_implant_profile,
 )
 from opcodes import Opcodes
+import structlog
 
-logger = get_styled_logger()
+logger = structlog.get_logger()
 
 
 def interact_prompt(config: OperatorConfig, implant_id: str):
@@ -137,7 +137,9 @@ def handle_cmd(config: OperatorConfig, implant_id: str, args: List[str]) -> None
         logger.error("Please provide a command to send")
         return
 
-    logger.info(f"Sending command `{' '.join(args)}` to {implant_id}")
+    # logger.info(f"Sending command `{' '.join(args)}` to {implant_id}")
+    # logger.info("Sending command `%s` to %s", " ".join(args), implant_id)
+    logger.info("Sending command")
     add_task(config, Opcodes.CMD.value, implant_id, args)
 
 

