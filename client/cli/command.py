@@ -6,12 +6,16 @@ from tabulate import tabulate
 import cli.interact
 
 from comms import (
+    delete_implant_alias,
     get_server_stats,
     get_task_result,
+    list_implant_aliases,
     list_implants,
     get_tasks,
     implant_exists,
     build_implant,
+    resolve_implant_alias,
+    set_implant_alias,
 )
 from config import OperatorConfig, implant_build_options
 from .logging import StyledLogger, get_styled_logger
@@ -46,6 +50,8 @@ def handle(cmd: str, args: List[str], config: OperatorConfig) -> None:
         handle_build(args, config)
     elif cmd == "broadcast":
         handle_broadcast(args, config)
+    elif cmd == "alias":
+        handle_alias(args, config)
     elif cmd == "":
         return
     else:
@@ -94,6 +100,12 @@ def handle_interact(implant_id: Optional[str], config: OperatorConfig) -> None:
     if implant_id is None:
         print("Please specify an implant ID")
     else:
+        # Check if implant_id is an alias, if so resolve it
+        resolved_id = resolve_implant_alias(config, implant_id)
+        if resolved_id is not None:
+            logger.info("Resolved alias to implant ID", alias=implant_id, implant_id=resolved_id)
+            implant_id = resolved_id
+
         if implant_exists(config, implant_id):
             print(f"Interacting with implant {implant_id}...")
             cli.interact.interact_prompt(config, implant_id)
@@ -200,6 +212,44 @@ def handle_broadcast(args: List[str], config: OperatorConfig) -> None:
     for i in implants:
         interact_handle(args[0], args[1:], config, i)
 
+
+def handle_alias(args: List[str], config: OperatorConfig) -> None:
+    action = args.pop(0)
+
+    if action == "list":
+        if len(args) > 2:
+            logger.error("Too many arguments")
+            return
+        
+        if len(args) == 0:
+            logger.error("Please provide an implant ID")
+            return
+
+        aliases = list_implant_aliases(config, args[0])
+
+        if aliases is None:
+            logger.error("Failed to get aliases")
+            return
+        
+        if len(aliases) == 0:
+            logger.info("No aliases found")
+            return
+
+        print(tabulate([[a] for a in aliases], headers=["Alias"], tablefmt="fancy_grid"))
+
+    elif action == "delete":
+        if len(args) != 2:
+            logger.error("Please provide an implant ID and an alias")
+            return
+        delete_implant_alias(config, args[0], args[1])
+
+    elif action == "set":
+        if len(args) != 2:
+            logger.error("Please provide an implant ID and an alias")
+            return
+        set_implant_alias(config, args[0], args[1])
+    else:
+        logger.error(f"Unknown action {action}")
 
 ############
 # Functions to show the implants, operators, tasks, and stats

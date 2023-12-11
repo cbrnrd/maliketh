@@ -71,6 +71,26 @@ auth_token_status:
   methods:
     - GET
 
+create_implant_alias:
+  path: /implant/<implant_id>/alias/create
+  methods:
+    - POST
+
+delete_implant_alias:
+  path: /implant/<implant_id>/alias/delete/<alias>
+  methods:
+    - DELETE
+
+list_implant_aliases:
+  path: /implant/<implant_id>/alias/list
+  methods:
+    - GET
+
+resolve_alias:
+  path: /implant/alias/resolve/<alias>
+  methods:
+    - GET
+
 admin_revoke_operator:
   path: /admin/revoke_access
   methods:

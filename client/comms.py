@@ -268,3 +268,61 @@ def build_implant(config: OperatorConfig, build_options: dict) -> str:
         logger.error(f"Server response: {response.text}")
         return ""
     return response.json()["implant"]
+
+
+def set_implant_alias(config: OperatorConfig, implant_id: str, alias: str) -> None:
+    """
+    Set an alias for a given implant
+    """
+    ensure_token(config)
+
+    response = send_authenticated_request(
+        "POST", f"/op/implant/{implant_id}/alias/create", config, json={"alias": alias}
+    )
+    if response.json()["status"] != True:
+        logger.error(f"Failed to set implant alias: {response.json()['msg']}")
+        return
+    logger.info("Set implant alias", implant_id=implant_id, alias=alias)
+
+
+def list_implant_aliases(config: OperatorConfig, implant_id: str) -> List[str]:
+    """
+    List all aliases for a given implant
+    """
+    ensure_token(config)
+
+    response = send_authenticated_request(
+        "GET", f"/op/implant/{implant_id}/alias/list", config
+    )
+    if response.json()["status"] != True:
+        logger.error(f"Failed to list implant aliases: {response.json()['msg']}")
+        return []
+    return response.json()["aliases"]
+
+def delete_implant_alias(config: OperatorConfig, implant_id: str, alias: str) -> None:
+    """
+    Delete an alias for a given implant
+    """
+    ensure_token(config)
+
+    response = send_authenticated_request(
+        "DELETE", f"/op/implant/{implant_id}/alias/delete/{alias}", config
+    )
+    if response.json()["status"] != True:
+        logger.error(f"Failed to delete implant alias: {response.json()['msg']}")
+        return
+    logger.info("Deleted implant alias", implant_id=implant_id, alias=alias)
+
+def resolve_implant_alias(config: OperatorConfig, alias: str) -> Optional[str]:
+    """
+    Resolve an implant alias to an implant id
+    """
+    ensure_token(config)
+
+    response = send_authenticated_request(
+        "GET", f"/op/implant/alias/resolve/{alias}", config
+    )
+    if response.json()["status"] != True:
+        logger.error(f"Failed to resolve implant alias: {response.json()['msg']}")
+        return None
+    return response.json()["implant_id"]

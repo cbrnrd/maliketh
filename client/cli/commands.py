@@ -30,6 +30,11 @@ COMMANDS = {
     "build <output_file>": "Build an implant with the given options and write it to <output_file>",
     "interact <implant_id>": "Interact with a given implant id",
     "results <task_id> [local_path]": "Show the results of a given task id. Optionally write the results to a file",
+    "alias": {
+        "set <implant_id> <alias>": "Set an alias for a given implant",
+        "list <implant_id>": "List all aliases for a given implant",
+        "delete <implant_id> <alias>": "Delete an alias for a given implant",
+    },
     "exit": "Exit the client",
 }
 

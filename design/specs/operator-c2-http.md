@@ -17,6 +17,8 @@ These are the *default* endpoints for the operator HTTP server. These endpoints 
 | `/op/auth/token/request` | `GET` | Used for fetching an operators authentication token | [example](#opauthtokenrequest) |
 | `/op/auth/token/revoke` | `DELETE` | Revokes the current operator authentication token | [example](#opauthtokenrevoke) |
 | `/op/auth/token/status` | `GET` | Checks the status of the current operator authentication token | [example](#opauthtokenstatus) |
+| `/op/implant/alias/create` | `POST` | Creates an alias for the given implant | [example](#opimplantaliascreate) |
+| `/op/admin/revoke_access` | `POST` | Revokes access to the admin panel for the given operator | [example](#opadminrevoke_access) | 
 
 ## Examples
 
@@ -448,3 +450,117 @@ __Example response__:
   "implant": "base64_encoded_implant_pe"
 }
 ```
+
+### `/implant/<implant_id>/alias/create`
+
+This endpoint is used to create an alias for an implant with the given `implant_id`. This is useful if you want to give an implant a more memorable name. 
+
+Method: `POST`
+
+Requirements:
+* The alias must be unique
+
+The request should be a valid JSON object with the following fields:
+
+| Name | Meaning |
+| :-- | :----- |
+| `alias` | The alias to give the implant |
+
+__Example request__:
+
+```json
+{
+  "alias": "my_alias"
+}
+```
+
+__Example response (success)__:
+
+```json
+{
+  "status": true,
+  "msg": "Alias created"
+}
+```
+
+__Example response (failure)__:
+
+```json
+{
+  "status": false,
+  "msg": "Alias already exists"
+}
+```
+
+### `/implant/<implant_id>/alias/delete/<alias>`
+
+This endpoint is used to change the alias of an implant with the given `implant_id`.
+
+Requirements:
+* The alias must be unique
+* The alias must exist for the given implant
+
+Method: `DELETE`
+
+__Example response (success)__:
+
+```json
+{
+  "status": true,
+  "msg": "Alias deleted"
+}
+```
+
+__Example response (failure)__:
+
+```json
+{
+  "status": false,
+  "msg": "Alias does not exist"
+}
+```
+
+### `/implant/<implant_id>/alias/list`
+
+This endpoint is used to list all aliases for an implant with the given `implant_id`. If the implant does not exist, this will still return a 200 status code with an empty list.
+
+Method: `GET`
+
+__Example response__:
+
+```json
+{
+  "status": true,
+  "aliases": [
+    "alias1",
+    "alias2"
+  ]
+}
+```
+
+### `/implant/alias/resolve/<alias>`
+
+This endpoint is used to get the `implant_id` of an implant with the given `alias`. If the alias does not exist, this will return a 404 status code.
+
+Method: `GET`
+
+__Example response__:
+
+```json
+{
+  "status": true,
+  "implant_id": "06e65b07"
+}
+```
+
+__Example response (failure)__:
+
+```json
+{
+  "status": false,
+  "msg": "Unknown alias"
+}
+```
+
+
+

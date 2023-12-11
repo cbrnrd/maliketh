@@ -2,8 +2,8 @@ import nacl
 import nacl.exceptions
 
 from datetime import datetime, timedelta
-from typing import Any
-from flask import Blueprint, jsonify, request, current_app
+from typing import Any, Callable
+from flask import Blueprint, jsonify, request, current_app, Response
 from maliketh.db import db
 from maliketh.models import *
 from maliketh.crypto.ec import *
@@ -11,6 +11,7 @@ from maliketh.crypto.utils import random_hex
 from maliketh.config import OP_ROUTES
 from maliketh.opcodes import Opcodes
 from maliketh.builder.builder import ImplantBuilder, BuilderOptions
+from maliketh.models import ImplantAliasMap, Implant
 from maliketh.listeners.utils import error_json, success_json, create_route, setup_logger
 from functools import wraps
 import structlog
@@ -77,6 +78,36 @@ def verified(func):
 
     return wrapper
 
+def resolve_implant_alias(func: Callable[..., Response]) -> Callable[..., Response]:
+    """
+    Decorator to resolve an implant alias to its ID.
+    It will attempt to extract the last path component as the implant ID.
+
+    :param func: The decorated function
+    """
+    
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # Get the implant ID
+        url = request.url
+        implant_identifier = url.split("/")[-1]
+
+        # Check if this id exists in the database
+        implant = Implant.query.filter_by(implant_id=implant_identifier).first()
+        if implant is None:
+            # Attempt to resolve the alias
+            alias = ImplantAliasMap.query.filter_by(alias=implant_identifier).first()
+            if alias is None:
+                return error_json("Unknown implant", 400)
+            implant = Implant.query.filter_by(implant_id=alias.implant_id).first()
+            if implant is None:
+                return error_json("Unknown implant", 400)
+            
+        kwargs = {**kwargs, "implant_id": implant.implant_id}
+        return func(*args, **kwargs)
+            
+
+    return wrapper
 
 @create_route(admin, "stats")
 @verified
@@ -303,6 +334,7 @@ def list_implants(operator: Operator) -> Any:
 @create_route(admin, "update_implant_config")
 @setup_logger
 @verified
+@resolve_implant_alias
 def update_config(operator: Operator, implant_id: str) -> Any:
     """
     Update the config of an implant. This will trigger a config update task
@@ -349,7 +381,8 @@ def update_config(operator: Operator, implant_id: str) -> Any:
 
 @create_route(admin, "get_implant_config")
 @verified
-def get_implant_config(implant_id: str, operator: Operator) -> Any:
+@resolve_implant_alias
+def get_implant_config(operator: Operator, implant_id: str) -> Any:
     """
     Get the config of an implant
     """
@@ -362,6 +395,7 @@ def get_implant_config(implant_id: str, operator: Operator) -> Any:
 
 @create_route(admin, "kill_implant")
 @verified
+@resolve_implant_alias
 def kill_implant(operator: Operator, implant_id: str) -> Any:
     """
     Send a SELFDESTRUCT task to an implant
@@ -413,6 +447,90 @@ def build_implant(operator: Operator) -> Any:
         200,
     )
 
+
+@create_route(admin, "create_implant_alias")
+@verified
+@setup_logger
+def create_implant_alias(operator: Operator, implant_id: str) -> Any:
+    """
+    Create an alias for an implant
+    """
+
+    logger.bind()
+
+    if request.json is None:
+        return error_json("Invalid request, no JSON body", 400)
+
+    # Get the build options
+    alias_json = request.json
+
+    if "alias" not in alias_json:
+        return error_json("Invalid request, no alias field", 400)
+
+    logger.info("Creating implant alias", implant_id=implant_id, alias=alias_json["alias"], operator=operator.username)
+
+    # Check if the alias already exists
+    alias = ImplantAliasMap.query.filter_by(alias=alias_json["alias"]).first()
+    if alias is not None:
+        return error_json("Alias already exists", 400)
+
+    implant = Implant.query.filter_by(implant_id=implant_id).first()
+    if implant is None:
+        return error_json("Unknown implant", 400)
+
+    # Create the alias
+    alias = ImplantAliasMap(
+        implant_id=implant_id,
+        alias=alias_json["alias"]
+    )
+    db.session.add(alias)
+    db.session.commit()
+
+    return success_json("Alias created")
+
+@create_route(admin, "delete_implant_alias")
+@verified
+@setup_logger
+def delete_implant_alias(operator: Operator, implant_id: str, alias: str) -> Any:
+    """
+    Delete an alias for an implant
+    """
+    logger.bind()
+    logger.info("Deleting implant alias", implant_id=implant_id, alias=alias, operator=operator.username)
+
+    # Check if the alias already exists
+    alias = ImplantAliasMap.query.filter_by(alias=alias).first()
+    if alias is None:
+        return error_json("Alias does not exist", 400)
+
+    db.session.delete(alias)
+    db.session.commit()
+
+    logger.info("Deleted implant alias", implant_id=implant_id, alias=alias, operator=operator.username)
+
+    return success_json("Alias deleted")
+
+
+@create_route(admin, "list_implant_aliases")
+@verified
+def list_implant_aliases(operator: Operator, implant_id: str) -> Any:
+    """
+    List all aliases for an implant
+    """
+    aliases = ImplantAliasMap.query.filter_by(implant_id=implant_id).all()
+    return jsonify({"status": True, "aliases": [x.alias for x in aliases]}), 200
+
+@create_route(admin, "resolve_alias")
+@verified
+def resolve_alias(operator: Operator, alias: str) -> Any:
+    """
+    Resolve an alias to an implant ID
+    """
+    a = ImplantAliasMap.query.filter_by(alias=alias).first()
+    if a is None:
+        return error_json("Unknown alias", 404)
+
+    return jsonify({"status": True, "implant_id": a.implant_id}), 200
 
 @create_route(admin, "admin_revoke_operator")
 @verified

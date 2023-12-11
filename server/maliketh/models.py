@@ -28,7 +28,7 @@ class Implant(db.Model):
     An implant is a remote computer that is running the maliketh agent"""
 
     id = db.Column(db.Integer, primary_key=True)
-    implant_id: str = db.Column(db.String)
+    implant_id: str = db.Column(db.String, unique=True)
     hostname: str = db.Column(db.String)
     ip: str = db.Column(db.String)
     os: str = db.Column(db.String)
@@ -53,6 +53,15 @@ class Implant(db.Model):
 def get_implant_by_id(implant_id: str):
     return Implant.query.filter_by(implant_id=implant_id).first()
 
+
+@dataclass
+class ImplantAliasMap(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    implant_id: str = db.Column(db.String, db.ForeignKey("implant.implant_id"))
+    alias: str = db.Column(db.String, unique=True)
+
+    def get_all_aliases_for_implant(self, implant_id: str) -> List[str]:
+        return ImplantAliasMap.query.filter_by(implant_id=implant_id).all()
 
 @dataclass
 class ImplantConfig(db.Model):
