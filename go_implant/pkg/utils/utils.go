@@ -45,3 +45,8 @@ func GetNTPTime() time.Time {
 	binary.Read(sock, binary.BigEndian, transmit)
 	return time.Date(1900, 1, 1, 0, 0, 0, 0, time.UTC).Add(time.Duration(((transmit.ReceiveTime >> 32) * 1000000000)))
 }
+
+// CalculateSleepWithJitter calculates the sleep time with jitter factor.
+func CalculateSleepWithJitter(base int, jitter float32) float32 {
+	return float32(base) * (1 + jitter)
+}

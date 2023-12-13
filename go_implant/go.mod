@@ -4,7 +4,6 @@ go 1.21.4
 
 require (
 	emperror.dev/errors v0.8.1
-	github.com/davecgh/go-spew v1.1.1
 	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/mitchellh/go-ps v1.0.0
 	golang.org/x/crypto v0.15.0

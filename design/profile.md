@@ -23,13 +23,12 @@ Profiles are YAML files with three main top level directives: `client`, `server`
 | Option | Description | Required | Type |
 |--------|-------------|----------|------|
 | `user_agent` | The user agent to use when making HTTP requests | Yes | String |
-<!-- | `encoding` | The encoding to use when sending encrypted data to the C2. | Yes | One of: `base64`, `hex` | -->
 | `sleep_time` | The number of seconds to sleep between each HTTP request | Yes | Integer |
 | `jitter` | % jitter. The implant will sleep for a random amount of time between `sleep` and `sleep * (1 + jitter)` | Yes | Float, `[0, 0.99]` |
 | `max_retries` | The maximum number of times to retry a request before giving up | Yes | Integer |
 | `auto_self_destruct` | Whether or not to self destruct on failed checkins. If set to true, the implant will delete itself after `max_retries` failed checkins. | Yes | Boolean |
 | `retry_wait` | The number of seconds to wait before retrying a request. | Yes | Integer |
-| `retry_jitter` | % jitter. The implant will wait for a random amount of time between `retry_wait` and `retry_wait * (1 + retry_jitter)` | Yes | Float, `[0, 0.99]` |
+| `retry_jitter` | % jitter. Between checkins, the implant will wait for a random amount of time between `retry_wait` and `retry_wait * (1 + retry_jitter)` | Yes | Float, `[0, 0.99]` |
 | `tailoring_hashes` | A list of hashes to use for payload tailoring. | Yes | List of strings |
 | `tailoring_hash_function` | The hash function to use for payload tailoring. | Yes | One of: `sha256`, `md5` |
 | `tailoring_hash_rounds` | The number of hash rounds to use for payload tailoring. | Yes | Integer |

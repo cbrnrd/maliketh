@@ -7,6 +7,18 @@ Some functions were adapted from [Coldfire](https://github.com/redcode-labs/Cold
 
 ## Building
 
+There are a few values you need to change before building the implant.
+
+In `pkg/config/config.go` you need to change the following values to match your server configuration:
+```go
+// !!!!!!!!!! CHANGE THESE !!!!!!!!! //
+const C2_DOMAIN = "localhost"
+const C2_PORT = 80
+const C2_USE_TLS = false
+const C2_REGISTER_PASSWORD = "SWh5bHhGOENYQWF1TW9KR3VTb0YwVkVWbDRud1RFaHc="
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! //
+```
+
 To build the development implant, simply run
 
 ```bash
@@ -44,10 +56,11 @@ The C++ implant is a bit more optimized for real world use. The golang implant *
 
 ## TODO
 
-* [ ] Register retries
+* [x] Register retries
 * [ ] Persistence
 * [ ] Do something "normal" when sandbox is detected
-* [ ] Auto self destruct
-* [ ] Jitter
+* [x] Auto self destruct
+* [x] Jitter
+* [ ] Builder sript
 
 
