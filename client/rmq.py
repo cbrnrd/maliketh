@@ -3,14 +3,15 @@ from typing import Any, Dict
 from config import OperatorConfig
 from threading import Thread
 from cli.logging import get_styled_logger
+import structlog
 import pika
 
 
 def listen_for_messages_in_thread(op: OperatorConfig, cli_opts: Dict[str, Any]):
-    logger = get_styled_logger()
+    logger = get_styled_logger(cli_opts.with_timestamps)
 
     def callback(ch, method, properties, body):
-        msg = f"\r[SERVER - {method.exchange}] {f'[{datetime.datetime.now()}] ' if cli_opts.with_timestamps else ''}{body.decode()}"
+        msg = f"\r[{method.exchange}] {body.decode()}"
         logger.ok(msg)
         
 

@@ -5,9 +5,9 @@ import logging.config
 from prompt_toolkit.styles import Style
 from prompt_toolkit.formatted_text import FormattedText
 from prompt_toolkit import print_formatted_text
+from prompt_toolkit.patch_stdout import patch_stdout
 from enum import Enum
 import structlog
-import rich
 
 RESET_ALL = "\033[0m"
 BRIGHT = "\033[1m"
@@ -55,7 +55,7 @@ def ok(self, msg, *args, **kwargs):
 
 def setup_structlog(level: int, with_timestamps: bool):
     
-    # Set up our `OK` log level. 
+    # Set up our `OK` log level.
     OK = 21
     structlog.stdlib.OK = OK
     structlog.stdlib._NAME_TO_LEVEL["ok"] = OK
@@ -159,13 +159,15 @@ class LogLevel(Enum):
 @dataclass
 class StyledLogger:
     level: LogLevel
+    with_timestamps: bool = True
     _style: Style = Style.from_dict(
         {
-            "debug": "#ffaa00",  # Orange
-            "ok": "#00ff00",  # Green
-            "info": "#0000ff",  # blue
-            "warning": "#ffff00",
-            "error": "#ff0000",
+            "dim": "#101010",
+            "debug": "#ffaa00 bold",  # Orange
+            "ok": "#00ff00 bold",  # Green
+            "info": "#0000ff bold",  # blue
+            "warning": "#ffff00 bold",
+            "error": "#ff0000 bold",
             "critical": "#ff0000 bold",
         }
     )
@@ -177,6 +179,7 @@ class StyledLogger:
         formatted = msg % args
         to_print = FormattedText(
             [
+                ("class:dim", f"{datetime.now().isoformat()}Z ") if self.with_timestamps else ("", ""),
                 ("", "["),
                 (f"class:{level.to_lower()}", level.get_icon()),
                 ("", "] "),
@@ -204,5 +207,5 @@ class StyledLogger:
         self.log(LogLevel.CRITICAL, msg, *args, **kwargs)
 
 
-def get_styled_logger() -> StyledLogger:
-    return StyledLogger(LogLevel.INFO)
+def get_styled_logger(with_timestamps=False) -> StyledLogger:
+    return StyledLogger(LogLevel.INFO, with_timestamps=with_timestamps)

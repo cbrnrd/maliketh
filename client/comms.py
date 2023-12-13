@@ -323,6 +323,5 @@ def resolve_implant_alias(config: OperatorConfig, alias: str) -> Optional[str]:
         "GET", f"/op/implant/alias/resolve/{alias}", config
     )
     if response.json()["status"] != True:
-        logger.error(f"Failed to resolve implant alias: {response.json()['msg']}")
         return None
     return response.json()["implant_id"]

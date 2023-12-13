@@ -109,6 +109,8 @@ def handle_interact(implant_id: Optional[str], config: OperatorConfig) -> None:
         if implant_exists(config, implant_id):
             print(f"Interacting with implant {implant_id}...")
             cli.interact.interact_prompt(config, implant_id)
+        else:
+            logger.error(f"Implant {implant_id} not found")
 
 
 def handle_result(config: OperatorConfig, args: List[str]) -> None:

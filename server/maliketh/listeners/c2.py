@@ -264,6 +264,7 @@ def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]] = None):
 
     # Get task from db
     task = get_task_by_id(tid)
+
     # If task is not None, return task
     if task is not None:
         if task.status != TASKED:
@@ -272,10 +273,10 @@ def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]] = None):
 
         if decrypted_body["status"]:
             task.status = COMPLETE
-            task.output = decrypted_body["output"]
+            task.output = cast(str, decrypted_body["output"])
         else:
             task.status = ERROR
-            task.output = decrypted_body["output"]
+            task.output = cast(str, decrypted_body["output"])
 
         logger.info("Task completed", task_id=tid, status=task.status)
 
@@ -283,11 +284,11 @@ def post_task(decrypted_body: Optional[Dict[str, Union[str, bool]]] = None):
         db.session.commit()
 
         op = Operator.query.filter_by(username=task.operator_name).first()
-        send_message_to_operator(op, f"Task {task.task_id} completed - {task.status}")
+        send_message_to_operator(op, f"[{task.implant_id}] Task {task.task_id} completed - {task.status}")
         if task.status == ERROR:
             send_message_to_operator(
                 op,
-                f"Task {task.task_id} error output - {base64.b64decode(task.output).decode('utf-8')}",
+                f"[{task.implant_id}] Task {task.task_id} error output - {base64.b64decode(task.output).decode('utf-8')}",
             )
 
         return "OK"
