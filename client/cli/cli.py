@@ -6,7 +6,7 @@ from prompt_toolkit.shortcuts import prompt
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from cli.command import handle
 from config import OperatorConfig
-from .completer import FullCompleter
+from .completer import FullCompleter, get_home_dynamic_completer
 from comms import get_server_stats
 from .style import PROMPT_STYLE
 from .banner import get_full_banner
@@ -30,7 +30,7 @@ def main_loop(config: OperatorConfig):
                 ),
                 style=PROMPT_STYLE,
                 enable_history_search=True,
-                completer=FullCompleter,
+                completer=get_home_dynamic_completer(config),
                 bottom_toolbar=bottom_bar(config),
                 auto_suggest=AutoSuggestFromHistory(),
             )

