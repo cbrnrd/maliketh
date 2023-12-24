@@ -5,6 +5,7 @@ from typing import Callable, Dict, List, Optional, Union
 from tabulate import tabulate
 import cli.interact
 from cli.help import TOP_LEVEL_COMMANDS, get_help_entry, print_help
+from cli.style import TABULATE_STYLE
 
 from comms import (
     delete_implant_alias,
@@ -165,7 +166,7 @@ def handle_builder(args: List[str], config: OperatorConfig) -> None:
                 tabulate(
                     implant_build_options.items(),
                     headers=["Field", "Value"],
-                    tablefmt="fancy_grid",
+                    tablefmt=TABULATE_STYLE,
                 )
             )
         elif args[1] in implant_build_options:
@@ -173,7 +174,7 @@ def handle_builder(args: List[str], config: OperatorConfig) -> None:
                 tabulate(
                     [[args[1], implant_build_options[args[1]]]],
                     headers=["Field", "Value"],
-                    tablefmt="fancy_grid",
+                    tablefmt=TABULATE_STYLE,
                 )
             )
         else:
@@ -240,7 +241,7 @@ def handle_alias(args: List[str], config: OperatorConfig) -> None:
             logger.info("No aliases found")
             return
 
-        print(tabulate([[a] for a in aliases], headers=["Alias"], tablefmt="fancy_grid"))
+        print(tabulate([[a] for a in aliases], headers=["Alias"], tablefmt=TABULATE_STYLE))
 
     elif action == "delete":
         if len(args) != 2:
@@ -288,7 +289,7 @@ def show_implants(config: OperatorConfig) -> None:
         tabulate(
             minified,
             headers=["ID", "Hostname", "IP", "OS", "Last Seen", "First Seen"],
-            tablefmt="fancy_grid",
+            tablefmt=TABULATE_STYLE,
         )
     )
 
@@ -307,7 +308,7 @@ def show_stats(config: OperatorConfig) -> None:
         tabulate(
             [list(stats.keys()), list(stats.values())],
             headers="firstrow",
-            tablefmt="fancy_grid",
+            tablefmt=TABULATE_STYLE,
         )
     )
 
@@ -344,7 +345,7 @@ def show_tasks(config: OperatorConfig) -> None:
         tabulate(
             minified,
             headers=["ID", "Opcode", "Status", "Implant ID", "Args", "Created At"],
-            tablefmt="fancy_grid",
+            tablefmt=TABULATE_STYLE,
             maxcolwidths=[16, 8, 8, 8, 45, 20],
         )
     )
@@ -370,7 +371,7 @@ def print_task_result(config: OperatorConfig, task_id: str) -> None:
         print(str(decoded, "utf-8"))
         return
 
-    print(tabulate(task.items(), headers=["Key", "Value"], tablefmt="fancy_grid"))
+    print(tabulate(task.items(), headers=["Key", "Value"], tablefmt=TABULATE_STYLE))
 
 
 def write_task_results_to_file(config: OperatorConfig, task_id: str, outfile: str):

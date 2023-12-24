@@ -9,6 +9,7 @@ from prompt_toolkit.styles import Style
 from tabulate import tabulate
 
 from cli.help import INTERACT_ENTRIES, get_help_entry, print_help
+from cli.style import TABULATE_STYLE
 
 from .style import PROMPT_STYLE
 from config import OperatorConfig
@@ -176,7 +177,7 @@ def handle_config(config: OperatorConfig, implant_id: str, args: List[str]) -> N
                 tabulate(
                     implant_config.items(),
                     headers=["Key", "Value"],
-                    tablefmt="fancy_grid",
+                    tablefmt=TABULATE_STYLE,
                 )
             )
         elif key in INTERACT_COMMANDS["config"]["show"]:
@@ -184,7 +185,7 @@ def handle_config(config: OperatorConfig, implant_id: str, args: List[str]) -> N
                 tabulate(
                     [[key, implant_config[key]]],
                     headers=["Key", "Value"],
-                    tablefmt="fancy_grid",
+                    tablefmt=TABULATE_STYLE,
                 )
             )
         else:
