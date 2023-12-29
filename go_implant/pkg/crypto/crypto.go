@@ -8,6 +8,8 @@ import (
 
 	"emperror.dev/errors"
 
+	. "maliketh/pkg/utils"
+
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"
 )
@@ -40,7 +42,7 @@ func Encrypt(plaintext []byte, serverPublicKey *[32]byte, implantPrivateKey *[32
 
 // Encrypt a plaintext using a base64 encoded public and private key
 func EncryptStringToBase64(plaintext string, serverPublicKeyB64, implantPrivateKeyB64 string) (string, error) {
-	fmt.Printf("Encrypting \"%s\" with public key \"%s\" and private key \"%s\"\n", plaintext, serverPublicKeyB64, implantPrivateKeyB64)
+	DebugPrintln(fmt.Sprintf("Encrypting \"%s\" with public key \"%s\" and private key \"%s\"\n", plaintext, serverPublicKeyB64, implantPrivateKeyB64))
 	pub, err := base64.StdEncoding.DecodeString(serverPublicKeyB64)
 	if err != nil {
 		return "", err
@@ -119,34 +121,30 @@ func DecryptSecretBox(ciphertext []byte, key [32]byte) ([]byte, bool) {
 func Decrypt(ciphertext []byte, publicKey *[32]byte, privateKey *[32]byte) ([]byte, bool) {
 	var decryptNonce [NONCE_SIZE]byte
 	copy(decryptNonce[:], ciphertext[:NONCE_SIZE])
-	decrypted, ok := box.Open(nil, ciphertext[NONCE_SIZE:], &decryptNonce, publicKey, privateKey)
-	if !ok {
-		panic("decryption error")
-	}
-	return decrypted, true
+	return box.Open(nil, ciphertext[NONCE_SIZE:], &decryptNonce, publicKey, privateKey)
 }
 
 func DecryptB64String(ciphertextb64 string, serverPublicKeyB64, implantPrivateKeyB64 string) (string, bool) {
 	pub, err := base64.StdEncoding.DecodeString(serverPublicKeyB64)
 	if err != nil {
-		fmt.Println("error decoding public key")
+		DebugPrintln("error decoding public key")
 		return "", false
 	}
 	priv, err := base64.StdEncoding.DecodeString(implantPrivateKeyB64)
 	if err != nil {
-		fmt.Println("error decoding private key")
+		DebugPrintln("error decoding private key")
 		return "", false
 	}
 
 	decodedCiphertext, err := base64.StdEncoding.DecodeString(ciphertextb64)
 	if err != nil {
-		fmt.Println("error decoding ciphertext")
+		DebugPrintln("error decoding ciphertext")
 		return "", false
 	}
 
 	dec, ok := Decrypt([]byte(decodedCiphertext), (*[32]byte)(pub), (*[32]byte)(priv))
 	if !ok {
-		fmt.Println("error decrypting")
+		DebugPrintln("error decrypting")
 		return "", false
 	}
 	return string(dec), true

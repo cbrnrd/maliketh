@@ -27,7 +27,15 @@ $ make
 
 This builds the debug version of the implant for your native OS and architecture.
 
-To build for all supported OSes and architectures, run
+To build for Mac, Linux, and Windows, run:
+
+```bash
+$ make most
+```
+
+This will cover most if the use cases.
+
+To build for *all* supported OSes and architectures, run
 
 ```bash
 $ make all
@@ -36,13 +44,13 @@ $ make all
 To build a stripped version of the implant, simply set `DEBUG=0` when running make. Example:
 
 ```bash
-$ DEBUG=0 make all
+$ DEBUG=0 make most
 ```
 
 You can also set the usual `GOOS` and `GOARCH` environment variables to build for a specific OS and architecture using
 
 ```bash
-$ make build
+$ GOOS=linux GOARCH=arm make build
 ```
 
 ## Differences between this and the C++ implant
