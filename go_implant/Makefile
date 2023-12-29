@@ -34,7 +34,7 @@ build:
 most: setup deps macos linux windows
 
 setup:
-	@mmkdir -p build
+	@mkdir -p build
 
 deps:
 	$(GO) mod tidy
@@ -100,6 +100,8 @@ all: setup deps
 release: prepare-release most
 	rm -rf ./src_release
 
+release-all: prepare-release all
+	rm -rf ./src_release
 
 clean:
 	rm -rf build/*

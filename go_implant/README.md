@@ -27,6 +27,8 @@ $ make
 
 This builds the debug version of the implant for your native OS and architecture.
 
+**NOTE** Any other `make` command will respect the `DEBUG` environment variable when deciding to make a release or debug build.
+
 To build for Mac, Linux, and Windows, run:
 
 ```bash
@@ -45,6 +47,15 @@ To build a stripped version of the implant, simply set `DEBUG=0` when running ma
 
 ```bash
 $ DEBUG=0 make most
+```
+
+To remove all print statements and debug strings, and strip the binary run:
+
+```bash
+$ DEBUG=0 make release
+
+# Compile all supported architectures
+$ DEBUG=0 make release-all
 ```
 
 You can also set the usual `GOOS` and `GOARCH` environment variables to build for a specific OS and architecture using
@@ -69,6 +80,6 @@ The C++ implant is a bit more optimized for real world use. The golang implant *
 * [ ] Do something "normal" when sandbox is detected
 * [x] Auto self destruct
 * [x] Jitter
-* [ ] Builder sript
+* [x] Builder script
 
 
