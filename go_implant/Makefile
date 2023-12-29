@@ -46,7 +46,7 @@ prepare-release:
 
 linux:
 	@/bin/echo -n "-----> Building Linux binary ($(GOOS):$(GOARCH), DEBUG=$(DEBUG))... "
-	@mGOOS=$(or $(GOOS), linux) GOARCH=$(GOARCH) $(GO) build $(GOFLAGS) -o build/$(BINARY)-$(GOOS)-$(GOARCH) $(MAIN)
+	@GOOS=$(or $(GOOS), linux) GOARCH=$(GOARCH) $(GO) build $(GOFLAGS) -o build/$(BINARY)-$(GOOS)-$(GOARCH) $(MAIN)
 	@echo "DONE"
 
 macos:
