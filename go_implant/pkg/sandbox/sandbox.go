@@ -3,6 +3,7 @@ package sandbox
 import (
 	"fmt"
 	"net"
+	"os"
 	"runtime"
 	"strings"
 	"time"
@@ -48,6 +49,19 @@ func SandboxSleep() bool {
 		z = true
 	}
 	return z
+}
+
+// Sleep for n seconds, returning true if the sleep was skipped.
+// This should be used as a drop-in replacement as we almost never
+// want to continue with execution if we're being sleep skipped.
+func SleepNExitIfSandboxed(n int) {
+	firstTime := GetNTPTime()
+	time.Sleep(time.Duration(n*1000) * time.Millisecond)
+	secondTime := GetNTPTime()
+	difference := secondTime.Sub(firstTime).Seconds()
+	if difference < float64(n) {
+		os.Exit(0)
+	}
 }
 
 // SandboxCpu is used to check if the environment's
@@ -130,7 +144,7 @@ func SandboxAll() bool {
 		SandboxRam(2048),
 		SandboxUtc(),
 	}
-	fmt.Printf("%+v\n", values)
+	DebugPrintln(fmt.Sprintf("%+v\n", values))
 	for s := range values {
 		x := values[s]
 		if x {

