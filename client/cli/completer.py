@@ -99,6 +99,10 @@ def get_interact_dynamic_completer(
         "ls": None,
         "ps": None,
         "whoami": None,
+        "clipboard": {
+            "set": {"text"},
+            "show": None,
+        },
         "config": {
             "set": {
                 "user_agent",

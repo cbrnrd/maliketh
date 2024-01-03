@@ -18,6 +18,8 @@ class Opcodes(Enum):
     PS = 0x0D  # List running processes
     WHOAMI = 0x0E  # Get the current user
     DISABLE_DEFENDER = 0x0F  # Disable Windows Defender
+    CLIPBOARD_GET = 0x10  # Get the current clipboard contents
+    CLIPBOARD_SET = 0x11  # Set the current clipboard contents
 
     def __str__(self):
         return self.name

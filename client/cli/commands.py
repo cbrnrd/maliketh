@@ -56,6 +56,10 @@ INTERACT_COMMANDS = {
     "ls": "List files in the implant's working directory",
     "ps": "List running processes",
     "whoami": "Get the current user",
+    "clipboard": {
+        "get": "Get the current clipboard contents (text)",
+        "set <text>": "Set the current clipboard contents (text)",
+    },
     "config": {
         "set": {
             "user_agent <user_agent>": "Set the user agent for the implant",
