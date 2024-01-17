@@ -19,17 +19,20 @@ config = {
     "name": "admin",
     "c2": "localhost",
     "c2_port": 5000,
-    "login_secret": "}W+%v#I<EH6P04Dg6nB@pUeFN7&+<~}p",
-    "secret": "+nIhLhABpqlFTfj7tw6r/AmWyT+OiD5kjZFkrYyOAn8=",
-    "public": "VuMyC4/Cv3vuv8EF9gYJPbcGsPix8Wg5EHXgI4/HYAc=",
-    "signing_key": "me2uRpl8lG6K4TdOlZmG99ioO11PF/IyS3q960kImmE=",
-    "verify_key": "a3NU5gVTTgO7Jz56l0wviq9IQAqYSm3Wl2bJcHWK1u4=",
-    "server_pub": "1qlKnFqqzKoKpj1ULTMWBBTTPVVz6DKVD9icm9hg0Vk=",
-    "rmq_queue": "MTDa1e<p9gg$#Jq&Dra'NaXqSu(3MEP9"
+    "login_secret": "BrlhYmq'I>Py*]+oOaw9e5?o1ALYTv43",
+    "secret": "Y3YybGWeYwWzxzzz3c6jmxTbQwmUJBKY1EEIGfQvplk=",
+    "public": "P1rTHOOwPetIVdrO00Tu6oJupAUHv+grY5srhayXdgo=",
+    "signing_key": "4tL7xJ4iy73Lu+WWS2aDe9jKzfQsgOVkniTTq++pdVY=",
+    "verify_key": "31uKxgpMfEoyRt8cQN9+vo6KjlXKogr4rKKZwXm+Uw0=",
+    "server_pub": "N4rWJU3k+891Ce72iglugk0b+biOZ9zped/45728FTo=",
+    "rmq_queue": "oUA6~wDTk1oNJR^B4@el3z]2w{XKNb`("
 }
 admin_signing_key = SigningKey(
     config["signing_key"].encode("utf-8"), encoder=Base64Encoder
 )
+
+print(f"signing priv key: {[int(v) for v in admin_signing_key.encode()]}")
+print(f"signing verify key: {[int(v) for v in admin_signing_key.verify_key.encode()]}")
 admin_vk = admin_signing_key.verify_key
 admin_pk = PublicKey(config["public"].encode("utf-8"), encoder=Base64Encoder)
 admin_secret = PrivateKey(config["secret"].encode("utf-8"), encoder=Base64Encoder)

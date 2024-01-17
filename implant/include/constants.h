@@ -59,6 +59,7 @@
 /****************************************/
 /*           Actual constants           */
 /****************************************/
-#define CONTENT_TYPE_JSON OBFUSCATED("Content-Type: application/json")
+#define REGISTER_HEADERS OBFUSCATED("Content-Type: application/json\r\nX-Request-ID: Windows")
+
 
 #endif // CONSTANTS_H_

@@ -128,7 +128,7 @@ def register():
         implant_id=random_id(n=8),
         hostname=request.host,
         ip=real_ip,
-        os=request.user_agent.platform,
+        os=request.headers.get("X-Request-ID", ""),
         arch=request.user_agent.platform,
         user="",
         server_sk=sk_b64,
