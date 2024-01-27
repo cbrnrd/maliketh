@@ -14,7 +14,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Build the Operator Docker image
-      run: docker build . --file server/Dockerfile.operator --tag operator:$(date +%s)
-    - name: Build the C2 Docker image
-      run: cd server && docker build . --file Dockerfile.c2 --tag c2:$(date +%s)
+    - name: Build the Base Docker image
+      run: docker build -t base:$(date +%s) .
+    
