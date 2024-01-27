@@ -6,6 +6,8 @@
 <p align="center">
   A multi-user, customizable C2 framework.
   <br>
+  <a href="https://malikethframework.com"><strong>Visit the website »</strong></a>
+  <br>
   <br>
   <img alt="GitHub License" src="https://img.shields.io/github/license/cbrnrd/maliketh?style=flat-square&color=ff5733">
   <img alt="Latest Release" src="https://img.shields.io/github/v/release/cbrnrd/maliketh?logo=github&style=flat-square&color=ff5733&link=https%3A%2F%2Fgithub.com%2Fcbrnrd%2Fmaliketh%2Freleases">
@@ -20,7 +22,7 @@ The goal of Maliketh is to provide a flexible, easy to use C2 framework that can
 
 ## Implant features
 
-The initial implant was written in C++ and targeted for Windows, but a Golang implant has also been implemented and supports all major platforms.
+The initial implant was written in C++ and targeted for Windows. A Golang implant has also been implemented and supports all major platforms, however it is not feature complete.
 
 The main feature of the implant is its ability to change its behavior based on the configuration file it receives from the server. This allows the operator to customize the implant to fit their needs. The implant also has the following features (see [here](./design/opcodes.md) for more info):
 
