@@ -1,4 +1,4 @@
-version: "3.2"
+version: "3.9"
 services:
     rabbitmq:
         image: rabbitmq:3.11-management
@@ -30,7 +30,7 @@ services:
     c2:
         build:
             context: .
-            dockerfile: Dockerfile.c2
+            dockerfile: Dockerfile
         container_name: 'c2'
         restart: always
         ports:
@@ -51,11 +51,12 @@ services:
             interval: 30s
             timeout: 10s
             retries: 5
+        command: [ "gunicorn", "app:c2_app", "--bind", "0.0.0.0:80", "--workers", "30", "--reload" ]
 
     operator:
         build:
-            context: ..
-            dockerfile: server/Dockerfile.operator
+            context: .
+            dockerfile: Dockerfile
         container_name: 'operator'
         working_dir: '/app'
         restart: always
@@ -63,6 +64,7 @@ services:
             - ${WIREGUARD_IP}:5000:5000 # For operator
         volumes:
             - .:/app
+            - ../implant:/app/implant
         depends_on:
             - rabbitmq
             - postgres
@@ -77,6 +79,9 @@ services:
             interval: 30s
             timeout: 10s
             retries: 5
+        #command is: gunicorn "app:operator_app" --bind ${BIND}:${PORT} --workers ${WORKERS} --reload --timeout 120 --access-logfile - --error-logfile -
+        command: [ "gunicorn", "app:operator_app", "--bind", "0.0.0.0:5000", "--workers", "4", "--reload", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-" ]
+        
 
 networks:
     rabbitmq_net:
