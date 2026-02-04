@@ -1,0 +1,148 @@
+version: "3.9"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: maliketh-rabbitmq
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MGMT_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-guest}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD:-guest}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - maliketh-net
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: maliketh-postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-maliketh}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      - POSTGRES_DB=${POSTGRES_DB:-maliketh}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-maliketh}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - maliketh-net
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrate
+    container_name: maliketh-migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-maliketh}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      - POSTGRES_DB=${POSTGRES_DB:-maliketh}
+    command: ["-up", "-path", "/app/migrations"]
+    networks:
+      - maliketh-net
+
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: admin
+    container_name: maliketh-admin
+    restart: unless-stopped
+    ports:
+      - "${ADMIN_PORT:-5000}:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-maliketh}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      - POSTGRES_DB=${POSTGRES_DB:-maliketh}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=${RABBITMQ_USER:-guest}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD:-guest}
+      - ADMIN_HOST=0.0.0.0
+      - ADMIN_PORT=5000
+      - SERVER_PRIVATE_KEY=${SERVER_PRIVATE_KEY}
+      - CPP_IMPLANT_DIR=/implant
+      - GO_IMPLANT_DIR=/go_implant
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - ENV=${ENV:-production}
+    volumes:
+      - ../implant:/implant:ro
+      - ../go_implant:/go_implant:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - maliketh-net
+
+  c2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: c2
+    container_name: maliketh-c2
+    restart: unless-stopped
+    ports:
+      - "${C2_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-maliketh}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      - POSTGRES_DB=${POSTGRES_DB:-maliketh}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=${RABBITMQ_USER:-guest}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD:-guest}
+      - C2_HOST=0.0.0.0
+      - C2_PORT=8080
+      - C2_PROFILE=/app/configs/profile.example.yaml
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - ENV=${ENV:-production}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - maliketh-net
+
+networks:
+  maliketh-net:
+    driver: bridge
+
+volumes:
+  rabbitmq_data:
+  postgres_data:

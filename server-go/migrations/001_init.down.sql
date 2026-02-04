@@ -1,0 +1,5 @@
+DROP TABLE IF EXISTS tasks;
+DROP TABLE IF EXISTS implant_configs;
+DROP TABLE IF EXISTS implant_aliases;
+DROP TABLE IF EXISTS implants;
+DROP TABLE IF EXISTS operators;

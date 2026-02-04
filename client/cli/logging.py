@@ -58,9 +58,15 @@ def setup_structlog(level: int, with_timestamps: bool):
     # Set up our `OK` log level.
     OK = 21
     structlog.stdlib.OK = OK
-    structlog.stdlib._NAME_TO_LEVEL["ok"] = OK
-    structlog.stdlib._LEVEL_TO_NAME[OK] = "ok"
-    structlog.stdlib._FixedFindCallerLogger.ok = ok
+    # Handle both old and new structlog API
+    if hasattr(structlog.stdlib, '_NAME_TO_LEVEL'):
+        structlog.stdlib._NAME_TO_LEVEL["ok"] = OK
+        structlog.stdlib._LEVEL_TO_NAME[OK] = "ok"
+    else:
+        structlog.stdlib.NAME_TO_LEVEL["ok"] = OK
+        structlog.stdlib.LEVEL_TO_NAME[OK] = "ok"
+    if hasattr(structlog.stdlib, '_FixedFindCallerLogger'):
+        structlog.stdlib._FixedFindCallerLogger.ok = ok
     structlog.stdlib.BoundLogger.ok = ok
 
     timestamper = structlog.processors.TimeStamper(fmt="iso")

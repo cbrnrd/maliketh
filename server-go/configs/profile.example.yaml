@@ -1,0 +1,36 @@
+name: "default"
+
+# Global options
+implant_id_cookie: "SESSID"
+registration_password: ""  # Base64 encoded 32-byte key for implant registration
+
+# Routes configuration
+routes:
+  base_path: "/api"
+  register:
+    path: "/register"
+    methods: ["POST"]
+  checkin:
+    path: "/checkin"
+    methods: ["GET"]
+  task_results:
+    path: "/results"
+    methods: ["POST"]
+
+# Implant/client configuration defaults
+client:
+  kill_date: ""
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  sleep: 60
+  jitter: 0.1
+  max_retries: -1
+  auto_self_destruct: false
+  retry_wait: 30
+  retry_jitter: 0.1
+  tailoring_hash_function: "sha256"
+  tailoring_hash_rounds: 1
+  tailoring_hashes: []
+
+# Server behavior
+headers: {}
+redirect_url: "https://www.google.com"
