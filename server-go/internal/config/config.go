@@ -1,18 +1,22 @@
 package config
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 	"strconv"
+
+	"golang.org/x/crypto/curve25519"
 )
 
 type Config struct {
-	Postgres PostgresConfig
-	RabbitMQ RabbitMQConfig
-	Admin    ServerConfig
-	C2       ServerConfig
-	LogLevel string
-	Env      string
+	Postgres        PostgresConfig
+	RabbitMQ        RabbitMQConfig
+	Admin           ServerConfig
+	C2              ServerConfig
+	LogLevel        string
+	Env             string
+	ServerPublicKey string
 }
 
 type PostgresConfig struct {
@@ -100,7 +104,30 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("POSTGRES_PASSWORD must be set")
 	}
 
+	serverPrivKeyB64 := os.Getenv("SERVER_PRIVATE_KEY")
+	if serverPrivKeyB64 != "" {
+		pubKey, err := derivePublicKeyB64(serverPrivKeyB64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to derive server public key: %w", err)
+		}
+		cfg.ServerPublicKey = pubKey
+	}
+
 	return cfg, nil
+}
+
+func derivePublicKeyB64(privKeyB64 string) (string, error) {
+	privKey, err := base64.StdEncoding.DecodeString(privKeyB64)
+	if err != nil {
+		return "", err
+	}
+	if len(privKey) != 32 {
+		return "", fmt.Errorf("invalid private key length: %d", len(privKey))
+	}
+	var priv, pub [32]byte
+	copy(priv[:], privKey)
+	curve25519.ScalarBaseMult(&pub, &priv)
+	return base64.StdEncoding.EncodeToString(pub[:]), nil
 }
 
 func getEnv(key, fallback string) string {

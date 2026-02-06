@@ -11,9 +11,9 @@ INSERT INTO implants (
     $1, $2, $3, $4, $5, $6, $7, $8
 ) RETURNING *;
 
--- name: UpdateImplantLastSeen :exec
+-- name: UpdateImplantCheckin :exec
 UPDATE implants
-SET last_seen = NOW()
+SET last_seen = NOW(), ip = $2
 WHERE implant_id = $1;
 
 -- name: DeleteImplant :exec

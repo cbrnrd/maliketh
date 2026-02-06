@@ -1,11 +1,13 @@
 import base64
 from dataclasses import dataclass
+from datetime import datetime, timezone
 import json
 from typing import Callable, Dict, List, Optional, Union
 from tabulate import tabulate
 import cli.interact
 from cli.help import TOP_LEVEL_COMMANDS, get_help_entry, print_help
 from cli.style import TABULATE_STYLE
+from colorama import Fore, Style
 
 from comms import (
     delete_implant_alias,
@@ -274,13 +276,24 @@ def show_implants(config: OperatorConfig) -> None:
 
     minified = []
     for implant in implants:
+        last_seen_str = implant["last_seen"]
+        last_seen_display = last_seen_str
+        
+        try:
+            last_seen_dt = datetime.fromisoformat(last_seen_str.replace("Z", "+00:00"))
+            now = datetime.now(timezone.utc)
+            if (now - last_seen_dt).total_seconds() > 3600:
+                last_seen_display = f"{Fore.RED}{last_seen_str}{Style.RESET_ALL}"
+        except (ValueError, TypeError):
+            pass
+        
         minified.append(
             [
                 implant["implant_id"][0:8],
                 implant["hostname"],
                 implant["ip"],
                 implant["os"],
-                implant["last_seen"],
+                last_seen_display,
                 implant["created_at"],
             ]
         )

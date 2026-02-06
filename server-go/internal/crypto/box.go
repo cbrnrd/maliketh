@@ -2,9 +2,11 @@ package crypto
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 
 	"golang.org/x/crypto/nacl/box"
+	"golang.org/x/crypto/nacl/secretbox"
 )
 
 const (
@@ -104,4 +106,26 @@ func DecryptB64Raw(senderPubKeyB64, recipientPrivKeyB64 string, ciphertext []byt
 	}
 
 	return DecryptRaw(senderPub, recipientPriv, ciphertext)
+}
+
+func DecryptB64SecretBox(ciphertextB64 string, keyB64 string) (string, error) {
+	k, err := base64.StdEncoding.DecodeString(keyB64)
+	if err != nil {
+		return "", err
+	}
+	c, err := base64.StdEncoding.DecodeString(ciphertextB64)
+	if err != nil {
+		return "", err
+	}
+	dec, ok := DecryptSecretBox(c, ([32]byte)(k))
+	if !ok {
+		return "", errors.New("failed to decrypt")
+	}
+	return string(dec), nil
+}
+
+func DecryptSecretBox(ciphertext []byte, key [32]byte) ([]byte, bool) {
+	var nonce [NonceSize]byte
+	copy(nonce[:], ciphertext[:NonceSize])
+	return secretbox.Open(nil, ciphertext[NonceSize:], &nonce, &key)
 }

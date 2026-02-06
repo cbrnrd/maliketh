@@ -69,8 +69,11 @@ func (r *ImplantRepository) Create(ctx context.Context, imp *model.Implant) (*mo
 	return mapImplant(created), nil
 }
 
-func (r *ImplantRepository) UpdateLastSeen(ctx context.Context, implantID string) error {
-	return r.q.UpdateImplantLastSeen(ctx, implantID)
+func (r *ImplantRepository) UpdateCheckin(ctx context.Context, implantID, ip string) error {
+	return r.q.UpdateImplantCheckin(ctx, repo.UpdateImplantCheckinParams{
+		ImplantID: implantID,
+		Ip:        &ip,
+	})
 }
 
 func (r *ImplantRepository) Delete(ctx context.Context, implantID string) error {

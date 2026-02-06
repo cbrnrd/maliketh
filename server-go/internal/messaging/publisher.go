@@ -7,8 +7,8 @@ type Publisher interface {
 	// PublishAnnouncement sends a message to all operators.
 	PublishAnnouncement(ctx context.Context, message string) error
 
-	// PublishToOperator sends a message to a specific operator.
-	PublishToOperator(ctx context.Context, operatorName string, message string) error
+	// PublishToOperator sends a message to a specific operator's RMQ queue.
+	PublishToOperator(ctx context.Context, rmqQueue string, message string) error
 
 	// Close closes the publisher connection.
 	Close() error
@@ -21,7 +21,7 @@ func (n *NoopPublisher) PublishAnnouncement(ctx context.Context, message string)
 	return nil
 }
 
-func (n *NoopPublisher) PublishToOperator(ctx context.Context, operatorName string, message string) error {
+func (n *NoopPublisher) PublishToOperator(ctx context.Context, rmqQueue string, message string) error {
 	return nil
 }
 

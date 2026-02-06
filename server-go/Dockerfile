@@ -16,6 +16,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /build/bin/admin ./cmd/admin
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /build/bin/c2 ./cmd/c2
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /build/bin/migrate ./cmd/migrate
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /build/bin/createop ./cmd/createop
 
 # Admin server image
 FROM alpine:3.19 AS admin
@@ -25,6 +26,7 @@ RUN apk add --no-cache ca-certificates tzdata
 WORKDIR /app
 
 COPY --from=builder /build/bin/admin /app/admin
+COPY --from=builder /build/bin/createop /app/createop
 COPY --from=builder /build/migrations /app/migrations
 COPY --from=builder /build/configs /app/configs
 

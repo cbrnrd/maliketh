@@ -17,13 +17,17 @@ import (
 )
 
 type OperatorCredentials struct {
-	Username   string `json:"username"`
-	Role       string `json:"role"`
-	PublicKey  string `json:"public_key"`
-	PrivateKey string `json:"private_key"`
-	VerifyKey  string `json:"verify_key"`
-	SigningKey string `json:"signing_key"`
-	RMQQueue   string `json:"rmq_queue"`
+	Name        string `json:"name"`
+	Role        string `json:"role"`
+	Public      string `json:"public"`
+	Secret      string `json:"secret"`
+	VerifyKey   string `json:"verify_key"`
+	SigningKey  string `json:"signing_key"`
+	LoginSecret string `json:"login_secret"`
+	ServerPub   string `json:"server_pub"`
+	RMQQueue    string `json:"rmq_queue"`
+	C2          string `json:"c2"`
+	C2Port      int    `json:"c2_port"`
 }
 
 func main() {
@@ -103,13 +107,17 @@ func main() {
 	}
 
 	creds := OperatorCredentials{
-		Username:   created.Username,
-		Role:       string(created.Role),
-		PublicKey:  encPubKey,
-		PrivateKey: encPrivKey,
-		VerifyKey:  verifyKey,
-		SigningKey: signKey,
-		RMQQueue:   rmqQueue,
+		Name:        created.Username,
+		Role:        string(created.Role),
+		Public:      encPubKey,
+		Secret:      encPrivKey,
+		VerifyKey:   verifyKey,
+		SigningKey:  signKey,
+		LoginSecret: loginSecret,
+		ServerPub:   cfg.ServerPublicKey,
+		RMQQueue:    rmqQueue,
+		C2:          cfg.Admin.Host,
+		C2Port:      cfg.Admin.Port,
 	}
 
 	if *outputJSON {
@@ -118,13 +126,17 @@ func main() {
 		enc.Encode(creds)
 	} else {
 		fmt.Printf("Operator created successfully!\n\n")
-		fmt.Printf("Username:    %s\n", creds.Username)
-		fmt.Printf("Role:        %s\n", creds.Role)
-		fmt.Printf("RMQ Queue:   %s\n", creds.RMQQueue)
+		fmt.Printf("Name:         %s\n", creds.Name)
+		fmt.Printf("Role:         %s\n", creds.Role)
+		fmt.Printf("RMQ Queue:    %s\n", creds.RMQQueue)
+		fmt.Printf("C2:           %s\n", creds.C2)
+		fmt.Printf("C2 Port:      %d\n", creds.C2Port)
 		fmt.Printf("\n--- SAVE THESE KEYS SECURELY ---\n\n")
-		fmt.Printf("Public Key (X25519):  %s\n", creds.PublicKey)
-		fmt.Printf("Private Key (X25519): %s\n", creds.PrivateKey)
-		fmt.Printf("Verify Key (Ed25519): %s\n", creds.VerifyKey)
+		fmt.Printf("Public (X25519):       %s\n", creds.Public)
+		fmt.Printf("Secret (X25519):       %s\n", creds.Secret)
+		fmt.Printf("Verify Key (Ed25519):  %s\n", creds.VerifyKey)
 		fmt.Printf("Signing Key (Ed25519): %s\n", creds.SigningKey)
+		fmt.Printf("Login Secret:          %s\n", creds.LoginSecret)
+		fmt.Printf("Server Public Key:     %s\n", creds.ServerPub)
 	}
 }

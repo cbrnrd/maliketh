@@ -121,6 +121,16 @@ create-operator:
 	@test -n "$(USERNAME)" || (echo "Usage: make create-operator USERNAME=<name> [ROLE=admin|operator]" && exit 1)
 	$(GOCMD) run ./cmd/createop -username $(USERNAME) -role $(or $(ROLE),operator) -json
 
+docker-create-operator:
+	@echo "Creating operator (via Docker)..."
+	@test -n "$(USERNAME)" || (echo "Usage: make docker-create-operator USERNAME=<name> [ROLE=admin|operator]" && exit 1)
+	docker compose run --rm -e POSTGRES_HOST=postgres -e POSTGRES_PORT=5432 \
+		-e POSTGRES_USER=$${POSTGRES_USER:-maliketh} \
+		-e POSTGRES_PASSWORD=$${POSTGRES_PASSWORD} \
+		-e POSTGRES_DB=$${POSTGRES_DB:-maliketh} \
+		--entrypoint /app/createop admin \
+		-username $(USERNAME) -role $(or $(ROLE),operator) -json
+
 # Help
 help:
 	@echo "Maliketh Server (Go) - Available targets:"
@@ -151,4 +161,5 @@ help:
 	@echo "  dev-admin        Start admin server (development)"
 	@echo "  dev-c2           Start C2 server (development)"
 	@echo ""
-	@echo "  create-operator  Create a new operator (USERNAME=name [ROLE=admin|operator])"
+	@echo "  create-operator         Create a new operator (USERNAME=name [ROLE=admin|operator])"
+	@echo "  docker-create-operator  Create operator via Docker (when postgres not exposed)"

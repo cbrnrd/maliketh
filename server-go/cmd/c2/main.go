@@ -19,10 +19,18 @@ import (
 	"go.uber.org/zap"
 )
 
+func ptr[T any](v T) *T {
+	return &v
+}
+
 func main() {
 	profilePath := flag.String("profile", "", "path to C2 profile YAML")
 	disableRMQ := flag.Bool("no-rmq", false, "disable RabbitMQ messaging")
 	flag.Parse()
+
+	if *profilePath == "" {
+		profilePath = ptr(os.Getenv("C2_PROFILE"))
+	}
 
 	cfg, err := config.Load()
 	if err != nil {
@@ -50,7 +58,7 @@ func main() {
 	logger.Info("starting maliketh C2 server",
 		zap.String("env", cfg.Env),
 		zap.String("log_level", cfg.LogLevel),
-		zap.String("profile", profile.Name))
+		zap.Any("profile", profile))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -68,7 +76,7 @@ func main() {
 	// Initialize messaging
 	var publisher messaging.Publisher
 	if *disableRMQ {
-		logger.Info("RabbitMQ disabled")
+		logger.Warn("RabbitMQ disabled")
 		publisher = &messaging.NoopPublisher{}
 	} else {
 		publisher, err = messaging.NewRabbitMQPublisherWithRetry(cfg.RabbitMQ.URL(), logger, 5, 5*time.Second)

@@ -246,13 +246,18 @@ func (q *Queries) ResolveImplantIdentifier(ctx context.Context, implantID string
 	return i, err
 }
 
-const updateImplantLastSeen = `-- name: UpdateImplantLastSeen :exec
+const updateImplantCheckin = `-- name: UpdateImplantCheckin :exec
 UPDATE implants
-SET last_seen = NOW()
+SET last_seen = NOW(), ip = $2
 WHERE implant_id = $1
 `
 
-func (q *Queries) UpdateImplantLastSeen(ctx context.Context, implantID string) error {
-	_, err := q.db.Exec(ctx, updateImplantLastSeen, implantID)
+type UpdateImplantCheckinParams struct {
+	ImplantID string  `json:"implant_id"`
+	Ip        *string `json:"ip"`
+}
+
+func (q *Queries) UpdateImplantCheckin(ctx context.Context, arg UpdateImplantCheckinParams) error {
+	_, err := q.db.Exec(ctx, updateImplantCheckin, arg.ImplantID, arg.Ip)
 	return err
 }

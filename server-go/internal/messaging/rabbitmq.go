@@ -73,7 +73,7 @@ func (p *RabbitMQPublisher) connect() error {
 	if err := channel.ExchangeDeclare(
 		AnnouncementsExchange,
 		"fanout",
-		true,  // durable
+		false, // durable
 		false, // auto-deleted
 		false, // internal
 		false, // no-wait
@@ -87,7 +87,7 @@ func (p *RabbitMQPublisher) connect() error {
 	if err := channel.ExchangeDeclare(
 		LogsExchange,
 		"direct",
-		true,  // durable
+		false, // durable
 		false, // auto-deleted
 		false, // internal
 		false, // no-wait
@@ -134,17 +134,16 @@ func (p *RabbitMQPublisher) PublishAnnouncement(ctx context.Context, message str
 	)
 }
 
-func (p *RabbitMQPublisher) PublishToOperator(ctx context.Context, operatorName string, message string) error {
+func (p *RabbitMQPublisher) PublishToOperator(ctx context.Context, rmqQueue string, message string) error {
 	if err := p.ensureConnected(); err != nil {
 		return err
 	}
 
-	// The routing key is the operator's queue name
-	// In the Python version, this is stored in the operator's rmq_queue field
+	// The routing key is the operator's rmq_queue field from the database
 	return p.channel.PublishWithContext(
 		ctx,
 		LogsExchange,
-		operatorName, // routing key = operator queue name
+		rmqQueue, // routing key = operator's rmq_queue
 		false,
 		false,
 		amqp.Publishing{

